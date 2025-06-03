@@ -2,9 +2,17 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import asyncio
 from scrape_vbpl import scrape  # Make sure scrape_vbpl.py returns a list of dicts
+import os
+import json
 
-# Load credentials JSON
-SERVICE_ACCOUNT_FILE = 'vbpl-scraper-2e2895e33305.json'  # Update filename if needed
+# Load JSON from environment variable
+SERVICE_ACCOUNT_INFO = json.loads(os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+creds = ServiceAccountCredentials.from_json_keyfile_dict(SERVICE_ACCOUNT_INFO, [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+])
+client = gspread.authorize(creds)
+
 
 # Connect to Google Sheets
 def connect_to_sheet(sheet_name):
