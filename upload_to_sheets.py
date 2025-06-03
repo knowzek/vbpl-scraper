@@ -4,7 +4,7 @@ import asyncio
 from scrape_vbpl import scrape  # Make sure scrape_vbpl.py returns a list of dicts
 
 # Load credentials JSON
-SERVICE_ACCOUNT_FILE = 'your-service-account-key.json'  # Update filename if needed
+SERVICE_ACCOUNT_FILE = 'vbpl-scraper-2e2895e33305.json'  # Update filename if needed
 
 # Connect to Google Sheets
 def connect_to_sheet(sheet_name):
