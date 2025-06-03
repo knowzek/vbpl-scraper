@@ -54,23 +54,34 @@ def scrape_vbpl_events(cutoff_date=None):
                 print(f"🔗 Processing: {name} ({link})")
 
                 # ✅ Extract event date from the card (not detail page)
-                month = card.select_one(".lc-date-icon__item--month")
-                day = card.select_one(".lc-date-icon__item--day")
-                year = card.select_one(".lc-date-icon__item--year")
-
-                month_text = month.get_text(strip=True) if month else ""
-                day_text = day.get_text(strip=True) if day else ""
-                year_text = year.get_text(strip=True) if year else ""
-
+                month_tag = card.select_one(".lc-date-icon__item--month")
+                day_tag = card.select_one(".lc-date-icon__item--day")
+                year_tag = card.select_one(".lc-date-icon__item--year")
+                
+                month_text = month_tag.get_text(strip=True) if month_tag else ""
+                day_text = day_tag.get_text(strip=True) if day_tag else ""
+                year_text = year_tag.get_text(strip=True) if year_tag else ""
+                
+                if not (month_text and day_text and year_text):
+                    print(f"⚠️ Missing date parts for '{name}' — skipping")
+                    continue
+                
                 try:
                     event_date = datetime.strptime(f"{month_text} {day_text} {year_text}", "%B %d %Y")
                 except Exception as e:
-                    event_date = None
-
-                # ✅ STOP early if the event is past the cutoff
-                if cutoff_date and event_date and event_date > cutoff_date:
-                    print(f"🛑 Hit cutoff at '{name}' on {event_date.date()}. Stopping pagination.")
+                    print(f"⚠️ Failed to parse date for '{name}': {e}")
+                    continue
+                
+                print(f"📅 Parsed date for '{name}': {event_date.date()}")
+                
+                if cutoff_date and event_date > cutoff_date:
+                    print(f"🛑 '{name}' is beyond cutoff ({cutoff_date.date()}). Stopping pagination.")
                     return events
+
+                # ✅ NOW fetch the detail page
+                time.sleep(0.5)
+                detail_response = requests.get(link, headers=headers, timeout=10)
+                detail_soup = BeautifulSoup(detail_response.text, "html.parser")
 
                 # Get other summary info from the card
                 time_tag = card.select_one(".lc-event-info-item--time")
@@ -84,11 +95,6 @@ def scrape_vbpl_events(cutoff_date=None):
 
                 location_tag = card.select_one(".lc-event__branch")
                 location = location_tag.get_text(strip=True) if location_tag else ""
-
-                # ✅ Only fetch detail page if date is valid
-                time.sleep(0.5)
-                detail_response = requests.get(link, headers=headers, timeout=10)
-                detail_soup = BeautifulSoup(detail_response.text, "html.parser")
 
                 description_tag = detail_soup.select_one(".field--name-body .field-item") or \
                                   detail_soup.select_one(".field--name-body")
