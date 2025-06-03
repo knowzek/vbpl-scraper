@@ -2,8 +2,9 @@ services:
   - type: cron
     name: vbpl-scraper-job
     runtime: python
-    schedule: "0 0 1 * *"  # Run on the 1st of each month
+    schedule: "0 0 1 * *"
     buildCommand: |
       pip install -r requirements.txt
+    startCommand: |
       playwright install
-    startCommand: python scrape_vbpl.py
+      python scrape_vbpl.py
