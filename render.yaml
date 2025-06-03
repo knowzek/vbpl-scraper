@@ -1,8 +1,9 @@
 services:
   - type: cron
     name: vbpl-scraper-job
-    runtime: python
     schedule: "0 0 1 * *"
+    plan: free
+    dockerfilePath: ./Dockerfile
     buildCommand: |
       pip install -r requirements.txt
     startCommand: |
