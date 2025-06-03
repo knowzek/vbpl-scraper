@@ -11,29 +11,19 @@ async def scrape():
     results = []
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"]
-        )
+        browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
 
-        await page.goto("https://vbpl.librarymarket.com/events/month", timeout=30000)
+        await page.goto("https://vbpl.librarymarket.com/events/month")
 
         # Close library selector popup
         try:
             await page.click(".ui-dialog-titlebar-close", timeout=5000)
             print("✅ Popup closed.")
         except:
-            print("⚠️ Popup already dismissed or not found.")
+            print("⚠️ Popup already dismissed.")
 
-        try:
-            await page.wait_for_selector("a.lc-event__link", timeout=10000)
-        except:
-            print("❌ Event selector not found.")
-            await browser.close()
-            return results
-
-        # Get event cards
+        await page.wait_for_selector("article.event-card")
         event_cards = await page.locator("article.event-card").all()
         print(f"🔍 Found {len(event_cards)} event cards.")
 
@@ -42,17 +32,22 @@ async def scrape():
                 name = await card.locator("a.lc-event__link").inner_text()
                 link_suffix = await card.locator("a.lc-event__link").get_attribute("href")
                 link = f"https://vbpl.librarymarket.com{link_suffix}"
-                status = await card.locator("div.lc-core--extra-field span").inner_text()
-                time_slot = await card.locator("div.lc-event-info-item--time").inner_text()
-                ages = await card.locator("div.lc-event-info__item--colors").inner_text()
-                location = await card.locator("div.lc-event__branch").inner_text()
-            except:
-                continue
 
-            # Visit event detail page
-            detail_page = await browser.new_page()
-            try:
-                await detail_page.goto(link, timeout=15000)
+                status_node = card.locator(".lc-registration-label")
+                status = await status_node.inner_text() if await status_node.count() > 0 else "Unknown"
+
+                time_node = card.locator(".lc-event-info-item--time")
+                time_slot = await time_node.inner_text() if await time_node.count() > 0 else ""
+
+                ages_node = card.locator(".lc-event-info__item--colors, .lc-event__age-groups span")
+                ages = await ages_node.inner_text() if await ages_node.count() > 0 else ""
+
+                location_node = card.locator(".lc-event__branch")
+                location = await location_node.inner_text() if await location_node.count() > 0 else ""
+
+                # Visit event detail page
+                detail_page = await browser.new_page()
+                await detail_page.goto(link)
 
                 try:
                     description = await detail_page.locator(".field--name-body .field-item").inner_text()
@@ -66,6 +61,8 @@ async def scrape():
                 except:
                     month, day, year = "", "", ""
 
+                await detail_page.close()
+
                 record = {
                     "Event Name": remove_emojis(name.strip()),
                     "Event Link": link,
@@ -78,9 +75,13 @@ async def scrape():
                     "Year": year.strip(),
                     "Event Description": remove_emojis(description.strip())
                 }
+
                 results.append(record)
-            finally:
-                await detail_page.close()
+                print(f"✅ Scraped: {name.strip()}")
+
+            except Exception as e:
+                print(f"⚠️ Error parsing card: {e}")
+                continue
 
         await browser.close()
         return results
