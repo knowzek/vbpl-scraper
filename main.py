@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     if events:
         print("📤 Uploading to Google Sheets...")
-        upload_events_to_sheet(events)
+        upload_events_to_sheet(events, mode=mode)
         print("✅ Done.")
     else:
         print("⚠️ No events to upload.")
