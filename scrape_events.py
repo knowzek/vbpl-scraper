@@ -25,7 +25,7 @@ def filter_events_by_mode(events, mode):
             continue
     return filtered
 
-def scrape_vbpl_events():
+def scrape_vbpl_events(cutoff_date=None):
     base_url = "https://vbpl.librarymarket.com"
     headers = {"User-Agent": "Mozilla/5.0"}
     MAX_PAGES = 100  # Safety cap to avoid infinite loops
@@ -84,6 +84,9 @@ def scrape_vbpl_events():
 
                 try:
                     event_date = datetime.strptime(f"{month_text} {day_text} {year_text}", "%B %d %Y")
+                    if cutoff_date and event_date and event_date > cutoff_date:
+                        print(f"🛑 Event '{name}' is past cutoff ({cutoff_date.date()}), stopping pagination.")
+                        return events
                 except Exception as e:
                     event_date = None
 
