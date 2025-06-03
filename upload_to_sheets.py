@@ -1,20 +1,24 @@
-import gspread
-import json
 import os
+import json
+import gspread
 from google.oauth2.service_account import Credentials
 
 SPREADSHEET_NAME = "Virginia Beach Library Events"
 WORKSHEET_NAME = "VBPL Events"
 
-def connect_to_sheet(sheet_name, worksheet_name):
+def connect_to_sheet(spreadsheet_name, worksheet_name):
     creds_json = os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"]
-    creds_dict = json.loads(creds_json)
-    creds = Credentials.from_service_account_info(
-        creds_dict,
-        scopes=["https://www.googleapis.com/auth/spreadsheets"]
+
+    # Write the secret to a file so gspread can use it
+    with open("/tmp/credentials.json", "w") as f:
+        f.write(creds_json)
+
+    creds = Credentials.from_service_account_file(
+        "/tmp/credentials.json",
+        scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"],
     )
     client = gspread.authorize(creds)
-    sheet = client.open(sheet_name).worksheet(worksheet_name)
+    sheet = client.open(spreadsheet_name).worksheet(worksheet_name)
     return sheet
 
 def upload_events_to_sheet(events, sheet=None):
