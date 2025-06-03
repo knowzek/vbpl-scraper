@@ -1,12 +1,7 @@
 services:
-  - type: cron
-    name: vbpl-scraper-job
-    schedule: "0 0 1 * *"
-    plan: free
-    dockerfilePath: ./Dockerfile
-    buildCommand: |
-      pip install -r requirements.txt
-    startCommand: |
-      playwright install
-      python upload_to_sheets.py
-
+  - type: web
+    name: vbpl-events-scraper
+    runtime: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python main.py"
+   
