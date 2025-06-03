@@ -5,6 +5,7 @@ from google.oauth2.service_account import Credentials
 
 SPREADSHEET_NAME = "Virginia Beach Library Events"
 WORKSHEET_NAME = "VBPL Events"
+LOG_WORKSHEET_NAME = "VBPL Log"
 
 def connect_to_sheet(spreadsheet_name, worksheet_name):
     creds = Credentials.from_service_account_file(
@@ -13,11 +14,8 @@ def connect_to_sheet(spreadsheet_name, worksheet_name):
     )
     client = gspread.authorize(creds)
     return client.open(spreadsheet_name).worksheet(worksheet_name)
-    client = gspread.authorize(creds)
-    sheet = client.open(spreadsheet_name).worksheet(worksheet_name)
-    return sheet
 
-def upload_events_to_sheet(events, sheet=None):
+def upload_events_to_sheet(events, sheet=None, mode="full"):
     if sheet is None:
         sheet = connect_to_sheet(SPREADSHEET_NAME, WORKSHEET_NAME)
 
@@ -64,6 +62,16 @@ def upload_events_to_sheet(events, sheet=None):
                 row_index = link_to_row_index[link]
                 sheet.update(f"A{row_index}:J{row_index}", [new_row])
                 updated += 1
+
+    # Log results to VBPL Log tab
+    try:
+        log_sheet = connect_to_sheet(SPREADSHEET_NAME, LOG_WORKSHEET_NAME)
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_row = [now, mode, added, updated, skipped]
+        log_sheet.append_row(log_row, value_input_option="USER_ENTERED")
+        print("📝 Logged summary to 'VBPL Log' tab.")
+    except Exception as e:
+        print(f"⚠️ Failed to log to VBPL Log tab: {e}")
 
     print(f"📦 {added} new events added.")
     print(f"🔁 {updated} existing events updated.")
