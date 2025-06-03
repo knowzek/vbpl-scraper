@@ -67,7 +67,7 @@ def scrape_vbpl_events(cutoff_date=None):
                     continue
                 
                 try:
-                    event_date = datetime.strptime(f"{month_text} {day_text} {year_text}", "%B %d %Y")
+                    event_date = datetime.strptime(f"{month_text} {day_text} {year_text}", "%b %d %Y")
                 except Exception as e:
                     print(f"⚠️ Failed to parse date for '{name}': {e}")
                     continue
