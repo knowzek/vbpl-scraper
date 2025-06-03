@@ -25,19 +25,27 @@ def upload_events_to_sheet(events, sheet=None):
     print(f"📄 {len(existing_links)} existing links in sheet.")
 
     new_rows = []
+    skipped = 0
+
     for event in events:
-        if event["Event Link"] not in existing_links:
+        link = event.get("Event Link", "")
+        if not link:
+            print(f"⚠️ Skipping malformed event (missing link): {event}")
+            skipped += 1
+            continue
+
+        if link not in existing_links:
             new_rows.append([
-                event["Event Name"],
-                event["Event Link"],
-                event["Event Status"],
-                event["Time"],
-                event["Ages"],
-                event["Location"],
-                event["Month"],
-                event["Day"],
-                event["Year"],
-                event["Event Description"]
+                event.get("Event Name", ""),
+                link,
+                event.get("Event Status", ""),
+                event.get("Time", ""),
+                event.get("Ages", ""),
+                event.get("Location", ""),
+                event.get("Month", ""),
+                event.get("Day", ""),
+                event.get("Year", ""),
+                event.get("Event Description", "")
             ])
 
     if new_rows:
@@ -45,3 +53,6 @@ def upload_events_to_sheet(events, sheet=None):
         print(f"📦 Added {len(new_rows)} new rows.")
     else:
         print("✅ No new events to add.")
+
+    if skipped:
+        print(f"🧹 Skipped {skipped} malformed events.")
