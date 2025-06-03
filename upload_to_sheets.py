@@ -1,31 +1,25 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import asyncio
-from scrape_vbpl import scrape  # Make sure scrape_vbpl.py returns a list of dicts
-import os
+from scrape_vbpl import scrape
 import json
 
-# Load JSON from environment variable
-SERVICE_ACCOUNT_INFO = json.loads(os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+# 🔐 Load secret file from Render's mount path
+with open("/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON") as f:
+    SERVICE_ACCOUNT_INFO = json.load(f)
+
 creds = ServiceAccountCredentials.from_json_keyfile_dict(SERVICE_ACCOUNT_INFO, [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ])
 client = gspread.authorize(creds)
 
-
-# Connect to Google Sheets
+# ✅ Use the authorized client directly
 def connect_to_sheet(sheet_name):
-    scope = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive"
-    ]
-    creds = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_FILE, scope)
-    client = gspread.authorize(creds)
     return client.open(sheet_name).sheet1
 
 def get_existing_links(sheet):
-    links = sheet.col_values(2)[1:]  # Assuming column 2 = Event Link, skip header
+    links = sheet.col_values(2)[1:]  # Column 2 = Event Link
     return set(links)
 
 def append_new_events(sheet, new_events, existing_links):
