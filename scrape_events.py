@@ -2,9 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
-def remove_emojis(text):
-    return re.sub(r"[^\w\s.,;:!?&@()'\"/-]", "", text)
-
 def scrape_vbpl_events():
     base_url = "https://vbpl.librarymarket.com"
     month_url = f"{base_url}/events/upcoming"
@@ -20,27 +17,28 @@ def scrape_vbpl_events():
     for card in cards:
         try:
             link_tag = card.select_one("a.lc-event__link")
-            name = remove_emojis(link_tag.get_text(strip=True))
+            name = link_tag.get_text(strip=True)
             link = base_url + link_tag["href"]
-
+            
             time_tag = card.select_one(".lc-event-info-item--time")
-            time_slot = remove_emojis(time_tag.get_text(strip=True)) if time_tag else ""
-
+            time_slot = time_tag.get_text(strip=True) if time_tag else ""
+            
             ages_tag = card.select_one(".lc-event-info__item--colors")
-            ages = remove_emojis(ages_tag.get_text(strip=True)) if ages_tag else ""
-
+            ages = ages_tag.get_text(strip=True) if ages_tag else ""
+            
             status_tag = card.select_one(".lc-registration-label")
-            status = remove_emojis(status_tag.get_text(strip=True)) if status_tag else "Available"
-
+            status = status_tag.get_text(strip=True) if status_tag else "Available"
+            
             location_tag = card.select_one(".lc-event__branch")
-            location = remove_emojis(location_tag.get_text(strip=True)) if location_tag else ""
-
+            location = location_tag.get_text(strip=True) if location_tag else ""
+            
             # Visit detail page
             detail_response = requests.get(link, headers=headers)
             detail_soup = BeautifulSoup(detail_response.text, "html.parser")
-
-            description_tag = detail_soup.select_one(".field--name-body .field-item")
-            description = remove_emojis(description_tag.get_text(strip=True)) if description_tag else ""
+            
+            description_tag = detail_soup.select_one(".field--name-body .field-item") or \
+                              detail_soup.select_one(".field--name-body")
+            description = description_tag.get_text(strip=True) if description_tag else ""
 
             month = detail_soup.select_one(".lc-date-icon__item--month")
             day = detail_soup.select_one(".lc-date-icon__item--day")
