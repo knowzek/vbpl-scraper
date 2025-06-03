@@ -34,7 +34,7 @@ async def scrape():
             return results
 
         # Get event cards
-        event_cards = await page.locator("article.lc-event").all()
+        event_cards = await page.locator("article.event-card").all()
         print(f"🔍 Found {len(event_cards)} event cards.")
 
         for card in event_cards:
