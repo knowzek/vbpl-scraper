@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
+import time
 
 def scrape_vbpl_events():
     base_url = "https://vbpl.librarymarket.com"
@@ -28,6 +29,8 @@ def scrape_vbpl_events():
                 link_tag = card.select_one("a.lc-event__link")
                 name = link_tag.get_text(strip=True)
                 link = base_url + link_tag["href"]
+                print(f"🔗 Processing: {name} ({link})")  # ✅ Add log to confirm progress
+                time.sleep(0.5)  # ✅ Add delay to avoid hammering the server
 
                 time_tag = card.select_one(".lc-event-info-item--time")
                 time_slot = time_tag.get_text(strip=True) if time_tag else ""
