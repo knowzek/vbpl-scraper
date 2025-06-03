@@ -7,7 +7,7 @@ SPREADSHEET_NAME = "Virginia Beach Library Events"
 WORKSHEET_NAME = "VBPL Events"
 
 def connect_to_sheet(sheet_name, worksheet_name):
-    creds_json = os.environ["GOOGLE_SHEETS_CREDS"]
+    creds_json = os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"]
     creds_dict = json.loads(creds_json)
     creds = Credentials.from_service_account_info(
         creds_dict,
