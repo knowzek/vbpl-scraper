@@ -46,11 +46,16 @@ def append_new_events(sheet, new_events, existing_links):
             sheet.append_row(row, value_input_option="USER_ENTERED")
 
 async def main():
+    print("🚀 Starting scrape...")
     new_events = await scrape()
-    sheet = connect_to_sheet("VBPL Events")  # Update with your actual sheet name
+    print(f"📦 {len(new_events)} events scraped.")
+
+    sheet = connect_to_sheet("VBPL Events")
     existing_links = get_existing_links(sheet)
+    print(f"📄 {len(existing_links)} existing links in sheet.")
+
     append_new_events(sheet, new_events, existing_links)
-    print(f"✅ Uploaded {len(new_events)} events (skipped duplicates).")
+    print("✅ Done uploading.")
 
 if __name__ == "__main__":
     asyncio.run(main())
