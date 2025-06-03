@@ -2,6 +2,28 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 import time
+from datetime import timedelta
+
+def filter_events_by_mode(events, mode):
+    today = datetime.today()
+
+    if mode == "weekly":
+        end_date = today + timedelta(days=7)
+    elif mode == "monthly":
+        end_date = datetime(today.year, today.month, 28) + timedelta(days=4)
+        end_date = end_date.replace(day=1) - timedelta(days=1)
+    else:
+        return events  # no filtering
+
+    filtered = []
+    for event in events:
+        try:
+            edate = datetime.strptime(event["Event Date"], "%Y-%m-%d")
+            if today <= edate <= end_date:
+                filtered.append(event)
+        except:
+            continue
+    return filtered
 
 def scrape_vbpl_events():
     base_url = "https://vbpl.librarymarket.com"
