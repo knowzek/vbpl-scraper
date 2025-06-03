@@ -44,7 +44,7 @@ async def main():
     new_events = await scrape()
     print(f"📦 {len(new_events)} events scraped.")
 
-    sheet = connect_to_sheet("VBPL Events")
+    sheet = connect_to_sheet("Virginia Beach Library Events")
     existing_links = get_existing_links(sheet)
     print(f"📄 {len(existing_links)} existing links in sheet.")
 
