@@ -9,7 +9,7 @@ async def scrape():
     results = []
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(headless=True, args=["--disable-dev-shm-usage"])
         page = await browser.new_page()
 
         print("🚀 Starting scrape...")
@@ -27,7 +27,7 @@ async def scrape():
 
         detail_page = await browser.new_page()
 
-        for i, card in enumerate(cards):
+        for i, card in enumerate(cards[:50]):  # 🔒 Limit to 50 cards max for stability
             try:
                 name = await card.locator("a.lc-event__link").inner_text(timeout=5000)
                 link_suffix = await card.locator("a.lc-event__link").get_attribute("href", timeout=5000)
@@ -61,7 +61,7 @@ async def scrape():
                 print(f"⚠️ Detail page failed for card {i}: {e}")
                 continue
 
-            record = {
+            results.append({
                 "Event Name": remove_emojis(name.strip()),
                 "Event Link": link,
                 "Event Status": remove_emojis(status.strip()),
@@ -72,9 +72,9 @@ async def scrape():
                 "Day": day.strip(),
                 "Year": year.strip(),
                 "Event Description": remove_emojis(description.strip())
-            }
+            })
 
-            results.append(record)
+            await page.wait_for_timeout(500)  # ⏳ Prevent browser from crashing
 
         await detail_page.close()
         await browser.close()
