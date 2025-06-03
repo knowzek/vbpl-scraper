@@ -25,18 +25,17 @@ async def scrape():
         cards = await page.locator("article.event-card").all()
         print(f"🔍 Found {len(cards)} event cards.")
 
-        # Open a single detail tab to reuse
         detail_page = await browser.new_page()
 
         for i, card in enumerate(cards):
             try:
-                name = await card.locator("h3.lc-event__title a").inner_text(timeout=5000)
-                link_suffix = await card.locator("h3.lc-event__title a").get_attribute("href", timeout=5000)
+                name = await card.locator("a.lc-event__link").inner_text(timeout=5000)
+                link_suffix = await card.locator("a.lc-event__link").get_attribute("href", timeout=5000)
                 link = f"https://vbpl.librarymarket.com{link_suffix}"
-                status = await card.locator(".lc-core--extra-field span").inner_text(timeout=5000)
-                time_slot = await card.locator(".lc-event-info-item--time").inner_text(timeout=5000)
-                ages = await card.locator(".lc-event-info__item--colors").inner_text(timeout=5000)
-                location = await card.locator(".lc-event__branch").inner_text(timeout=5000)
+                status = await card.locator(".lc-core--extra-field span").inner_text(timeout=3000)
+                time_slot = await card.locator(".lc-event-info-item--time").inner_text(timeout=3000)
+                ages = await card.locator(".lc-event-info__item--colors").inner_text(timeout=3000)
+                location = await card.locator(".lc-event__branch").inner_text(timeout=3000)
             except TimeoutError:
                 print(f"⚠️ Timeout on card {i}")
                 continue
@@ -44,7 +43,6 @@ async def scrape():
                 print(f"⚠️ Error parsing card {i}: {e}")
                 continue
 
-            # Visit detail page in the reused tab
             try:
                 await detail_page.goto(link, timeout=10000)
 
@@ -54,13 +52,13 @@ async def scrape():
                     description = ""
 
                 try:
-                    month = await detail_page.locator(".lc-date-icon__item--month").inner_text(timeout=5000)
-                    day = await detail_page.locator(".lc-date-icon__item--day").inner_text(timeout=5000)
-                    year = await detail_page.locator(".lc-date-icon__item--year").inner_text(timeout=5000)
+                    month = await detail_page.locator(".lc-date-icon__item--month").inner_text(timeout=3000)
+                    day = await detail_page.locator(".lc-date-icon__item--day").inner_text(timeout=3000)
+                    year = await detail_page.locator(".lc-date-icon__item--year").inner_text(timeout=3000)
                 except:
                     month, day, year = "", "", ""
             except Exception as e:
-                print(f"⚠️ Failed to open detail page for card {i}: {e}")
+                print(f"⚠️ Detail page failed for card {i}: {e}")
                 continue
 
             record = {
