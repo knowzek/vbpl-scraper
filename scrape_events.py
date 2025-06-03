@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-import re
+from datetime import datetime
 
 def scrape_vbpl_events():
     base_url = "https://vbpl.librarymarket.com"
@@ -24,14 +24,20 @@ def scrape_vbpl_events():
 
         for card in cards:
             try:
-                # [your existing card parsing logic here...]
-                ...
-                events.append({
-                    # your event fields
-                })
-            except Exception as e:
-                print(f"⚠️ Error parsing event: {e}")
-        
-        page += 1
+                link_tag = card.select_one("a.lc-event__link")
+                name = link_tag.get_text(strip=True)
+                link = base_url + link_tag["href"]
 
-    return events
+                time_tag = card.select_one(".lc-event-info-item--time")
+                time_slot = time_tag.get_text(strip=True) if time_tag else ""
+
+                ages_tag = card.select_one(".lc-event-info__item--colors")
+                ages = ages_tag.get_text(strip=True) if ages_tag else ""
+
+                status_tag = card.select_one(".lc-registration-label")
+                status = status_tag.get_text(strip=True) if status_tag else "Available"
+
+                location_tag = card.select_one(".lc-event__branch")
+                location = location_tag.get_text(strip=True) if location_tag else ""
+
+                # Visit detail page
