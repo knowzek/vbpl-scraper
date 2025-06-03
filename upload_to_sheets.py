@@ -21,38 +21,51 @@ def upload_events_to_sheet(events, sheet=None):
     if sheet is None:
         sheet = connect_to_sheet(SPREADSHEET_NAME, WORKSHEET_NAME)
 
-    existing_links = {row[1] for row in sheet.get_all_values()[1:] if len(row) > 1}
-    print(f"📄 {len(existing_links)} existing links in sheet.")
+    rows = sheet.get_all_values()
+    headers = rows[0]
+    existing_rows = rows[1:]
 
-    new_rows = []
+    # Build dict by Event Link
+    link_to_row_index = {row[1]: idx + 2 for idx, row in enumerate(existing_rows) if len(row) > 1}
+    existing_data = {row[1]: row for row in existing_rows if len(row) > 1}
+
+    added = 0
+    updated = 0
     skipped = 0
 
     for event in events:
         link = event.get("Event Link", "")
         if not link:
-            print(f"⚠️ Skipping malformed event (missing link): {event}")
+            print(f"⚠️ Skipping malformed event: {event}")
             skipped += 1
             continue
 
-        if link not in existing_links:
-            new_rows.append([
-                event.get("Event Name", ""),
-                link,
-                event.get("Event Status", ""),
-                event.get("Time", ""),
-                event.get("Ages", ""),
-                event.get("Location", ""),
-                event.get("Month", ""),
-                event.get("Day", ""),
-                event.get("Year", ""),
-                event.get("Event Description", "")
-            ])
+        new_row = [
+            event.get("Event Name", ""),
+            link,
+            event.get("Event Status", ""),
+            event.get("Time", ""),
+            event.get("Ages", ""),
+            event.get("Location", ""),
+            event.get("Month", ""),
+            event.get("Day", ""),
+            event.get("Year", ""),
+            event.get("Event Description", "")
+        ]
 
-    if new_rows:
-        sheet.append_rows(new_rows, value_input_option="USER_ENTERED")
-        print(f"📦 Added {len(new_rows)} new rows.")
-    else:
-        print("✅ No new events to add.")
+        if link not in existing_data:
+            # New event
+            sheet.append_row(new_row, value_input_option="USER_ENTERED")
+            added += 1
+        else:
+            # Check if any field changed
+            old_row = existing_data[link]
+            if new_row != old_row:
+                row_index = link_to_row_index[link]
+                sheet.update(f"A{row_index}:J{row_index}", [new_row])
+                updated += 1
 
+    print(f"📦 {added} new events added.")
+    print(f"🔁 {updated} existing events updated.")
     if skipped:
-        print(f"🧹 Skipped {skipped} malformed events.")
+        print(f"🧹 {skipped} malformed events skipped.")
