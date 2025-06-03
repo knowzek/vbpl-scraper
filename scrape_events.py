@@ -7,7 +7,7 @@ def remove_emojis(text):
 
 def scrape_vbpl_events():
     base_url = "https://vbpl.librarymarket.com"
-    month_url = f"{base_url}/events/month"
+    month_url = f"{base_url}/events/upcoming"
     headers = {"User-Agent": "Mozilla/5.0"}
 
     response = requests.get(month_url, headers=headers)
