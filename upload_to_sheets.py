@@ -52,7 +52,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
             event.get("Day", ""),
             event.get("Year", ""),
             event.get("Event Description", ""),
-            now  # 👈 Timestamp for Last Updated column,
+            now,  # 👈 Timestamp for Last Updated column,
             "new"  # Will update to "updated" if needed below
         ]
 
