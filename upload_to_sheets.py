@@ -16,7 +16,7 @@ client = gspread.authorize(creds)
 
 # ✅ Use the authorized client directly
 def connect_to_sheet(sheet_name):
-    return client.open(sheet_name).sheet1
+    return client.open(sheet_name).worksheet("VBPL Events")
 
 def get_existing_links(sheet):
     links = sheet.col_values(2)[1:]  # Column 2 = Event Link
