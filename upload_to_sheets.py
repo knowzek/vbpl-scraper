@@ -58,9 +58,9 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
             event.get("Year", ""),
             event.get("Event Description", ""),
             event.get("Series", ""),
-            event.get("Program Type", "")
+            event.get("Program Type", ""),
+            event.get("Categories", "")  # <-- NEW
         ]
-
         new_core = normalize(row_core)
         existing_core = normalize(existing_data.get(link, []))
 
@@ -88,7 +88,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
         elif new_core != existing_core:
             row_index = link_to_row_index[link]
             update_requests.append({
-                "range": f"A{row_index}:P{row_index}",
+                "range": f"A{row_index}:Q{row_index}",
                 "values": [full_row]
             })
             updated += 1
