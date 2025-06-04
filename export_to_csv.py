@@ -87,12 +87,15 @@ def export_events_to_csv():
     print("Before filter:\n", df[["Event Name", "Ages", "Site Sync Status"]])
 
     # === FILTERING ===
-    # df = df[df['Ages'].str.strip() != "Adults 18+"]
-    # df = df[~df['Site Sync Status'].str.lower().isin(['on site', 'updated'])]
+    df = df[df['Ages'].str.strip() != "Adults 18+"]
+    df = df[~df['Site Sync Status'].str.lower().isin(['on site', 'updated'])]
 
     # === NORMALIZE LOCATION ===
-    df = df[df['Location'].isin(LOCATION_MAP)]
-    df['Location'] = df['Location'].map(LOCATION_MAP)
+    df['Location'] = df['Location'].astype(str).str.strip()
+    df['Location Mapped'] = df['Location'].map(LOCATION_MAP)
+    df = df[df['Location Mapped'].notna()]
+    df['Location'] = df['Location Mapped']
+    df.drop(columns=['Location Mapped'], inplace=True)
 
     # === FORMAT START DATE ===
     df['EVENT START DATE'] = pd.to_datetime(df['Month'] + ' ' + df['Day'].astype(str) + ' ' + df['Year'].astype(str))
