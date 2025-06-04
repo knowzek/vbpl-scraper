@@ -40,6 +40,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
         rows = sheet.get_all_values()
         headers = rows[0]
         existing_rows = rows[1:]
+        existing_rows = [r + [""] * (16 - len(r)) if len(r) < 16 else r for r in existing_rows]
 
         link_to_row_index = {row[1]: idx + 2 for idx, row in enumerate(existing_rows) if len(row) > 1}
         existing_data = {row[1]: row for row in existing_rows if len(row) > 1}
