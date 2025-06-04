@@ -86,16 +86,26 @@ def export_events_to_csv():
     original_row_count = len(df)
     print("Before filter:\n", df[["Event Name", "Ages", "Site Sync Status"]])
 
-    # === FILTERING ===
-    df = df[df['Ages'].str.strip() != "Adults 18+"]
-    df = df[~df['Site Sync Status'].str.lower().isin(['on site', 'updated'])]
+    print("Step 1: Initial rows:", len(df))
 
+    # === FILTERING ===
+    df['Ages'] = df['Ages'].astype(str).str.strip()
+    df = df[df['Ages'] != "Adults 18+"]
+    print("Step 2: After filtering out 'Adults 18+':", len(df))
+    
+    df['Site Sync Status'] = df['Site Sync Status'].astype(str).str.strip().str.lower()
+    df = df[~df['Site Sync Status'].isin(['on site', 'updated'])]
+    print("Step 3: After filtering 'on site' / 'updated':", len(df))
+    
     # === NORMALIZE LOCATION ===
     df['Location'] = df['Location'].astype(str).str.strip()
     df['Location Mapped'] = df['Location'].map(LOCATION_MAP)
+    print("Step 4: Rows with mapped locations:", df['Location Mapped'].notna().sum())
+    
     df = df[df['Location Mapped'].notna()]
     df['Location'] = df['Location Mapped']
     df.drop(columns=['Location Mapped'], inplace=True)
+    print("Step 5: Final export row count:", len(df))
 
     # === FORMAT START DATE ===
     df['EVENT START DATE'] = pd.to_datetime(df['Month'] + ' ' + df['Day'].astype(str) + ' ' + df['Year'].astype(str))
