@@ -1,12 +1,24 @@
 from datetime import datetime
 import os
-import json
 import gspread
 from google.oauth2.service_account import Credentials
 
 SPREADSHEET_NAME = "Virginia Beach Library Events"
 WORKSHEET_NAME = "VBPL Events"
 LOG_WORKSHEET_NAME = "VBPL Log"
+
+PROGRAM_TYPE_TO_CATEGORIES = {
+    "Storytimes & Early Learning": "Audience - Early Learning, Audience - Family Event",
+    "STEAM": "Audience - STEAM, Audience - Kids",
+    "Computers & Technology": "Audience - Technology, Audience - Teens",
+    "Workshops & Lectures": "Audience - Adult Event, Audience - Learning",
+    "Discussion Groups": "Audience - Adult Event, Audience - Discussion",
+    "Arts & Crafts": "Audience - Craft Event, Audience - Family Event",
+    "Hobbies": "Audience - Hobby Event, Audience - All Ages",
+    "Books & Authors": "Audience - Author Event, Audience - Adult Event",
+    "Culture": "Audience - Cultural Event, Audience - All Ages",
+    "History & Genealogy": "Audience - History Event, Audience - Seniors"
+}
 
 def connect_to_sheet(spreadsheet_name, worksheet_name):
     creds = Credentials.from_service_account_file(
@@ -45,6 +57,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
             continue
 
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        program_type = event.get("Program Type", "")
+        categories = PROGRAM_TYPE_TO_CATEGORIES.get(program_type, "")
 
         row_core = [
             event.get("Event Name", ""),
@@ -58,21 +72,22 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
             event.get("Year", ""),
             event.get("Event Description", ""),
             event.get("Series", ""),
-            event.get("Program Type", ""),
-            event.get("Categories", "")  # <-- NEW
+            program_type,
+            categories
         ]
+
         new_core = normalize(row_core)
         existing_core = normalize(existing_data.get(link, []))
 
-        # Column M = Status
+        # Column O = Status
         status = "new"
         if link in existing_data and new_core != existing_core:
             status = "updated"
         elif link in existing_data:
-            status = existing_data[link][13] if len(existing_data[link]) > 13 else ""
+            status = existing_data[link][14] if len(existing_data[link]) > 14 else ""
 
-        # Column N = Site Sync Status
-        site_sync_status = existing_data.get(link, [""] * 14)[13]
+        # Column P = Site Sync Status
+        site_sync_status = existing_data.get(link, [""] * 15)[15]
         if link not in existing_data:
             site_sync_status = "new"
         elif new_core != existing_core:
