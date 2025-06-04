@@ -100,6 +100,11 @@ def scrape_vbpl_events(cutoff_date=None):
                                   detail_soup.select_one(".field--name-body")
                 description = description_tag.get_text(strip=True) if description_tag else ""
 
+                # Extract Program Type (used for category assignment)
+                program_type_tag = detail_soup.select_one(".lc-event__program-types span")
+                program_type = program_type_tag.get_text(strip=True) if program_type_tag else ""
+
+                
                 # Detect if part of a series
                 series_block = detail_soup.select_one(".lc-repeating-dates__details")
                 is_series = "Yes" if series_block else ""
@@ -117,7 +122,8 @@ def scrape_vbpl_events(cutoff_date=None):
                     "Year": year_text,
                     "Event Date": event_date.strftime("%Y-%m-%d"),
                     "Event Description": description,
-                    "Series": is_series
+                    "Series": is_series,
+                    "Program Type": program_type
                 })
 
             except Exception as e:
