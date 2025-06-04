@@ -149,7 +149,7 @@ def export_events_to_csv():
     # === UPDATE SHEET: Set Site Sync Status to 'on site' for these ===
     update_indices = df.index + 2  # account for header row + 0-index
     for i in update_indices:
-        sheet.update(f"P{i}", "on site")
+       sheet.update(f"P{i}", [["on site"]])
 
     # === Upload to Drive and Email ===
     file_url = upload_csv_to_drive(CSV_EXPORT_PATH)
