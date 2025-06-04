@@ -1,20 +1,33 @@
 import gspread
-from google.oauth2.service_account import Credentials
 import pandas as pd
 from datetime import datetime
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from email.mime.text import MIMEText
 import base64
+import os
+import json
+from google.oauth2 import service_account
 
 # === CONFIG ===
 SPREADSHEET_NAME = "Virginia Beach Library Events"
 WORKSHEET_NAME = "VBPL Events"
 CSV_EXPORT_PATH = "events_for_upload.csv"
-CREDENTIALS_PATH = "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON"
-DRIVE_FOLDER_ID = "1MrUjkl8EirZpoR2sT80UYc0ECCEMI-W1"  # Replace with your actual folder ID
+DRIVE_FOLDER_ID = "your_drive_folder_id_here"  # Replace with your actual folder ID
 EMAIL_RECIPIENT = "knowzek@gmail.com"
 EMAIL_SUBJECT = "new csv export for upload ready"
+
+# === AUTH ===
+CREDENTIALS_JSON = os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"]
+creds_dict = json.loads(CREDENTIALS_JSON)
+creds = service_account.Credentials.from_service_account_info(
+    creds_dict,
+    scopes=[
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+        "https://www.googleapis.com/auth/gmail.send"
+    ]
+)
 
 # === LOCATION NORMALIZATION ===
 LOCATION_MAP = {
@@ -31,20 +44,12 @@ LOCATION_MAP = {
 
 # === CONNECT TO SHEET ===
 def get_sheet():
-    creds = Credentials.from_service_account_file(
-        CREDENTIALS_PATH,
-        scopes=["https://www.googleapis.com/auth/spreadsheets"]
-    )
     client = gspread.authorize(creds)
     sheet = client.open(SPREADSHEET_NAME).worksheet(WORKSHEET_NAME)
     return sheet
 
 # === UPLOAD CSV TO GOOGLE DRIVE ===
 def upload_csv_to_drive(csv_path):
-    creds = Credentials.from_service_account_file(
-        CREDENTIALS_PATH,
-        scopes=["https://www.googleapis.com/auth/drive"]
-    )
     drive_service = build("drive", "v3", credentials=creds)
     file_metadata = {"name": "events_for_upload.csv", "parents": [DRIVE_FOLDER_ID]}
     media = MediaFileUpload(csv_path, mimetype="text/csv")
@@ -54,10 +59,6 @@ def upload_csv_to_drive(csv_path):
 
 # === SEND EMAIL VIA GMAIL API ===
 def send_notification_email(file_url):
-    creds = Credentials.from_service_account_file(
-        CREDENTIALS_PATH,
-        scopes=["https://www.googleapis.com/auth/gmail.send"]
-    )
     service = build("gmail", "v1", credentials=creds)
     message = MIMEText(f"A new CSV export is ready:\n\n{file_url}")
     message["to"] = EMAIL_RECIPIENT
