@@ -17,7 +17,7 @@ def connect_to_sheet(spreadsheet_name, worksheet_name):
     return client.open(spreadsheet_name).worksheet(worksheet_name)
 
 def normalize(row):
-    return [cell.strip() for cell in row[:10]] + [""] * (10 - len(row))
+    return [cell.strip() for cell in row[:11]] + [""] * (11 - len(row))  # now comparing 11 fields (A–K)
 
 def upload_events_to_sheet(events, sheet=None, mode="full"):
     if sheet is None:
@@ -44,7 +44,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
 
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        # First 10 columns
+        # First 11 fields (A–K) including "Series"
         row_core = [
             event.get("Event Name", ""),
             link,
@@ -55,21 +55,22 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
             event.get("Month", ""),
             event.get("Day", ""),
             event.get("Year", ""),
-            event.get("Event Description", "")
+            event.get("Event Description", ""),
+            event.get("Series", "")
         ]
 
         new_core = normalize(row_core)
         existing_core = normalize(existing_data.get(link, []))
 
-        # Status logic (col 12)
+        # Status logic (col 13 = M)
         status = "new"
         if link in existing_data and new_core != existing_core:
             status = "updated"
         elif link in existing_data:
-            status = existing_data[link][10] if len(existing_data[link]) > 10 else ""
+            status = existing_data[link][11] if len(existing_data[link]) > 11 else ""
 
-        # Site Sync Status logic (col 13)
-        site_sync_status = existing_data.get(link, [""] * 13)[12]
+        # Site Sync Status logic (col 14 = N)
+        site_sync_status = existing_data.get(link, [""] * 14)[13]
         if link not in existing_data:
             site_sync_status = "new"
         elif new_core != existing_core:
@@ -77,6 +78,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
         else:
             site_sync_status = site_sync_status or ""
 
+        # Final row
         new_row = new_core + [now, status, site_sync_status]
 
         if link not in existing_data:
@@ -84,7 +86,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
             added += 1
         elif new_core != existing_core:
             row_index = link_to_row_index[link]
-            sheet.update(f"A{row_index}:M{row_index}", [new_row])
+            sheet.update(f"A{row_index}:N{row_index}", [new_row])
             updated += 1
 
     # ✅ Log to VBPL Log tab
