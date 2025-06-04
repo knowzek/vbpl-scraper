@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import json
 import gspread
@@ -14,8 +15,6 @@ def connect_to_sheet(spreadsheet_name, worksheet_name):
     )
     client = gspread.authorize(creds)
     return client.open(spreadsheet_name).worksheet(worksheet_name)
-
-from datetime import datetime
 
 def upload_events_to_sheet(events, sheet=None, mode="full"):
     if sheet is None:
@@ -41,7 +40,9 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
             continue
 
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        new_row = [
+
+        # First 10 data fields (columns A–J)
+        row_core = [
             event.get("Event Name", ""),
             link,
             event.get("Event Status", ""),
@@ -51,25 +52,38 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
             event.get("Month", ""),
             event.get("Day", ""),
             event.get("Year", ""),
-            event.get("Event Description", ""),
-            now,  # 👈 Timestamp for Last Updated column,
-            "new"  # Will update to "updated" if needed below
+            event.get("Event Description", "")
         ]
 
+        # Status logic
+        status = "new"
+        if link in existing_data and row_core != existing_data[link][:10]:
+            status = "updated"
+        elif link in existing_data:
+            status = existing_data[link][10] or ""
+
+        # Site Sync Status logic
+        site_sync_status = existing_data.get(link, [""] * 13)[12]
         if link not in existing_data:
-            # New event
+            site_sync_status = "new"
+        elif row_core != existing_data[link][:10]:
+            site_sync_status = "updated" if site_sync_status == "on site" else "new"
+        else:
+            site_sync_status = site_sync_status or ""
+
+        # Final row
+        new_row = row_core + [now, status, site_sync_status]
+
+        if link not in existing_data:
             sheet.append_row(new_row, value_input_option="USER_ENTERED")
             added += 1
         else:
-            # Check if any field changed (ignore timestamp column in comparison)
-            old_row = existing_data[link][:10]
-            if new_row[:10] != old_row:
+            if row_core != existing_data[link][:10]:
                 row_index = link_to_row_index[link]
-                new_row[11] = "updated"  # ✅ Set status to "updated"
-                sheet.update(f"A{row_index}:L{row_index}", [new_row])
+                sheet.update(f"A{row_index}:M{row_index}", [new_row])
                 updated += 1
 
-    # ✅ Log summary to VBPL Log tab
+    # ✅ Log to VBPL Log tab
     try:
         log_sheet = connect_to_sheet(SPREADSHEET_NAME, LOG_WORKSHEET_NAME)
         log_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
