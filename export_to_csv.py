@@ -58,14 +58,24 @@ def upload_csv_to_drive(csv_path):
     return f"https://drive.google.com/file/d/{file_id}/view"
 
 # === SEND EMAIL VIA GMAIL API ===
+import smtplib
+from email.mime.text import MIMEText
+
 def send_notification_email(file_url):
-    service = build("gmail", "v1", credentials=creds)
-    message = MIMEText(f"A new CSV export is ready:\n\n{file_url}")
-    message["to"] = EMAIL_RECIPIENT
-    message["subject"] = EMAIL_SUBJECT
-    raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
-    service.users().messages().send(userId="me", body={"raw": raw_message}).execute()
-    print(f"📬 Notification sent to {EMAIL_RECIPIENT}")
+    smtp_user = os.environ["SMTP_USERNAME"]
+    smtp_pass = os.environ["SMTP_PASSWORD"]
+
+    msg = MIMEText(f"A new CSV export is ready:\n\n{file_url}")
+    msg["Subject"] = EMAIL_SUBJECT
+    msg["From"] = smtp_user
+    msg["To"] = EMAIL_RECIPIENT
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(smtp_user, smtp_pass)
+        server.send_message(msg)
+
+    print(f"📬 Email sent to {EMAIL_RECIPIENT}")
+
 
 # === MAIN EXPORT FUNCTION ===
 def export_events_to_csv():
