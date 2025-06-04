@@ -89,7 +89,7 @@ def export_events_to_csv():
 
     # === CREATE CSV FIELDS ===
     export_df = pd.DataFrame({
-        'EVENT NAME': df['Event Name'],
+        'EVENT NAME': df['Event Name'] + ' (Virginia Beach)',
         'EVENT EXCERPT': '',
         'EVENT VENUE NAME': df['Location'],
         'EVENT ORGANIZER NAME': '',
