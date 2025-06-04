@@ -88,7 +88,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
         elif new_core != existing_core:
             row_index = link_to_row_index[link]
             update_requests.append({
-                "range": f"A{row_index}:O{row_index}",
+                "range": f"A{row_index}:P{row_index}",
                 "values": [full_row]
             })
             updated += 1
