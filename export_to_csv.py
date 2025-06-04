@@ -100,6 +100,7 @@ def export_events_to_csv():
     # === NORMALIZE LOCATION ===
     df['Location'] = df['Location'].astype(str).str.strip()
     df['Location Mapped'] = df['Location'].map(LOCATION_MAP)
+    print("⚠️ Unmatched locations:\n", df[df['Location Mapped'].isna()]['Location'].unique())
     print("Step 4: Rows with mapped locations:", df['Location Mapped'].notna().sum())
     
     df = df[df['Location Mapped'].notna()]
