@@ -17,7 +17,7 @@ def connect_to_sheet(spreadsheet_name, worksheet_name):
     return client.open(spreadsheet_name).worksheet(worksheet_name)
 
 def normalize(row):
-    return [cell.strip() for cell in row[:12]] + [""] * (12 - len(row))  # now comparing 11 fields (A–K)
+    return [cell.strip() for cell in row[:13]] + [""] * (13 - len(row))  # A–M fields
 
 def upload_events_to_sheet(events, sheet=None, mode="full"):
     if sheet is None:
@@ -27,13 +27,15 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
     headers = rows[0]
     existing_rows = rows[1:]
 
-    # Build dicts by Event Link
     link_to_row_index = {row[1]: idx + 2 for idx, row in enumerate(existing_rows) if len(row) > 1}
     existing_data = {row[1]: row for row in existing_rows if len(row) > 1}
 
     added = 0
     updated = 0
     skipped = 0
+
+    new_rows = []
+    update_requests = []
 
     for event in events:
         link = event.get("Event Link", "")
@@ -44,7 +46,6 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
 
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        # First 11 fields (A–K) including "Series"
         row_core = [
             event.get("Event Name", ""),
             link,
@@ -57,20 +58,20 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
             event.get("Year", ""),
             event.get("Event Description", ""),
             event.get("Series", ""),
-            event.get("Program Type", "") 
+            event.get("Program Type", "")
         ]
 
         new_core = normalize(row_core)
         existing_core = normalize(existing_data.get(link, []))
 
-        # Status logic (col 13 = M)
+        # Column M = Status
         status = "new"
         if link in existing_data and new_core != existing_core:
             status = "updated"
         elif link in existing_data:
-            status = existing_data[link][11] if len(existing_data[link]) > 11 else ""
+            status = existing_data[link][13] if len(existing_data[link]) > 13 else ""
 
-        # Site Sync Status logic (col 14 = N)
+        # Column N = Site Sync Status
         site_sync_status = existing_data.get(link, [""] * 14)[13]
         if link not in existing_data:
             site_sync_status = "new"
@@ -79,18 +80,28 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
         else:
             site_sync_status = site_sync_status or ""
 
-        # Final row
-        new_row = new_core + [now, status, site_sync_status]
+        full_row = new_core + [now, status, site_sync_status]
 
         if link not in existing_data:
-            sheet.append_row(new_row, value_input_option="USER_ENTERED")
+            new_rows.append(full_row)
             added += 1
         elif new_core != existing_core:
             row_index = link_to_row_index[link]
-            sheet.update(f"A{row_index}:O{row_index}", [new_row])
+            update_requests.append({
+                "range": f"A{row_index}:O{row_index}",
+                "values": [full_row]
+            })
             updated += 1
 
-    # ✅ Log to VBPL Log tab
+    # ✅ Batch update existing rows
+    if update_requests:
+        sheet.batch_update(update_requests)
+
+    # ✅ Append new rows in one call
+    if new_rows:
+        sheet.append_rows(new_rows, value_input_option="USER_ENTERED")
+
+    # ✅ Log results
     try:
         log_sheet = connect_to_sheet(SPREADSHEET_NAME, LOG_WORKSHEET_NAME)
         log_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
