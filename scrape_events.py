@@ -78,28 +78,21 @@ def scrape_vbpl_events(cutoff_date=None):
                     print(f"🛑 '{name}' is beyond cutoff ({cutoff_date.date()}). Stopping pagination.")
                     return events
 
-                # ✅ NOW fetch the detail page
+                # Fetch detail page
                 time.sleep(0.5)
-                detail_response = requests.get(link, headers=headers, timeout=30)
+                detail_response = requests.get(link, headers=headers, timeout=10)
                 detail_soup = BeautifulSoup(detail_response.text, "html.parser")
-
-                # Get other summary info from the card
-                time_tag = card.select_one(".lc-event-info-item--time")
-                time_slot = time_tag.get_text(strip=True) if time_tag else ""
-
-                ages_tag = card.select_one(".lc-event-info__item--colors")
-                ages = ages_tag.get_text(strip=True) if ages_tag else ""
-
-                status_tag = card.select_one(".lc-registration-label")
-                status = status_tag.get_text(strip=True) if status_tag else "Available"
-
-                location_tag = card.select_one(".lc-event__branch")
-                location = location_tag.get_text(strip=True) if location_tag else ""
-
+                
+                # Extract description
                 description_tag = detail_soup.select_one(".field--name-body .field-item") or \
                                   detail_soup.select_one(".field--name-body")
                 description = description_tag.get_text(strip=True) if description_tag else ""
-
+                
+                # ✅ Detect if this event is part of a series
+                series_block = detail_soup.select_one(".lc-repeating-dates__details")
+                is_series = "Yes" if series_block else ""
+                
+                # Append full event
                 events.append({
                     "Event Name": name,
                     "Event Link": link,
@@ -111,9 +104,9 @@ def scrape_vbpl_events(cutoff_date=None):
                     "Day": day_text,
                     "Year": year_text,
                     "Event Date": event_date.strftime("%Y-%m-%d") if event_date else "",
-                    "Event Description": description
+                    "Event Description": description,
+                    "Series": is_series
                 })
-
             except Exception as e:
                 print(f"⚠️ Error parsing event: {e}")
 
