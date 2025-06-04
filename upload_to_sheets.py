@@ -17,7 +17,7 @@ def connect_to_sheet(spreadsheet_name, worksheet_name):
     return client.open(spreadsheet_name).worksheet(worksheet_name)
 
 def normalize(row):
-    return [cell.strip() for cell in row[:11]] + [""] * (11 - len(row))  # now comparing 11 fields (A–K)
+    return [cell.strip() for cell in row[:12]] + [""] * (12 - len(row))  # now comparing 11 fields (A–K)
 
 def upload_events_to_sheet(events, sheet=None, mode="full"):
     if sheet is None:
@@ -56,7 +56,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
             event.get("Day", ""),
             event.get("Year", ""),
             event.get("Event Description", ""),
-            event.get("Series", "")
+            event.get("Series", ""),
+            event.get("Program Type", "") 
         ]
 
         new_core = normalize(row_core)
@@ -86,7 +87,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
             added += 1
         elif new_core != existing_core:
             row_index = link_to_row_index[link]
-            sheet.update(f"A{row_index}:N{row_index}", [new_row])
+            sheet.update(f"A{row_index}:O{row_index}", [new_row])
             updated += 1
 
     # ✅ Log to VBPL Log tab
