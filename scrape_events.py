@@ -36,7 +36,7 @@ def scrape_vbpl_events(cutoff_date=None):
     while page < MAX_PAGES:
         print(f"🌐 Fetching page {page}...")
         url = f"{base_url}/events/upcoming?page={page}"
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=headers, timeout=30)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, "html.parser")
@@ -80,7 +80,7 @@ def scrape_vbpl_events(cutoff_date=None):
 
                 # ✅ NOW fetch the detail page
                 time.sleep(0.5)
-                detail_response = requests.get(link, headers=headers, timeout=10)
+                detail_response = requests.get(link, headers=headers, timeout=30)
                 detail_soup = BeautifulSoup(detail_response.text, "html.parser")
 
                 # Get other summary info from the card
