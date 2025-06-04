@@ -30,16 +30,17 @@ creds = service_account.Credentials.from_service_account_info(
 )
 
 # === LOCATION NORMALIZATION ===
+# Reverse mapping: from full labels → to simplified names
 LOCATION_MAP = {
-    "Oceanfront Area Library": "Library Branch:Oceanfront Area Library",
-    "MEO Central Library": "Library Branch:Meyera E. Oberndorf Central Library",
-    "TCC Joint-Use Library": "Library Branch:TCC/City Joint-Use Library",
-    "Princess Anne Area Library": "Library Branch:Princess Anne Area Library",
-    "Bayside Area Library": "Library Branch:Bayside Area Library",
-    "Pungo Blackwater Library": "Library Branch:Pungo-Blackwater Library",
-    "Windsor Woods Area Library": "Library Branch:Windsor Woods Area Library",
-    "Great Neck Area Library": "Library Branch:Great Neck Area Library",
-    "Kempsville Area Library": "Library Branch:Kempsville Area Library"
+    "Library Branch:Oceanfront Area Library": "Oceanfront Area Library",
+    "Library Branch:Meyera E. Oberndorf Central Library": "MEO Central Library",
+    "Library Branch:TCC/City Joint-Use Library": "TCC Joint-Use Library",
+    "Library Branch:Princess Anne Area Library": "Princess Anne Area Library",
+    "Library Branch:Bayside Area Library": "Bayside Area Library",
+    "Library Branch:Pungo-Blackwater Library": "Pungo Blackwater Library",
+    "Library Branch:Windsor Woods Area Library": "Windsor Woods Area Library",
+    "Library Branch:Great Neck Area Library": "Great Neck Area Library",
+    "Library Branch:Kempsville Area Library": "Kempsville Area Library"
 }
 
 # === CONNECT TO SHEET ===
