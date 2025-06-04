@@ -1,8 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
-from datetime import timedelta
 
 def filter_events_by_mode(events, mode):
     today = datetime.today()
@@ -53,46 +52,59 @@ def scrape_vbpl_events(cutoff_date=None):
                 link = base_url + link_tag["href"]
                 print(f"🔗 Processing: {name} ({link})")
 
-                # ✅ Extract event date from the card (not detail page)
+                # Extract event date from the card
                 month_tag = card.select_one(".lc-date-icon__item--month")
                 day_tag = card.select_one(".lc-date-icon__item--day")
                 year_tag = card.select_one(".lc-date-icon__item--year")
-                
+
                 month_text = month_tag.get_text(strip=True) if month_tag else ""
                 day_text = day_tag.get_text(strip=True) if day_tag else ""
                 year_text = year_tag.get_text(strip=True) if year_tag else ""
-                
+
                 if not (month_text and day_text and year_text):
                     print(f"⚠️ Missing date parts for '{name}' — skipping")
                     continue
-                
+
                 try:
                     event_date = datetime.strptime(f"{month_text} {day_text} {year_text}", "%b %d %Y")
                 except Exception as e:
                     print(f"⚠️ Failed to parse date for '{name}': {e}")
                     continue
-                
+
                 print(f"📅 Parsed date for '{name}': {event_date.date()}")
-                
+
                 if cutoff_date and event_date > cutoff_date:
                     print(f"🛑 '{name}' is beyond cutoff ({cutoff_date.date()}). Stopping pagination.")
                     return events
 
+                # Extract summary info from card
+                time_tag = card.select_one(".lc-event-info-item--time")
+                time_slot = time_tag.get_text(strip=True) if time_tag else ""
+
+                ages_tag = card.select_one(".lc-event-info__item--colors")
+                ages = ages_tag.get_text(strip=True) if ages_tag else ""
+
+                status_tag = card.select_one(".lc-registration-label")
+                status = status_tag.get_text(strip=True) if status_tag else "Available"
+
+                location_tag = card.select_one(".lc-event__branch")
+                location = location_tag.get_text(strip=True) if location_tag else ""
+
                 # Fetch detail page
                 time.sleep(0.5)
-                detail_response = requests.get(link, headers=headers, timeout=10)
+                detail_response = requests.get(link, headers=headers, timeout=20)
                 detail_soup = BeautifulSoup(detail_response.text, "html.parser")
-                
+
                 # Extract description
                 description_tag = detail_soup.select_one(".field--name-body .field-item") or \
                                   detail_soup.select_one(".field--name-body")
                 description = description_tag.get_text(strip=True) if description_tag else ""
-                
-                # ✅ Detect if this event is part of a series
+
+                # Detect if part of a series
                 series_block = detail_soup.select_one(".lc-repeating-dates__details")
                 is_series = "Yes" if series_block else ""
-                
-                # Append full event
+
+                # Append event to list
                 events.append({
                     "Event Name": name,
                     "Event Link": link,
@@ -103,10 +115,11 @@ def scrape_vbpl_events(cutoff_date=None):
                     "Month": month_text,
                     "Day": day_text,
                     "Year": year_text,
-                    "Event Date": event_date.strftime("%Y-%m-%d") if event_date else "",
+                    "Event Date": event_date.strftime("%Y-%m-%d"),
                     "Event Description": description,
                     "Series": is_series
                 })
+
             except Exception as e:
                 print(f"⚠️ Error parsing event: {e}")
 
