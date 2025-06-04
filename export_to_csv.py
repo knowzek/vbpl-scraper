@@ -2,12 +2,19 @@ import gspread
 from google.oauth2.service_account import Credentials
 import pandas as pd
 from datetime import datetime
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+from email.mime.text import MIMEText
+import base64
 
 # === CONFIG ===
 SPREADSHEET_NAME = "Virginia Beach Library Events"
 WORKSHEET_NAME = "VBPL Events"
 CSV_EXPORT_PATH = "events_for_upload.csv"
 CREDENTIALS_PATH = "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON"
+DRIVE_FOLDER_ID = "your_drive_folder_id_here"  # Replace with your actual folder ID
+EMAIL_RECIPIENT = "knowzek@gmail.com"
+EMAIL_SUBJECT = "new csv export for upload ready"
 
 # === LOCATION NORMALIZATION ===
 LOCATION_MAP = {
@@ -31,6 +38,33 @@ def get_sheet():
     client = gspread.authorize(creds)
     sheet = client.open(SPREADSHEET_NAME).worksheet(WORKSHEET_NAME)
     return sheet
+
+# === UPLOAD CSV TO GOOGLE DRIVE ===
+def upload_csv_to_drive(csv_path):
+    creds = Credentials.from_service_account_file(
+        CREDENTIALS_PATH,
+        scopes=["https://www.googleapis.com/auth/drive"]
+    )
+    drive_service = build("drive", "v3", credentials=creds)
+    file_metadata = {"name": "events_for_upload.csv", "parents": [DRIVE_FOLDER_ID]}
+    media = MediaFileUpload(csv_path, mimetype="text/csv")
+    uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
+    file_id = uploaded_file.get("id")
+    return f"https://drive.google.com/file/d/{file_id}/view"
+
+# === SEND EMAIL VIA GMAIL API ===
+def send_notification_email(file_url):
+    creds = Credentials.from_service_account_file(
+        CREDENTIALS_PATH,
+        scopes=["https://www.googleapis.com/auth/gmail.send"]
+    )
+    service = build("gmail", "v1", credentials=creds)
+    message = MIMEText(f"A new CSV export is ready:\n\n{file_url}")
+    message["to"] = EMAIL_RECIPIENT
+    message["subject"] = EMAIL_SUBJECT
+    raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+    service.users().messages().send(userId="me", body={"raw": raw_message}).execute()
+    print(f"📬 Notification sent to {EMAIL_RECIPIENT}")
 
 # === MAIN EXPORT FUNCTION ===
 def export_events_to_csv():
@@ -89,6 +123,10 @@ def export_events_to_csv():
     update_indices = df.index + 2  # account for header row + 0-index
     for i in update_indices:
         sheet.update(f"P{i}", "on site")
+
+    # === Upload to Drive and Email ===
+    file_url = upload_csv_to_drive(CSV_EXPORT_PATH)
+    send_notification_email(file_url)
 
 if __name__ == "__main__":
     export_events_to_csv()
