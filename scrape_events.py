@@ -27,7 +27,7 @@ def filter_events_by_mode(events, mode):
 def scrape_vbpl_events(cutoff_date=None):
     base_url = "https://vbpl.librarymarket.com"
     headers = {"User-Agent": "Mozilla/5.0"}
-    MAX_PAGES = 100
+    MAX_PAGES = 5
 
     events = []
     page = 0
