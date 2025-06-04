@@ -12,7 +12,7 @@ SPREADSHEET_NAME = "Virginia Beach Library Events"
 WORKSHEET_NAME = "VBPL Events"
 CSV_EXPORT_PATH = "events_for_upload.csv"
 CREDENTIALS_PATH = "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON"
-DRIVE_FOLDER_ID = "your_drive_folder_id_here"  # Replace with your actual folder ID
+DRIVE_FOLDER_ID = "1MrUjkl8EirZpoR2sT80UYc0ECCEMI-W1"  # Replace with your actual folder ID
 EMAIL_RECIPIENT = "knowzek@gmail.com"
 EMAIL_SUBJECT = "new csv export for upload ready"
 
