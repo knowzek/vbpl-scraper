@@ -84,10 +84,11 @@ def export_events_to_csv():
     df = pd.DataFrame(data)
 
     original_row_count = len(df)
+    print("Before filter:\n", df[["Event Name", "Ages", "Site Sync Status"]])
 
     # === FILTERING ===
-    df = df[df['Ages'].str.strip() != "Adults 18+"]
-    df = df[~df['Site Sync Status'].str.lower().isin(['on site', 'updated'])]
+    # df = df[df['Ages'].str.strip() != "Adults 18+"]
+    # df = df[~df['Site Sync Status'].str.lower().isin(['on site', 'updated'])]
 
     # === NORMALIZE LOCATION ===
     df = df[df['Location'].isin(LOCATION_MAP)]
