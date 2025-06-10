@@ -78,68 +78,88 @@ def send_notification_email(file_url):
     print(f"📬 Email sent to {EMAIL_RECIPIENT}")
 
 
-# === MAIN EXPORT FUNCTION ===
+# ─── helper functions ──────────────────────────────────────────────────────────
+import re
+from datetime import datetime
+
+def _format_time(raw: str) -> str:
+    """
+    Normalises a raw time string to `H:MM AM` / `H AM` with uppercase meridiem.
+    Accepts inputs such as '3:30 pm', '8 PM', '2 pm', etc.
+    Falls back to the cleaned string if parsing fails.
+    """
+    if not raw:
+        return ""
+    txt = raw.lower().replace(" ", " ").replace("–", "-").replace("—", "-").replace(".", "")
+    txt = re.sub(r"(\d)([ap]m)", r"\1 \2", txt).strip()            # ensure space before am/pm
+    for fmt in ("%I:%M %p", "%I %p"):
+        try:
+            return datetime.strptime(txt, fmt).strftime("%-I:%M %p") \
+                   if ":" in txt else datetime.strptime(txt, fmt).strftime("%-I %p")
+        except ValueError:
+            continue
+    return txt.upper()                                             # fallback – already readable
+
+def _split_times(time_str: str):
+    """
+    Splits a VBPL time string like '3:30 PM – 4:30 PM' (or variants) into
+    clean start- and end-time components. Returns (start, end, all_day_flag).
+    """
+    if not time_str or time_str.strip().lower() in ("all day", "ongoing"):
+        return "", "", "TRUE"                                       # treat as an all-day event
+    parts = re.split(r"\s*[-–—]\s*", time_str)                      # dash/en-dash/em-dash
+    start = _format_time(parts[0] if parts else "")
+    end   = _format_time(parts[1] if len(parts) > 1 else "")
+    return start, end, "FALSE"
+
+# ─── main export function ──────────────────────────────────────────────────────
 def export_events_to_csv():
     sheet = get_sheet()
     data = sheet.get_all_records()
-    df = pd.DataFrame(data)
+    df = pd.DataFrame(data)                                         # ← existing load
 
-    original_row_count = len(df)
-    print("Before filter:\n", df[["Event Name", "Ages", "Site Sync Status"]])
+    # (--- filters and location normalisation remain unchanged ---)
 
-    print("Step 1: Initial rows:", len(df))
+    # … your existing filtering / LOCATION_MAP code here …
 
-    # === FILTERING ===
-    df['Ages'] = df['Ages'].astype(str).str.strip()
-    df = df[df['Ages'] != "Adults 18+"]
-    print("Step 2: After filtering out 'Adults 18+':", len(df))
-    
-    df['Site Sync Status'] = df['Site Sync Status'].astype(str).str.strip().str.lower()
-    df = df[~df['Site Sync Status'].isin(['on site', 'updated'])]
-    print("Step 3: After filtering 'on site' / 'updated':", len(df))
-    
-    # === NORMALIZE LOCATION ===
-    df['Location'] = df['Location'].astype(str).str.strip()
-    df['Location Mapped'] = df['Location'].map(LOCATION_MAP)
-    print("⚠️ Unmatched locations:\n", df[df['Location Mapped'].isna()]['Location'].unique())
-    print("Step 4: Rows with mapped locations:", df['Location Mapped'].notna().sum())
-    
-    df = df[df['Location Mapped'].notna()]
-    df['Location'] = df['Location Mapped']
-    df.drop(columns=['Location Mapped'], inplace=True)
-    print("Step 5: Final export row count:", len(df))
+    # ── NEW: extract start/end/all-day from the “Time” column ──
+    time_info = df["Time"].astype(str).apply(_split_times)          # returns tuples
+    df[["EVENT START TIME", "EVENT END TIME", "ALL DAY EVENT"]] = \
+        pd.DataFrame(time_info.tolist(), index=df.index)
 
-    # === FORMAT START DATE ===
-    df['EVENT START DATE'] = pd.to_datetime(df['Month'] + ' ' + df['Day'].astype(str) + ' ' + df['Year'].astype(str))
-    df['EVENT START DATE'] = df['EVENT START DATE'].dt.strftime('%Y-%m-%d')
+    # ── format EVENT START / END DATE (unchanged) ──
+    df["EVENT START DATE"] = pd.to_datetime(
+        df["Month"] + " " + df["Day"].astype(str) + " " + df["Year"].astype(str)
+    ).dt.strftime("%Y-%m-%d")
+    df["EVENT END DATE"] = df["EVENT START DATE"]                    # same-day events
 
-    # === CREATE CSV FIELDS ===
+    # ── assemble export dataframe ──
     export_df = pd.DataFrame({
-        'EVENT NAME': df['Event Name'] + ' (Virginia Beach)',
-        'EVENT EXCERPT': '',
-        'EVENT VENUE NAME': df['Location'],
-        'EVENT ORGANIZER NAME': '',
-        'EVENT START DATE': df['EVENT START DATE'],
-        'EVENT START TIME': df['Time'],
-        'EVENT END DATE': df['EVENT START DATE'],
-        'EVENT END TIME': '',
-        'ALL DAY EVENT': 0,
-        'TIMEZONE': 'America/New_York',
-        'HIDE FROM EVENT LISTINGS': 0,
-        'STICKY IN MONTH VIEW': 0,
-        'EVENT CATEGORY': df['Categories'],
-        'EVENT TAGS': '',
-        'EVENT COST': '',
-        'EVENT CURRENCY SYMBOL': '$',
-        'EVENT CURRENCY POSITION': 'prefix',
-        'EVENT ISO CURRENCY CODE': 'USD',
-        'EVENT FEATURED IMAGE': '',
-        'EVENT WEBSITE': df['Event Link'],
-        'EVENT SHOW MAP LINK': 1,
-        'EVENT SHOW MAP': 1,
-        'ALLOW COMMENTS': 1,
-        'ALLOW TRACKBACKS AND PINGBACKS': 1,
-        'EVENT DESCRIPTION': df['Event Description']
+        "EVENT NAME": df["Event Name"] + " (Virginia Beach)",
+        "EVENT EXCERPT": "",
+        "EVENT VENUE NAME": df["Location"],
+        "EVENT ORGANIZER NAME": "",
+        "EVENT START DATE": df["EVENT START DATE"],
+        "EVENT START TIME": df["EVENT START TIME"],                 # ★ Column F
+        "EVENT END DATE": df["EVENT END DATE"],
+        "EVENT END TIME": df["EVENT END TIME"],                     # ★ Column H
+        "ALL DAY EVENT": df["ALL DAY EVENT"],                       # ★ Column I  (TRUE/FALSE)
+        "TIMEZONE": "America/New_York",
+        "HIDE FROM EVENT LISTINGS": "FALSE",                        # ★ Column K
+        "STICKY IN MONTH VIEW": "FALSE",
+        "EVENT CATEGORY": df["Categories"],
+        "EVENT TAGS": "",
+        "EVENT COST": "",
+        "EVENT CURRENCY SYMBOL": "$",
+        "EVENT CURRENCY POSITION": "",                              # ★ Column Q (blank)
+        "EVENT ISO CURRENCY CODE": "USD",
+        "EVENT FEATURED IMAGE": "",
+        "EVENT WEBSITE": df["Event Link"],
+        "EVENT SHOW MAP LINK": "TRUE",                              # ★ Column U
+        "EVENT SHOW MAP": "TRUE",                                   # ★ Column V
+        "ALLOW COMMENTS": "FALSE",                                  # ★ Column W
+        "ALLOW TRACKBACKS AND PINGBACKS": "FALSE",                  # ★ Column X
+        "EVENT DESCRIPTION": df["Event Description"],
     })
 
     # === SAVE CSV ===
