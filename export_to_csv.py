@@ -117,7 +117,8 @@ def export_events_to_csv():
     sheet = get_sheet()
     data = sheet.get_all_records()
     df = pd.DataFrame(data)                                         # ← existing load
-
+    original_row_count = len(df)
+    
     # (--- filters and location normalisation remain unchanged ---)
 
     # … your existing filtering / LOCATION_MAP code here …
