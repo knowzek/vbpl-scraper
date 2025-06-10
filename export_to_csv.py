@@ -168,9 +168,18 @@ def export_events_to_csv():
     print(f"✅ Exported {len(export_df)} events to CSV (from {original_row_count} original rows)")
 
     # === UPDATE SHEET: Set Site Sync Status to 'on site' for these ===
-    update_indices = df.index + 2  # account for header row + 0-index
-    for i in update_indices:
-       sheet.update(f"P{i}", [["on site"]])
+    # (Assumes df now contains exactly the rows you exported)
+    # If you filtered rows earlier and indexes might be non-contiguous,
+    # add:  df = df.reset_index(drop=True)
+    
+    update_range  = f"P2:P{len(df) + 1}"          # e.g. P2:P312
+    values_block  = [["on site"]] * len(df)       # one “on site” per row
+    
+    sheet.update(
+        range_name=update_range,
+        values=values_block,
+        value_input_option="USER_ENTERED"
+    )
 
     # === Upload to Drive and Email ===
     file_url = upload_csv_to_drive(CSV_EXPORT_PATH)
