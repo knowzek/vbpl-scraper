@@ -122,8 +122,8 @@ def export_events_to_csv():
     # ── KEEP only rows whose Site Sync Status is "new" ──
     df = df[df["Site Sync Status"].fillna("").str.strip().str.lower() == "new"]
     if df.empty:
-    print("🚫  No new events to export.")
-    return
+        print("🚫  No new events to export.")
+        return
         
     # ── drop events whose Ages column is ONLY "Adults 18+" ──
     df = df[~df["Ages"].fillna("").str.strip().eq("Adults 18+")]
