@@ -119,9 +119,8 @@ def export_events_to_csv():
     df = pd.DataFrame(data)                                         # ← existing load
     original_row_count = len(df)
     
-    # (--- filters and location normalisation remain unchanged ---)
-
-    # … your existing filtering / LOCATION_MAP code here …
+    # ── drop events whose Ages column is ONLY "Adults 18+" ──
+    df = df[~df["Ages"].fillna("").str.strip().eq("Adults 18+")]
 
     # ── NEW: extract start/end/all-day from the “Time” column ──
     time_info = df["Time"].astype(str).apply(_split_times)          # returns tuples
