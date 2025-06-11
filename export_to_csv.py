@@ -118,7 +118,13 @@ def export_events_to_csv():
     data = sheet.get_all_records()
     df = pd.DataFrame(data)                                         # ← existing load
     original_row_count = len(df)
-    
+
+    # ── KEEP only rows whose Site Sync Status is "new" ──
+    df = df[df["Site Sync Status"].fillna("").str.strip().str.lower() == "new"]
+    if df.empty:
+    print("🚫  No new events to export.")
+    return
+        
     # ── drop events whose Ages column is ONLY "Adults 18+" ──
     df = df[~df["Ages"].fillna("").str.strip().eq("Adults 18+")]
 
@@ -166,19 +172,32 @@ def export_events_to_csv():
     export_df.to_csv(CSV_EXPORT_PATH, index=False)
     print(f"✅ Exported {len(export_df)} events to CSV (from {original_row_count} original rows)")
 
-    # === UPDATE SHEET: Set Site Sync Status to 'on site' for these ===
-    # (Assumes df now contains exactly the rows you exported)
-    # If you filtered rows earlier and indexes might be non-contiguous,
-    # add:  df = df.reset_index(drop=True)
-    
-    update_range  = f"P2:P{len(df) + 1}"          # e.g. P2:P312
-    values_block  = [["on site"]] * len(df)       # one “on site” per row
-    
-    sheet.update(
-        range_name=update_range,
-        values=values_block,
-        value_input_option="USER_ENTERED"
-    )
+    # ---------- STEP 2: update ‘Site Sync Status’ for ONLY the rows we just exported ----------
+    # (df now contains only the rows we exported)
+    rows_to_mark = sorted(df.index + 2)   # convert DataFrame index → sheet row numbers (add header + 0-index)
+
+    if rows_to_mark:                      # skip if nothing was exported
+        def contiguous_groups(nums):
+            """Yield (start, end) pairs for consecutive runs, e.g. [5,6,7,12,13] → (5,7), (12,13)."""
+            start = prev = nums[0]
+            for n in nums[1:]:
+                if n == prev + 1:
+                    prev = n
+                else:
+                    yield (start, prev)
+                    start = prev = n
+            yield (start, prev)
+
+        for start, end in contiguous_groups(rows_to_mark):
+            range_name = f"P{start}:P{end}"                # e.g. "P14:P28"
+            values     = [["on site"]] * (end - start + 1) # one “on site” per row
+            sheet.update(
+                range_name=range_name,
+                values=values,
+                value_input_option="USER_ENTERED"
+            )
+
+    # ---------- DONE ----------
 
     # === Upload to Drive and Email ===
     file_url = upload_csv_to_drive(CSV_EXPORT_PATH)
