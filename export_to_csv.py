@@ -189,12 +189,17 @@ def export_events_to_csv():
     print(f"✅ Exported {len(export_df)} events to CSV (from {original_row_count} original rows)")
 
     # ---------- STEP 2: update ‘Site Sync Status’ for ONLY the rows we just exported ----------
-    # (df now contains only the rows we exported)
-    rows_to_mark = sorted(df.index + 2)   # convert DataFrame index → sheet row numbers (add header + 0-index)
-
-    if rows_to_mark:                      # skip if nothing was exported
+    rows_to_mark = sorted(df.index + 2)          # sheet row numbers (header + 0-index)
+    
+    if rows_to_mark:
+        # build one batch request with many ranges
+        batch_body = {
+            "valueInputOption": "USER_ENTERED",
+            "data": []
+        }
+    
+        # group consecutive rows into single ranges (P5:P9, P15:P15, …)
         def contiguous_groups(nums):
-            """Yield (start, end) pairs for consecutive runs, e.g. [5,6,7,12,13] → (5,7), (12,13)."""
             start = prev = nums[0]
             for n in nums[1:]:
                 if n == prev + 1:
@@ -203,15 +208,15 @@ def export_events_to_csv():
                     yield (start, prev)
                     start = prev = n
             yield (start, prev)
-
+    
         for start, end in contiguous_groups(rows_to_mark):
-            range_name = f"P{start}:P{end}"                # e.g. "P14:P28"
-            values     = [["on site"]] * (end - start + 1) # one “on site” per row
-            sheet.update(
-                range_name=range_name,
-                values=values,
-                value_input_option="USER_ENTERED"
-            )
+            batch_body["data"].append({
+                "range": f"P{start}:P{end}",
+                "values": [["on site"]] * (end - start + 1)
+            })
+    
+        # ONE Google Sheets call ↓
+        sheet.spreadsheet.values_batch_update(batch_body)
 
     # ---------- DONE ----------
 
