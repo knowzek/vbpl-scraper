@@ -21,6 +21,15 @@ PROGRAM_TYPE_TO_CATEGORIES = {
     "History & Genealogy": "Event Location - Virginia Beach, Audience - Family Event"
 }
 
+def _clean_link(url: str) -> str:
+    """Return the URL with any '/index.php' fragment removed, preserving one slash."""
+    cleaned = (
+        url.replace("/index.php/", "/")   # …/index.php/slug  → …/slug
+           .replace("/index.php", "/")    # …/index.php       → …/
+    )
+    # collapse accidental double slashes except after the scheme
+    return cleaned.replace("://", ":::").replace("//", "/").replace(":::", "://")
+    
 def connect_to_sheet(spreadsheet_name, worksheet_name):
     creds = Credentials.from_service_account_file(
         "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON",
@@ -47,8 +56,15 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
                 print(f"[WARN] Row {i + 2} too short: {len(row)} cols → {row}")
                 row += [""] * (16 - len(row))
 
-        link_to_row_index = {row[1]: idx + 2 for idx, row in enumerate(existing_rows) if len(row) > 1}
-        existing_data = {row[1]: row for row in existing_rows if len(row) > 1}
+        link_to_row_index = {}
+        existing_data     = {}
+        
+        for idx, row in enumerate(existing_rows):
+            if len(row) <= 1:
+                continue
+            clean_link = _clean_link(row[1].strip())
+            link_to_row_index[clean_link] = idx + 2          # sheet rows are 1-based (+ header)
+            existing_data[clean_link]     = row
 
         added = 0
         updated = 0
@@ -59,11 +75,13 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
 
         for event in events:
             try:
-                link = event.get("Event Link", "")
-                if not link:
-                    print(f"⚠️ Skipping malformed event (missing link): {event}")
+                raw_link = (event.get("Event Link", "") or "").strip()
+                if not raw_link:
+                    print(f"⚠️  Skipping malformed event (missing link): {event.get('Event Name','')}")
                     skipped += 1
                     continue
+                
+                link = _clean_link(raw_link)          # ← always use this from now on
 
                 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 program_type = event.get("Program Type", "")
