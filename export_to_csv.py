@@ -140,6 +140,15 @@ def export_events_to_csv():
     # ── drop events whose Ages column is ONLY "Adults 18+" ──
     df = df[~df["Ages"].fillna("").str.strip().eq("Adults 18+")]
 
+    df["Location"] = (
+        df["Location"]
+          .str.strip()
+          .map(LOCATION_MAP)                 # exact matches first
+          .fillna(                           # fallback: drop prefix
+              df["Location"].str.replace(r"^Library Branch:", "", regex=True).str.strip()
+          )
+    )
+    
     # ── NEW: extract start/end/all-day from the “Time” column ──
     time_info = df["Time"].astype(str).apply(_split_times)          # returns tuples
     df[["EVENT START TIME", "EVENT END TIME", "ALL DAY EVENT"]] = \
