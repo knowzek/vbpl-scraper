@@ -69,6 +69,42 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
                 program_type = event.get("Program Type", "")
                 categories = PROGRAM_TYPE_TO_CATEGORIES.get(program_type, "")
 
+                # ── AGE-BASED AUDIENCE TAGS ──────────────────────────────────
+                ages_raw = event.get("Ages", "")
+                age_tags = []
+                nums = [int(n) for n in re.findall(r"\d+", ages_raw)]
+
+                if nums:
+                    min_age, max_age = min(nums), max(nums)
+
+                    # 0-2  ⇒ Toddler / Infant
+                    if max_age <= 2:
+                        age_tags.append("Audience - Toddler/Infant")
+
+                    # ≤4   ⇒ Parent & Me
+                    if max_age <= 4:
+                        age_tags.append("Audience - Parent & Me")
+
+                    # contains 3 or 4 ⇒ Preschool Age
+                    if any(a in (3, 4) for a in nums):
+                        age_tags.append("Audience - Preschool Age")
+
+                    # 5-12 range ⇒ School Age
+                    if max_age >= 5 and min_age <= 12:
+                        age_tags.append("Audience - School Age")
+
+                    # ≥13  ⇒ Teens
+                    if max_age >= 13:
+                        age_tags.append("Audience - Teens")
+
+                # merge with existing program-type categories, de-dupe, strip rogue bytes
+                if age_tags:
+                    base = [c.strip() for c in categories.split(",") if c.strip()]
+                    combined = base + age_tags
+                    categories = ", ".join(dict.fromkeys(combined))          # ordered de-dup
+                categories = categories.replace("\u00A0", " ").replace("Â", "").strip()
+                # ─────────────────────────────────────────────────────────────
+
                 row_core = [
                     event.get("Event Name", ""),
                     link,
