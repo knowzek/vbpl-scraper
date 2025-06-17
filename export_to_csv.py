@@ -16,6 +16,7 @@ CSV_EXPORT_PATH = "events_for_upload.csv"
 DRIVE_FOLDER_ID = "1MrUjkl8EirZpoR2sT80UYc0ECCEMI-W1"  # Replace with your actual folder ID
 EMAIL_RECIPIENT = "knowzek@gmail.com"
 EMAIL_SUBJECT = "new csv export for upload ready"
+ORGANIZER_NAME = "Virginia Beach Public Library"
 
 # === AUTH ===
 CREDENTIALS_JSON = os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"]
@@ -112,6 +113,17 @@ def _split_times(time_str: str):
     end   = _format_time(parts[1] if len(parts) > 1 else "")
     return start, end, "FALSE"
 
+def _ascii_quotes(val: str | None):
+    """Replace curly single/double quotes with plain ASCII ones."""
+    if not isinstance(val, str):
+        return val
+    return (
+        val.replace("’", "'")    # right single
+           .replace("‘", "'")    # left  single
+           .replace("“", '"')    # left  double
+           .replace("”", '"')    # right double
+    )
+
 # ─── main export function ──────────────────────────────────────────────────────
 def export_events_to_csv():
     sheet = get_sheet()
@@ -144,7 +156,7 @@ def export_events_to_csv():
         "EVENT NAME": df["Event Name"] + " (Virginia Beach)",
         "EVENT EXCERPT": "",
         "EVENT VENUE NAME": df["Location"],
-        "EVENT ORGANIZER NAME": "",
+        "EVENT ORGANIZER NAME": ORGANIZER_NAME,
         "EVENT START DATE": df["EVENT START DATE"],
         "EVENT START TIME": df["EVENT START TIME"],                 # ★ Column F
         "EVENT END DATE": df["EVENT END DATE"],
@@ -167,6 +179,10 @@ def export_events_to_csv():
         "ALLOW TRACKBACKS AND PINGBACKS": "FALSE",                  # ★ Column X
         "EVENT DESCRIPTION": df["Event Description"],
     })
+
+    # ── strip curly quotes/apostrophes ──
+    str_cols = export_df.select_dtypes(include="object").columns
+    export_df[str_cols] = export_df[str_cols].applymap(_ascii_quotes)
 
     # === SAVE CSV ===
     export_df.to_csv(CSV_EXPORT_PATH, index=False)
