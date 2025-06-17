@@ -3,6 +3,7 @@ import os
 import gspread
 from google.oauth2.service_account import Credentials
 import traceback
+import re
 
 SPREADSHEET_NAME = "Virginia Beach Library Events"
 WORKSHEET_NAME = "VBPL Events"
