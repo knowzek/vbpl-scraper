@@ -9,16 +9,16 @@ WORKSHEET_NAME = "VBPL Events"
 LOG_WORKSHEET_NAME = "VBPL Log"
 
 PROGRAM_TYPE_TO_CATEGORIES = {
-    "Storytimes & Early Learning": "Audience - Early Learning, Audience - Family Event",
-    "STEAM": "Audience - STEAM, Audience - Kids",
-    "Computers & Technology": "Audience - Technology, Audience - Teens",
-    "Workshops & Lectures": "Audience - Adult Event, Audience - Learning",
-    "Discussion Groups": "Audience - Adult Event, Audience - Discussion",
-    "Arts & Crafts": "Audience - Craft Event, Audience - Family Event",
-    "Hobbies": "Audience - Hobby Event, Audience - All Ages",
-    "Books & Authors": "Audience - Author Event, Audience - Adult Event",
-    "Culture": "Audience - Cultural Event, Audience - All Ages",
-    "History & Genealogy": "Audience - History Event, Audience - Seniors"
+    "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Family Event, List - Storytimes",
+    "STEAM": "Event Location - Virginia Beach, List - STEM/STEAM, Audience - Family Event",
+    "Computers & Technology": "Event Location - Virginia Beach, Audience - Teens, Audience - Family Event",
+    "Workshops & Lectures": "Event Location - Virginia Beach, Audience - Family Event",
+    "Discussion Groups": "Event Location - Virginia Beach, Audience - Family Event",
+    "Arts & Crafts": "Event Location - Virginia Beach, Audience - Family Event",
+    "Hobbies": "Event Location - Virginia Beach, Audience - Family Event",
+    "Books & Authors": "Event Location - Virginia Beach, Audience - Family Event",
+    "Culture": "Event Location - Virginia Beach, Audience - Family Event",
+    "History & Genealogy": "Event Location - Virginia Beach, Audience - Family Event"
 }
 
 def connect_to_sheet(spreadsheet_name, worksheet_name):
