@@ -9,8 +9,19 @@ def filter_events_by_mode(events, mode):
     if mode == "weekly":
         end_date = today + timedelta(days=7)
     elif mode == "monthly":
-        end_date = datetime(today.year, today.month, 28) + timedelta(days=4)
-        end_date = end_date.replace(day=1) - timedelta(days=1)
+        # move to the first day of next month
+        if today.month == 12:
+            next_month = datetime(today.year + 1, 1, 1)
+        else:
+            next_month = datetime(today.year, today.month + 1, 1)
+        
+        # calculate last day of next month
+        if next_month.month == 12:
+            following_month = datetime(next_month.year + 1, 1, 1)
+        else:
+            following_month = datetime(next_month.year, next_month.month + 1, 1)
+    
+        end_date = following_month - timedelta(days=1)
     else:
         return events  # no filtering
 
