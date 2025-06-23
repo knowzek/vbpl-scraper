@@ -114,12 +114,13 @@ def _split_times(time_str: str):
     return start, end, "FALSE"
 
 def _ascii_quotes(val: str | None):
-    """Replace curly single/double quotes with plain ASCII ones."""
+    """Replace curly quotes with ASCII equivalents and remove all apostrophes (straight or curly)."""
     if not isinstance(val, str):
         return val
     return (
-        val.replace("’", "'")    # right single
-           .replace("‘", "'")    # left  single
+        val.replace("’", "")     # right single
+           .replace("‘", "")     # left  single
+           .replace("'", "")     # straight apostrophe
            .replace("“", '"')    # left  double
            .replace("”", '"')    # right double
     )
