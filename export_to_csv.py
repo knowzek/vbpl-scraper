@@ -113,16 +113,19 @@ def _split_times(time_str: str):
     end   = _format_time(parts[1] if len(parts) > 1 else "")
     return start, end, "FALSE"
 
-def _ascii_quotes(val: str | None):
-    """Replace curly quotes with ASCII equivalents and remove all apostrophes (straight or curly)."""
+def _clean_text(val: str | None):
+    """Cleans common formatting issues from text."""
     if not isinstance(val, str):
         return val
     return (
-        val.replace("’", "")     # right single
-           .replace("‘", "")     # left  single
-           .replace("'", "")     # straight apostrophe
-           .replace("“", '"')    # left  double
-           .replace("”", '"')    # right double
+        val.replace("’", "")     # right single quote → removed
+           .replace("‘", "")     # left single quote → removed
+           .replace("'", "")     # straight apostrophe → removed
+           .replace("“", '"')    # left double quote
+           .replace("”", '"')    # right double quote
+           .replace("—", "-")    # em-dash
+           .replace("–", "-")    # en-dash
+           .replace("", "-")   # device control char → hyphen
     )
 
 # ─── main export function ──────────────────────────────────────────────────────
@@ -192,7 +195,8 @@ def export_events_to_csv():
 
     # ── strip curly quotes/apostrophes ──
     str_cols = export_df.select_dtypes(include="object").columns
-    export_df[str_cols] = export_df[str_cols].applymap(_ascii_quotes)
+    export_df[str_cols] = export_df[str_cols].applymap(_clean_text)
+
 
     # === SAVE CSV ===
     export_df.to_csv(CSV_EXPORT_PATH, index=False)
