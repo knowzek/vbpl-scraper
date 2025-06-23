@@ -145,33 +145,48 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
                 existing_core = normalize(existing_row)
 
                 status = "new"
-                # Compare only if link exists
+                site_sync_status = existing_row[15] if link in existing_data else "new"
+                
                 if link in existing_data:
-                    changed_fields = {
-                        "status": event.get("Event Status", "") != existing_row[2],
-                        "date": (event.get("Month", ""), event.get("Day", ""), event.get("Year", "")) !=
-                                (existing_row[6], existing_row[7], existing_row[8]),
-                        "time": event.get("Time", "") != existing_row[3]
+                    # Track only meaningful change fields
+                    existing_vals = {
+                        "status": existing_row[2],
+                        "month": existing_row[6],
+                        "day": existing_row[7],
+                        "year": existing_row[8],
+                        "time": existing_row[3],
                     }
                 
-                    # Only update if one of the monitored fields changed
-                    if changed_fields["status"] and event.get("Event Status", "").lower() == "cancelled":
-                        status = "updated"
-                    elif changed_fields["date"] or changed_fields["time"]:
-                        status = "updated"
+                    current_vals = {
+                        "status": event.get("Event Status", ""),
+                        "month": event.get("Month", ""),
+                        "day": event.get("Day", ""),
+                        "year": event.get("Year", ""),
+                        "time": event.get("Time", "")
+                    }
+                
+                    changed_to_cancelled = (
+                        existing_vals["status"].lower() != current_vals["status"].lower()
+                        and current_vals["status"].lower() == "cancelled"
+                    )
+                
+                    date_changed = (
+                        existing_vals["month"] != current_vals["month"]
+                        or existing_vals["day"] != current_vals["day"]
+                        or existing_vals["year"] != current_vals["year"]
+                    )
+                
+                    time_changed = existing_vals["time"] != current_vals["time"]
+                
+                    if changed_to_cancelled or date_changed or time_changed:
+                        status = "updates needed"
+                
+                        # Only overwrite site sync status if it was already "on site"
+                        if site_sync_status == "on site":
+                            site_sync_status = "updates needed"
                     else:
                         status = existing_row[14]
-
-                elif link in existing_data:
-                    status = existing_row[14]
-
-                site_sync_status = existing_row[15]
-                if link not in existing_data:
-                    site_sync_status = "new"
-                elif new_core != existing_core:
-                    site_sync_status = "updated" if site_sync_status == "on site" else "new"
-                else:
-                    site_sync_status = site_sync_status or ""
+                        site_sync_status = site_sync_status or ""
 
                 full_row = new_core + [now, status, site_sync_status]
 
