@@ -145,8 +145,23 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
                 existing_core = normalize(existing_row)
 
                 status = "new"
-                if link in existing_data and new_core != existing_core:
-                    status = "updated"
+                # Compare only if link exists
+                if link in existing_data:
+                    changed_fields = {
+                        "status": event.get("Event Status", "") != existing_row[2],
+                        "date": (event.get("Month", ""), event.get("Day", ""), event.get("Year", "")) !=
+                                (existing_row[6], existing_row[7], existing_row[8]),
+                        "time": event.get("Time", "") != existing_row[3]
+                    }
+                
+                    # Only update if one of the monitored fields changed
+                    if changed_fields["status"] and event.get("Event Status", "").lower() == "cancelled":
+                        status = "updated"
+                    elif changed_fields["date"] or changed_fields["time"]:
+                        status = "updated"
+                    else:
+                        status = existing_row[14]
+
                 elif link in existing_data:
                     status = existing_row[14]
 
