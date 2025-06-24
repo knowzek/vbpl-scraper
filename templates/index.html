@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>VBPL Scraper Dashboard</title>
+    <title>Library Events Scraper</title>
     <style>
         body {
             margin: 0;
@@ -13,18 +13,22 @@
         }
         .left {
             width: 40%;
-            padding: 2rem;
+            padding: 3rem 2rem 2rem;
             background: #1f2937;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
         }
         .right {
             width: 60%;
-            padding: 2rem;
+            padding: 3rem 2rem 2rem;
             background: #111827;
         }
         h1 {
             color: #fff;
             margin-bottom: 1rem;
+        }
+        h2 {
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
         }
         button {
             background: #3b82f6;
@@ -36,6 +40,11 @@
             border-radius: 4px;
             font-size: 1rem;
         }
+        .csv-button {
+            background: #6b7280;
+            color: #ccc;
+            cursor: not-allowed;
+        }
         a {
             color: #60a5fa;
             text-decoration: none;
@@ -43,24 +52,35 @@
         .section {
             margin-bottom: 1.5rem;
         }
+        .action-box {
+            padding: 1.5rem;
+            background: #374151;
+            border-radius: 8px;
+        }
         ul {
             list-style: none;
             padding-left: 0;
+        }
+        li::before {
+            content: "\2022";
+            color: #60a5fa;
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
         }
     </style>
 </head>
 <body>
     <div class="left">
         <h1>🛠️ Actions</h1>
-        <form action="/scrape" method="post">
-            <button name="mode" value="weekly">Run Weekly Scrape</button><br>
-            <button name="mode" value="monthly">Run Monthly Scrape</button>
-        </form>
-        {% if csv_exists %}
-            <div class="section">
-                <a href="/download">📥 Download Latest CSV</a>
-            </div>
-        {% endif %}
+        <div class="action-box">
+            <form action="/scrape" method="post">
+                <button name="mode" value="weekly">Run Weekly Scrape</button><br>
+                <button name="mode" value="monthly">Run Monthly Scrape</button><br>
+                <button class="csv-button" disabled>Export to CSV (after scrape)</button>
+            </form>
+        </div>
         <div class="section">
             <h2>🕓 Recent Runs</h2>
             <ul>
@@ -75,15 +95,14 @@
     <div class="right">
         <h1>📘 Instructions</h1>
         <div class="section">
+            <p>This dashboard scrapes library event listings on a weekly or monthly basis, removes duplicates, and prepares a cleaned, structured export as a downloadable CSV.</p>
+        </div>
+        <div class="section">
             <p><strong>Run Weekly Scrape</strong> — Pulls all events from today through 7 days out.</p>
             <p><strong>Run Monthly Scrape</strong> — Pulls all events from today through the <em>end of next month</em>.</p>
         </div>
         <div class="section">
-            <p>The CSV file includes events that are marked as <code>new</code> or <code>updates needed</code> and excludes adult-only events.</p>
-            <p>All descriptions are cleaned and formatted for proper display — paragraph breaks, line spacing, and punctuation are preserved.</p>
-        </div>
-        <div class="section">
-            <p><strong>Need to automate this?</strong> We recommend setting up <a href="https://cron-job.org" target="_blank">cron-job.org</a> to hit your scrape endpoints on a schedule:</p>
+            <p><strong>Want to automate it?</strong> Change auto-deploy settings at <a href="https://cron-job.org" target="_blank">cron-job.org</a> to hit your scrape endpoints on a schedule:</p>
             <ul>
                 <li><code>/cron/weekly</code> every Monday</li>
                 <li><code>/cron/monthly</code> on the 1st of each month</li>
