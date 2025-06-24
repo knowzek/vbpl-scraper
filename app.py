@@ -41,6 +41,16 @@ def scrape():
         log_run(mode, f"error: {e}")
     return redirect(url_for("dashboard"))
 
+@app.route("/cron/weekly")
+def cron_weekly():
+    subprocess.run(["python3", "main.py", "weekly"])
+    return "Weekly scrape triggered", 200
+
+@app.route("/cron/monthly")
+def cron_monthly():
+    subprocess.run(["python3", "main.py", "monthly"])
+    return "Monthly scrape triggered", 200
+
 @app.route("/download")
 def download_csv():
     if os.path.exists(CSV_PATH):
@@ -49,3 +59,7 @@ def download_csv():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))  # Use PORT from environment if available
+    app.run(host="0.0.0.0", port=port, debug=True)
