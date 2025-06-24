@@ -1,34 +1,94 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Library Scraper Dashboard</title>
+    <title>VBPL Scraper Dashboard</title>
     <style>
-        body { font-family: sans-serif; padding: 2rem; max-width: 600px; margin: auto; }
-        button { margin: 5px; padding: 10px 20px; }
-        .log { margin-top: 2rem; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #111827;
+            color: #f3f4f6;
+            display: flex;
+            height: 100vh;
+        }
+        .left {
+            width: 40%;
+            padding: 2rem;
+            background: #1f2937;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .right {
+            width: 60%;
+            padding: 2rem;
+            background: #111827;
+        }
+        h1 {
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+        button {
+            background: #3b82f6;
+            border: none;
+            padding: 10px 20px;
+            margin: 0.5rem 0;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+        .section {
+            margin-bottom: 1.5rem;
+        }
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
     </style>
 </head>
 <body>
-    <h1>📚 Library Scraper Dashboard</h1>
-
-    <form action="/scrape" method="post">
-        <button name="mode" value="weekly">Run Weekly Scrape</button>
-        <button name="mode" value="monthly">Run Monthly Scrape</button>
-    </form>
-
-    {% if csv_exists %}
-        <p><a href="/download">📥 Download Latest CSV</a></p>
-    {% endif %}
-
-    <div class="log">
-        <h3>Recent Runs</h3>
-        <ul>
-        {% for log in logs %}
-            <li>{{ log.timestamp }} — {{ log.mode }} — {{ log.status }}</li>
-        {% else %}
-            <li>No logs yet</li>
-        {% endfor %}
-        </ul>
+    <div class="left">
+        <h1>🛠️ Actions</h1>
+        <form action="/scrape" method="post">
+            <button name="mode" value="weekly">Run Weekly Scrape</button><br>
+            <button name="mode" value="monthly">Run Monthly Scrape</button>
+        </form>
+        {% if csv_exists %}
+            <div class="section">
+                <a href="/download">📥 Download Latest CSV</a>
+            </div>
+        {% endif %}
+        <div class="section">
+            <h2>🕓 Recent Runs</h2>
+            <ul>
+                {% for log in logs %}
+                    <li>{{ log.timestamp }} — {{ log.mode }} — {{ log.status }}</li>
+                {% else %}
+                    <li>No logs yet</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="right">
+        <h1>📘 Instructions</h1>
+        <div class="section">
+            <p><strong>Run Weekly Scrape</strong> — Pulls all events from today through 7 days out.</p>
+            <p><strong>Run Monthly Scrape</strong> — Pulls all events from today through the <em>end of next month</em>.</p>
+        </div>
+        <div class="section">
+            <p>The CSV file includes events that are marked as <code>new</code> or <code>updates needed</code> and excludes adult-only events.</p>
+            <p>All descriptions are cleaned and formatted for proper display — paragraph breaks, line spacing, and punctuation are preserved.</p>
+        </div>
+        <div class="section">
+            <p><strong>Need to automate this?</strong> We recommend setting up <a href="https://cron-job.org" target="_blank">cron-job.org</a> to hit your scrape endpoints on a schedule:</p>
+            <ul>
+                <li><code>/cron/weekly</code> every Monday</li>
+                <li><code>/cron/monthly</code> on the 1st of each month</li>
+            </ul>
+        </div>
     </div>
 </body>
 </html>
