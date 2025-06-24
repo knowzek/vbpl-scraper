@@ -166,7 +166,7 @@ def export_events_to_csv():
 
     # ── assemble export dataframe ──
     export_df = pd.DataFrame({
-        "EVENT NAME": df["Event Name"] + " (Virginia Beach)",
+        "EVENT NAME": df["Event Name"] + " at " + df["Location"] + " (Virginia Beach)",
         "EVENT EXCERPT": "",
         "EVENT VENUE NAME": df["Location"],
         "EVENT ORGANIZER NAME": ORGANIZER_NAME,
