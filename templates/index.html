@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Library Scraper Dashboard</title>
+    <style>
+        body { font-family: sans-serif; padding: 2rem; max-width: 600px; margin: auto; }
+        button { margin: 5px; padding: 10px 20px; }
+        .log { margin-top: 2rem; }
+    </style>
+</head>
+<body>
+    <h1>📚 Library Scraper Dashboard</h1>
+
+    <form action="/scrape" method="post">
+        <button name="mode" value="weekly">Run Weekly Scrape</button>
+        <button name="mode" value="monthly">Run Monthly Scrape</button>
+    </form>
+
+    {% if csv_exists %}
+        <p><a href="/download">📥 Download Latest CSV</a></p>
+    {% endif %}
+
+    <div class="log">
+        <h3>Recent Runs</h3>
+        <ul>
+        {% for log in logs %}
+            <li>{{ log.timestamp }} — {{ log.mode }} — {{ log.status }}</li>
+        {% else %}
+            <li>No logs yet</li>
+        {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
