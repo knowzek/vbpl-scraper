@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import time
+import re
 
 def filter_events_by_mode(events, mode):
     today = datetime.today()
@@ -109,7 +110,20 @@ def scrape_vbpl_events(cutoff_date=None):
                 # Extract description
                 description_tag = detail_soup.select_one(".field--name-body .field-item") or \
                                   detail_soup.select_one(".field--name-body")
-                description = description_tag.get_text(strip=True) if description_tag else ""
+                
+                if description_tag:
+                    # Convert HTML line breaks to actual line breaks
+                    for br in description_tag.find_all("br"):
+                        br.replace_with("\n")
+                
+                    # Extract text with paragraph spacing
+                    description = description_tag.get_text(separator="\n\n", strip=True)
+                
+                    # Clean excess spacing
+                    description = re.sub(r'\n{3,}', '\n\n', description)
+                else:
+                    description = ""
+
 
                 # Extract Program Type (used for category assignment)
                 program_type_tag = detail_soup.select_one(".lc-event__program-types span")
