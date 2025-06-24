@@ -15,7 +15,7 @@
         header {
             background-color: #0e1525;
             padding: 1rem 2rem;
-            border-bottom: 1px solid #121926;
+            border-bottom: 1px solid #1E293B;
             display: flex;
             align-items: center;
         }
@@ -85,9 +85,10 @@
             margin-bottom: 2rem;
         }
         .action-box {
+            max-width: 300px;
             padding: 2rem;
-            border: 1px solid #121926;
-            border-radius: 8px;
+            border: 1px solid #1E293B;
+            border-radius: 12px;
             background: #0e1525;
             display: flex;
             flex-direction: column;
@@ -179,11 +180,7 @@
                 <p><strong>Run Monthly Scrape</strong> — Pulls all events from today through the <em>end of next month</em>.</p>
             </div>
             <div class="section">
-                <p><strong>Want to automate it?</strong> Change the automated system settings at <a href="https://cron-job.org" target="_blank">cron-job.org</a> to hit your scrape endpoints on a schedule:</p>
-                <ul>
-                    <li><code>/cron/weekly</code> every Monday</li>
-                    <li><code>/cron/monthly</code> on the 1st of each month</li>
-                </ul>
+                <p>Update automation settings at <a href="https://cron-job.org" target="_blank">cron-job.org</a></p>
             </div>
         </div>
     </main>
