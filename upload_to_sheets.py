@@ -10,16 +10,16 @@ WORKSHEET_NAME = "VBPL Events"
 LOG_WORKSHEET_NAME = "VBPL Log"
 
 PROGRAM_TYPE_TO_CATEGORIES = {
-    "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Family Event, List - Storytimes",
-    "STEAM": "Event Location - Virginia Beach, List - STEM/STEAM, Audience - Family Event",
-    "Computers & Technology": "Event Location - Virginia Beach, Audience - Teens, Audience - Family Event",
-    "Workshops & Lectures": "Event Location - Virginia Beach, Audience - Family Event",
-    "Discussion Groups": "Event Location - Virginia Beach, Audience - Family Event",
-    "Arts & Crafts": "Event Location - Virginia Beach, Audience - Family Event",
-    "Hobbies": "Event Location - Virginia Beach, Audience - Family Event",
-    "Books & Authors": "Event Location - Virginia Beach, Audience - Family Event",
-    "Culture": "Event Location - Virginia Beach, Audience - Family Event",
-    "History & Genealogy": "Event Location - Virginia Beach, Audience - Family Event"
+    "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event, List - Storytimes",
+    "STEAM": "Event Location - Virginia Beach, List - STEM/STEAM, Audience - Free Event, Audience - Family Event",
+    "Computers & Technology": "Event Location - Virginia Beach, Audience - Free Event, Audience - Teens, Audience - Family Event",
+    "Workshops & Lectures": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+    "Discussion Groups": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+    "Arts & Crafts": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+    "Hobbies": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+    "Books & Authors": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+    "Culture": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+    "History & Genealogy": "Event Location - Virginia Beach, Audience - Teens, Audience - Free Event"
 }
 
 def _clean_link(url: str) -> str:
