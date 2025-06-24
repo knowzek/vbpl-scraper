@@ -34,7 +34,7 @@ def dashboard():
 def scrape():
     mode = request.form.get("mode", "weekly")
     try:
-        result = subprocess.run(["python3", "main.py", mode], capture_output=True, text=True, timeout=120)
+        result = subprocess.run(["python3", "main.py", mode], capture_output=True, text=True, timeout=600)
         print(result.stdout)
         log_run(mode, "success" if result.returncode == 0 else "error")
     except Exception as e:
@@ -43,11 +43,13 @@ def scrape():
 
 @app.route("/cron/weekly")
 def cron_weekly():
+    log_run(mode, "running")
     subprocess.run(["python3", "main.py", "weekly"])
     return "Weekly scrape triggered", 200
 
 @app.route("/cron/monthly")
 def cron_monthly():
+    log_run(mode, "running")
     subprocess.run(["python3", "main.py", "monthly"])
     return "Monthly scrape triggered", 200
 
