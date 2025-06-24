@@ -58,8 +58,5 @@ def download_csv():
     return "No CSV found", 404
 
 if __name__ == "__main__":
-    app.run(debug=True)
-
-if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Use PORT from environment if available
     app.run(host="0.0.0.0", port=port, debug=True)
