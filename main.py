@@ -7,14 +7,14 @@ from export_to_csv import export_events_to_csv
 
 # Mapping of age group labels from NPL to their categories
 NPL_AGE_TO_CATEGORIES = {
-    "Family": "Audience - Free Event, Event Location – Norfolk, Audience - Family Event",
-    "All Ages": "Audience - Free Event, Event Location – Norfolk",
-    "Babies (0-2)": "Audience - Free Event, Event Location – Norfolk, Audience - Parent & Me, Audience - Toddler/Infant",
-    "Toddlers (2-3)": "Audience - Free Event, Event Location – Norfolk, Audience - Parent & Me, Audience - Toddler/Infant",
-    "Preschool (3-5)": "Audience - Free Event, Event Location – Norfolk, Audience - Parent & Me, Audience - Preschool Age",
-    "Elementary School Age (5-9)": "Audience - Free Event, Event Location – Norfolk, Audience - School Age",
-    "Tweens (9-13)": "Audience - Teens, Event Location – Norfolk, Audience - School Age",
-    "Teens (12-17)": "Audience - Teens, Event Location – Norfolk, Audience - School Age"
+    "Family": "Audience - Free Event, Event Location - Norfolk, Audience - Family Event",
+    "All Ages": "Audience - Free Event, Event Location - Norfolk",
+    "Babies (0-2)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant",
+    "Toddlers (2-3)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant",
+    "Preschool (3-5)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Preschool Age",
+    "Elementary School Age (5-9)": "Audience - Free Event, Event Location - Norfolk, Audience - School Age",
+    "Tweens (9-13)": "Audience - Teens, Event Location - Norfolk, Audience - School Age",
+    "Teens (12-17)": "Audience - Teens, Event Location - Norfolk, Audience - School Age"
 }
 
 # Mapping of NPL campus names to simplified suffixes for event titles
