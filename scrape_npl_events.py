@@ -47,14 +47,34 @@ def scrape_npl_events(mode="all"):
                 last_day_next_month = following_month - timedelta(days=1)
                 if dt > last_day_next_month:
                     continue
-
+            # Clean up time string
+            start = result.get("start", "").strip()
+            end = result.get("end", "").strip()
+            
+            if result.get("all_day", False):
+                time_str = "All Day Event"
+            elif start and end:
+                time_str = f"{start} – {end}"
+            elif start:
+                time_str = start
+            else:
+                time_str = ""
+            
+            # Clean up ages
+            audiences = result.get("audiences", [])
+            ages = ", ".join([a.get("name", "") for a in audiences if "name" in a])
+            
+            # Use 'campus' as the branch location
+            location = result.get("campus", "").strip()
+            
+            # Final event dictionary
             events.append({
                 "Event Name": result.get("title", "").strip(),
-                "Event Link": result.get("url", ""),  # often present
+                "Event Link": result.get("url", ""),
                 "Event Status": "Available",
-                "Time": result.get("fromTime", ""),
-                "Ages": "",
-                "Location": result.get("location", "").strip(),
+                "Time": time_str,
+                "Ages": ages,
+                "Location": location,
                 "Month": dt.strftime("%b"),
                 "Day": str(dt.day),
                 "Year": str(dt.year),
@@ -63,6 +83,7 @@ def scrape_npl_events(mode="all"):
                 "Series": "",
                 "Program Type": "",
             })
+
         except Exception as e:
             print(f"⚠️ Error parsing event: {e}")
 
