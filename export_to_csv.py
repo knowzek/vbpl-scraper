@@ -85,9 +85,9 @@ def export_events_to_csv(library="vbpl"):
 
     df = df[~df["Ages"].fillna("").str.strip().eq("Adults 18+")]
     time_info = df["Time"].astype(str).apply(_split_times)
-time_df = pd.DataFrame(time_info.tolist(), index=df.index)
-df[["EVENT START TIME", "EVENT END TIME"]] = time_df[[0, 1]]
-df["ALL DAY EVENT"] = time_df[2]
+    time_df = pd.DataFrame(time_info.tolist(), index=df.index)
+    df[["EVENT START TIME", "EVENT END TIME"]] = time_df[[0, 1]]
+    df["ALL DAY EVENT"] = time_df[2]
 
     # Clear times if all-day event is TRUE
     df.loc[df["ALL DAY EVENT"] == "TRUE", ["EVENT START TIME", "EVENT END TIME"]] = ["", ""]
