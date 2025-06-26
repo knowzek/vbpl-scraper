@@ -32,7 +32,7 @@ def normalize(row):
     return [cell.strip() for cell in row[:13]] + [""] * (13 - len(row))  # A–M fields
 
 
-def upload_events_to_sheet(events, library="vbpl", sheet=None, mode="full"):
+def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_to_categories={}):
     config = get_library_config(library)
     SPREADSHEET_NAME = config["spreadsheet_name"]
     WORKSHEET_NAME = config["worksheet_name"]
@@ -112,10 +112,20 @@ def upload_events_to_sheet(events, library="vbpl", sheet=None, mode="full"):
                     if max_age >= 13:
                         age_tags.append("Audience - Teens")
 
-                if age_tags:
+                if library == "npl" and age_to_categories:
+                    # Use predefined NPL mapping instead of VBPL logic
+                    audience_keys = [a.strip() for a in ages_raw.split(",") if a.strip()]
+                    all_tags = []
+                    for tag in audience_keys:
+                        tags = age_to_categories.get(tag)
+                        if tags:
+                            all_tags.extend([t.strip() for t in tags.split(",")])
+                    categories = ", ".join(dict.fromkeys(all_tags))
+                elif age_tags:
                     base = [c.strip() for c in categories.split(",") if c.strip()]
                     combined = base + age_tags
                     categories = ", ".join(dict.fromkeys(combined))
+
                 categories = categories.replace("\u00A0", " ").replace("Â", "").strip()
 
                 row_core = [
