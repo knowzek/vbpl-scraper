@@ -1,17 +1,14 @@
 from datetime import datetime
 import os
 import gspread
-from google.oauth2.service_account import Credentials
+from google.oauth2 import service_account
 import traceback
 from config import get_library_config
 import json
-from google.oauth2 import service_account
-
 import re
 
 
 def _clean_link(url: str) -> str:
-    """Return the URL with any '/index.php' fragment removed, preserving one slash."""
     cleaned = (
         url.replace("/index.php/", "/")
            .replace("/index.php", "/")
@@ -29,10 +26,10 @@ def connect_to_sheet(spreadsheet_name, worksheet_name):
 
 
 def normalize(row):
-    return [cell.strip() for cell in row[:13]] + [""] * (13 - len(row))  # A–M fields
+    return [cell.strip() for cell in row[:13]] + [""] * (13 - len(row))
 
 
-def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_to_categories={}):
+def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_to_categories={}, name_suffix_map={}):
     config = get_library_config(library)
     SPREADSHEET_NAME = config["spreadsheet_name"]
     WORKSHEET_NAME = config["worksheet_name"]
@@ -113,7 +110,6 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                         age_tags.append("Audience - Teens")
 
                 if library == "npl" and age_to_categories:
-                    # Use predefined NPL mapping instead of VBPL logic
                     audience_keys = [a.strip() for a in ages_raw.split(",") if a.strip()]
                     all_tags = []
                     for tag in audience_keys:
@@ -128,8 +124,14 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 categories = categories.replace("\u00A0", " ").replace("Â", "").strip()
 
+                name_original = event.get("Event Name", "")
+                name_cleaned = re.sub(r"\s+at\s+.*", "", name_original, flags=re.IGNORECASE).strip()
+                loc = event.get("Location", "")
+                display_loc = name_suffix_map.get(loc, loc).strip()
+                event_name = f"{name_cleaned} at {display_loc} (Norfolk)"
+
                 row_core = [
-                    event.get("Event Name", ""),
+                    event_name,
                     link,
                     event.get("Event Status", ""),
                     event.get("Time", ""),
