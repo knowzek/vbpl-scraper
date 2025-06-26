@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     if events:
         print("📤 Uploading to Google Sheets...")
-        upload_events_to_sheet(events, mode=mode, library=library)
+        upload_events_to_sheet(events, mode=mode, library=library, age_to_categories=NPL_AGE_TO_CATEGORIES if library == "npl" else None)
         export_events_to_csv(library=library)
         print("✅ Done.")
     else:
