@@ -93,7 +93,14 @@ def export_events_to_csv(library="vbpl"):
     df["EVENT END DATE"] = df["EVENT START DATE"]
 
     # Sanitize and format event titles
-    df["Event Name"] = df.apply(lambda row: f"{re.sub(r'\\s+at\\s+.*', '', row['Event Name']).strip()} at {row['Location'].strip()} ({config['organizer_name'].split()[0]})", axis=1)
+    npl_suffixes = config.get("name_suffix_map", {})
+    def format_event_title(row):
+        name = re.sub(r"\\s+at\\s+.*", "", row["Event Name"]).strip()
+        loc = row["Location"].strip()
+        display_loc = npl_suffixes.get(loc, loc)
+        return f"{name} at {display_loc} (Norfolk)"
+
+    df["Event Name"] = df.apply(format_event_title, axis=1)
 
     export_df = pd.DataFrame({
         "EVENT NAME": df["Event Name"],
