@@ -3,34 +3,20 @@ import os
 import gspread
 from google.oauth2.service_account import Credentials
 import traceback
+from config import get_library_config
+
 import re
 
-SPREADSHEET_NAME = "Virginia Beach Library Events"
-WORKSHEET_NAME = "VBPL Events"
-LOG_WORKSHEET_NAME = "VBPL Log"
-
-PROGRAM_TYPE_TO_CATEGORIES = {
-    "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event, List - Storytimes",
-    "STEAM": "Event Location - Virginia Beach, List - STEM/STEAM, Audience - Free Event, Audience - Family Event",
-    "Computers & Technology": "Event Location - Virginia Beach, Audience - Free Event, Audience - Teens, Audience - Family Event",
-    "Workshops & Lectures": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
-    "Discussion Groups": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
-    "Arts & Crafts": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
-    "Hobbies": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
-    "Books & Authors": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
-    "Culture": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
-    "History & Genealogy": "Event Location - Virginia Beach, Audience - Teens, Audience - Free Event"
-}
 
 def _clean_link(url: str) -> str:
     """Return the URL with any '/index.php' fragment removed, preserving one slash."""
     cleaned = (
-        url.replace("/index.php/", "/")   # …/index.php/slug  → …/slug
-           .replace("/index.php", "/")    # …/index.php       → …/
+        url.replace("/index.php/", "/")
+           .replace("/index.php", "/")
     )
-    # collapse accidental double slashes except after the scheme
     return cleaned.replace("://", ":::").replace("//", "/").replace(":::", "://")
-    
+
+
 def connect_to_sheet(spreadsheet_name, worksheet_name):
     creds = Credentials.from_service_account_file(
         "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON",
@@ -39,10 +25,30 @@ def connect_to_sheet(spreadsheet_name, worksheet_name):
     client = gspread.authorize(creds)
     return client.open(spreadsheet_name).worksheet(worksheet_name)
 
+
 def normalize(row):
     return [cell.strip() for cell in row[:13]] + [""] * (13 - len(row))  # A–M fields
 
-def upload_events_to_sheet(events, sheet=None, mode="full"):
+
+def upload_events_to_sheet(events, library="vbpl", sheet=None, mode="full"):
+    config = get_library_config(library)
+    SPREADSHEET_NAME = config["spreadsheet_name"]
+    WORKSHEET_NAME = config["worksheet_name"]
+    LOG_WORKSHEET_NAME = config["log_worksheet_name"]
+
+    PROGRAM_TYPE_TO_CATEGORIES = {
+        "Storytimes & Early Learning": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event, List - Storytimes",
+        "STEAM": f"Event Location - {config['organizer_name']}, List - STEM/STEAM, Audience - Free Event, Audience - Family Event",
+        "Computers & Technology": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Teens, Audience - Family Event",
+        "Workshops & Lectures": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
+        "Discussion Groups": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
+        "Arts & Crafts": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
+        "Hobbies": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
+        "Books & Authors": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
+        "Culture": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
+        "History & Genealogy": f"Event Location - {config['organizer_name']}, Audience - Teens, Audience - Free Event"
+    }
+
     try:
         if sheet is None:
             sheet = connect_to_sheet(SPREADSHEET_NAME, WORKSHEET_NAME)
@@ -51,21 +57,20 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
         headers = rows[0]
         existing_rows = rows[1:]
 
-        # Pad each row to 16 columns
         for i, row in enumerate(existing_rows):
             if len(row) < 16:
                 print(f"[WARN] Row {i + 2} too short: {len(row)} cols → {row}")
                 row += [""] * (16 - len(row))
 
         link_to_row_index = {}
-        existing_data     = {}
-        
+        existing_data = {}
+
         for idx, row in enumerate(existing_rows):
             if len(row) <= 1:
                 continue
             clean_link = _clean_link(row[1].strip())
-            link_to_row_index[clean_link] = idx + 2          # sheet rows are 1-based (+ header)
-            existing_data[clean_link]     = row
+            link_to_row_index[clean_link] = idx + 2
+            existing_data[clean_link] = row
 
         added = 0
         updated = 0
@@ -81,48 +86,35 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
                     print(f"⚠️  Skipping malformed event (missing link): {event.get('Event Name','')}")
                     skipped += 1
                     continue
-                
-                link = _clean_link(raw_link)          # ← always use this from now on
+
+                link = _clean_link(raw_link)
 
                 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 program_type = event.get("Program Type", "")
                 categories = PROGRAM_TYPE_TO_CATEGORIES.get(program_type, "")
 
-                # ── AGE-BASED AUDIENCE TAGS ──────────────────────────────────
                 ages_raw = event.get("Ages", "")
                 age_tags = []
                 nums = [int(n) for n in re.findall(r"\d+", ages_raw)]
 
                 if nums:
                     min_age, max_age = min(nums), max(nums)
-
-                    # 0-2  ⇒ Toddler / Infant
                     if max_age <= 2:
                         age_tags.append("Audience - Toddler/Infant")
-
-                    # ≤4   ⇒ Parent & Me
                     if max_age <= 4:
                         age_tags.append("Audience - Parent & Me")
-
-                    # contains 3 or 4 ⇒ Preschool Age
                     if any(a in (3, 4) for a in nums):
                         age_tags.append("Audience - Preschool Age")
-
-                    # 5-12 range ⇒ School Age
                     if max_age >= 5 and min_age <= 12:
                         age_tags.append("Audience - School Age")
-
-                    # ≥13  ⇒ Teens
                     if max_age >= 13:
                         age_tags.append("Audience - Teens")
 
-                # merge with existing program-type categories, de-dupe, strip rogue bytes
                 if age_tags:
                     base = [c.strip() for c in categories.split(",") if c.strip()]
                     combined = base + age_tags
-                    categories = ", ".join(dict.fromkeys(combined))          # ordered de-dup
+                    categories = ", ".join(dict.fromkeys(combined))
                 categories = categories.replace("\u00A0", " ").replace("Â", "").strip()
-                # ─────────────────────────────────────────────────────────────
 
                 row_core = [
                     event.get("Event Name", ""),
@@ -146,9 +138,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
 
                 status = "new"
                 site_sync_status = existing_row[15] if link in existing_data else "new"
-                
+
                 if link in existing_data:
-                    # Track only meaningful change fields
                     existing_vals = {
                         "status": existing_row[2],
                         "month": existing_row[6],
@@ -156,7 +147,6 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
                         "year": existing_row[8],
                         "time": existing_row[3],
                     }
-                
                     current_vals = {
                         "status": event.get("Event Status", ""),
                         "month": event.get("Month", ""),
@@ -164,24 +154,18 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
                         "year": event.get("Year", ""),
                         "time": event.get("Time", "")
                     }
-                
                     changed_to_cancelled = (
                         existing_vals["status"].lower() != current_vals["status"].lower()
                         and current_vals["status"].lower() == "cancelled"
                     )
-                
                     date_changed = (
                         existing_vals["month"] != current_vals["month"]
                         or existing_vals["day"] != current_vals["day"]
                         or existing_vals["year"] != current_vals["year"]
                     )
-                
                     time_changed = existing_vals["time"] != current_vals["time"]
-                
                     if changed_to_cancelled or date_changed or time_changed:
                         status = "updates needed"
-                
-                        # Only overwrite site sync status if it was already "on site"
                         if site_sync_status == "on site":
                             site_sync_status = "updates needed"
                     else:
@@ -216,9 +200,9 @@ def upload_events_to_sheet(events, sheet=None, mode="full"):
             log_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             log_row = [log_time, mode, added, updated, skipped]
             log_sheet.append_row(log_row, value_input_option="USER_ENTERED")
-            print("📝 Logged summary to 'VBPL Log' tab.")
+            print(f"📝 Logged summary to '{LOG_WORKSHEET_NAME}' tab.")
         except Exception as e:
-            print(f"⚠️ Failed to log to VBPL Log tab: {e}")
+            print(f"⚠️ Failed to log to {LOG_WORKSHEET_NAME} tab: {e}")
 
         print(f"📦 {added} new events added.")
         print(f"🔁 {updated} existing events updated.")
