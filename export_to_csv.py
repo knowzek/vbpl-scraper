@@ -110,9 +110,11 @@ def export_events_to_csv(library="vbpl"):
     }
 
     def format_event_title(row):
-        name = re.sub(r"\\s+at\\s+.*", "", row["Event Name"]).strip()
+        name = re.sub(r"\s+at\s+.*", "", row["Event Name"]).strip()
         loc = row["Location"].strip()
         display_loc = npl_suffixes.get(loc, loc)
+        if name.lower().endswith(display_loc.lower()):
+            return f"{name} (Norfolk)"
         return f"{name} at {display_loc} (Norfolk)"
 
     df["Event Name"] = df.apply(format_event_title, axis=1)
