@@ -4,6 +4,8 @@ import gspread
 from google.oauth2.service_account import Credentials
 import traceback
 from config import get_library_config
+import json
+from google.oauth2 import service_account
 
 import re
 
@@ -18,8 +20,10 @@ def _clean_link(url: str) -> str:
 
 
 def connect_to_sheet(spreadsheet_name, worksheet_name):
-    creds = Credentials.from_service_account_file(
-        "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON",
+    CREDENTIALS_JSON = os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"]
+    creds_dict = json.loads(CREDENTIALS_JSON)
+    creds = service_account.Credentials.from_service_account_info(
+        creds_dict,
         scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
     )
     client = gspread.authorize(creds)
