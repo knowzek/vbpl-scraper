@@ -5,6 +5,18 @@ from scrape_npl_events import scrape_npl_events
 from upload_to_sheets import upload_events_to_sheet
 from export_to_csv import export_events_to_csv
 
+# Mapping of age group labels from NPL to their categories
+NPL_AGE_TO_CATEGORIES = {
+    "Family": "Audience - Free Event, Event Location – Norfolk, Audience - Family Event",
+    "All Ages": "Audience - Free Event, Event Location – Norfolk",
+    "Babies (0-2)": "Audience - Free Event, Event Location – Norfolk, Audience - Parent & Me, Audience - Toddler/Infant",
+    "Toddlers (2-3)": "Audience - Free Event, Event Location – Norfolk, Audience - Parent & Me, Audience - Toddler/Infant",
+    "Preschool (3-5)": "Audience - Free Event, Event Location – Norfolk, Audience - Parent & Me, Audience - Preschool Age",
+    "Elementary School Age (5-9)": "Audience - Free Event, Event Location – Norfolk, Audience - School Age",
+    "Tweens (9-13)": "Audience - Teens, Event Location – Norfolk, Audience - School Age",
+    "Teens (12-17)": "Audience - Teens, Event Location – Norfolk, Audience - School Age"
+}
+
 if __name__ == "__main__":
     # usage: python main.py [library] [mode]
     library = sys.argv[1] if len(sys.argv) > 1 else "vbpl"
