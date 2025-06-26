@@ -65,8 +65,8 @@ def send_notification_email(file_url, subject, recipient):
 def export_events_to_csv(library="vbpl"):
     config = get_library_config(library)
     creds_dict = json.loads(os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
-    creds = service_account.Credentials.from_service_account_info(
-        creds_dict,
+    creds = service_account.Credentials.from_service_account_file(
+        "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON",
         scopes=[
             "https://www.googleapis.com/auth/spreadsheets",
             "https://www.googleapis.com/auth/drive",
