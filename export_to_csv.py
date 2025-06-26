@@ -1,242 +1,134 @@
 import gspread
 import pandas as pd
 from datetime import datetime
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
-from email.mime.text import MIMEText
 import base64
 import os
 import json
 from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+import smtplib
+from email.mime.text import MIMEText
+import re
+from config import get_library_config
 
-# === CONFIG ===
-SPREADSHEET_NAME = "Virginia Beach Library Events"
-WORKSHEET_NAME = "VBPL Events"
-CSV_EXPORT_PATH = "events_for_upload.csv"
-DRIVE_FOLDER_ID = "1MrUjkl8EirZpoR2sT80UYc0ECCEMI-W1"  # Replace with your actual folder ID
-EMAIL_RECIPIENT = "knowzek@gmail.com"
-EMAIL_SUBJECT = "new csv export for upload ready"
-ORGANIZER_NAME = "Virginia Beach Public Library"
+# === UTILITY FUNCTIONS ===
+def _format_time(raw: str) -> str:
+    if not raw:
+        return ""
+    txt = raw.lower().replace("–", "-").replace("—", "-").replace(".", "")
+    txt = re.sub(r"(\d)([ap]m)", r"\1 \2", txt).strip()
+    for fmt in ("%I:%M %p", "%I %p"):
+        try:
+            return datetime.strptime(txt, fmt).strftime("%-I:%M %p") if ":" in txt else datetime.strptime(txt, fmt).strftime("%-I %p")
+        except ValueError:
+            continue
+    return txt.upper()
 
-# === AUTH ===
-CREDENTIALS_JSON = os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"]
-creds_dict = json.loads(CREDENTIALS_JSON)
-creds = service_account.Credentials.from_service_account_info(
-    creds_dict,
-    scopes=[
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive",
-        "https://www.googleapis.com/auth/gmail.send"
-    ]
-)
+def _split_times(time_str: str):
+    if not time_str or time_str.strip().lower() in ("all day", "ongoing"):
+        return "", "", "TRUE"
+    parts = re.split(r"\s*[-–—]\s*", time_str)
+    start = _format_time(parts[0] if parts else "")
+    end = _format_time(parts[1] if len(parts) > 1 else "")
+    return start, end, "FALSE"
 
-# === LOCATION NORMALIZATION ===
-# Reverse mapping: from full labels → to simplified names
-LOCATION_MAP = {
-    "Library Branch:Oceanfront Area Library": "Oceanfront Area Library",
-    "Library Branch:Meyera E. Oberndorf Central Library": "MEO Central Library",
-    "Library Branch:TCC/City Joint-Use Library": "TCC Joint-Use Library",
-    "Library Branch:Princess Anne Area Library": "Princess Anne Area Library",
-    "Library Branch:Bayside Area Library": "Bayside Area Library",
-    "Library Branch:Pungo-Blackwater Library": "Pungo Blackwater Library",
-    "Library Branch:Windsor Woods Area Library": "Windsor Woods Area Library",
-    "Library Branch:Great Neck Area Library": "Great Neck Area Library",
-    "Library Branch:Kempsville Area Library": "Kempsville Area Library"
-}
+def _ascii_quotes(val):
+    if not isinstance(val, str):
+        return val
+    return val.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
 
-# === CONNECT TO SHEET ===
-def get_sheet():
-    client = gspread.authorize(creds)
-    sheet = client.open(SPREADSHEET_NAME).worksheet(WORKSHEET_NAME)
-    return sheet
-
-# === UPLOAD CSV TO GOOGLE DRIVE ===
-def upload_csv_to_drive(csv_path):
+def upload_csv_to_drive(csv_path, creds, folder_id):
     drive_service = build("drive", "v3", credentials=creds)
-    file_metadata = {"name": "events_for_upload.csv", "parents": [DRIVE_FOLDER_ID]}
+    file_metadata = {"name": os.path.basename(csv_path), "parents": [folder_id]}
     media = MediaFileUpload(csv_path, mimetype="text/csv")
     uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
     file_id = uploaded_file.get("id")
     return f"https://drive.google.com/file/d/{file_id}/view"
 
-# === SEND EMAIL VIA GMAIL API ===
-import smtplib
-from email.mime.text import MIMEText
-
-def send_notification_email(file_url):
+def send_notification_email(file_url, subject, recipient):
     smtp_user = os.environ["SMTP_USERNAME"]
     smtp_pass = os.environ["SMTP_PASSWORD"]
 
     msg = MIMEText(f"A new CSV export is ready:\n\n{file_url}")
-    msg["Subject"] = EMAIL_SUBJECT
+    msg["Subject"] = subject
     msg["From"] = smtp_user
-    msg["To"] = EMAIL_RECIPIENT
+    msg["To"] = recipient
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(smtp_user, smtp_pass)
         server.send_message(msg)
 
-    print(f"📬 Email sent to {EMAIL_RECIPIENT}")
+    print(f"📬 Email sent to {recipient}")
 
-
-# ─── helper functions ──────────────────────────────────────────────────────────
-import re
-from datetime import datetime
-
-def _format_time(raw: str) -> str:
-    """
-    Normalises a raw time string to `H:MM AM` / `H AM` with uppercase meridiem.
-    Accepts inputs such as '3:30 pm', '8 PM', '2 pm', etc.
-    Falls back to the cleaned string if parsing fails.
-    """
-    if not raw:
-        return ""
-    txt = raw.lower().replace(" ", " ").replace("–", "-").replace("—", "-").replace(".", "")
-    txt = re.sub(r"(\d)([ap]m)", r"\1 \2", txt).strip()            # ensure space before am/pm
-    for fmt in ("%I:%M %p", "%I %p"):
-        try:
-            return datetime.strptime(txt, fmt).strftime("%-I:%M %p") \
-                   if ":" in txt else datetime.strptime(txt, fmt).strftime("%-I %p")
-        except ValueError:
-            continue
-    return txt.upper()                                             # fallback – already readable
-
-def _split_times(time_str: str):
-    """
-    Splits a VBPL time string like '3:30 PM – 4:30 PM' (or variants) into
-    clean start- and end-time components. Returns (start, end, all_day_flag).
-    """
-    if not time_str or time_str.strip().lower() in ("all day", "ongoing"):
-        return "", "", "TRUE"                                       # treat as an all-day event
-    parts = re.split(r"\s*[-–—]\s*", time_str)                      # dash/en-dash/em-dash
-    start = _format_time(parts[0] if parts else "")
-    end   = _format_time(parts[1] if len(parts) > 1 else "")
-    return start, end, "FALSE"
-
-def _clean_text(val: str | None):
-    """Cleans common formatting issues from text."""
-    if not isinstance(val, str):
-        return val
-    return (
-        val.replace("’", "")     # right single quote → removed
-           .replace("‘", "")     # left single quote → removed
-           .replace("'", "")     # straight apostrophe → removed
-           .replace("“", '"')    # left double quote
-           .replace("”", '"')    # right double quote
-           .replace("—", "-")    # em-dash
-           .replace("–", "-")    # en-dash
-           .replace("", "-")   # device control char → hyphen
+# === EXPORT FUNCTION ===
+def export_events_to_csv(library="vbpl"):
+    config = get_library_config(library)
+    creds_dict = json.loads(os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+    creds = service_account.Credentials.from_service_account_info(
+        creds_dict,
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive",
+            "https://www.googleapis.com/auth/gmail.send"
+        ]
     )
 
-# ─── main export function ──────────────────────────────────────────────────────
-def export_events_to_csv():
-    sheet = get_sheet()
-    data = sheet.get_all_records()
-    df = pd.DataFrame(data)                                         # ← existing load
+    client = gspread.authorize(creds)
+    sheet = client.open(config["spreadsheet_name"]).worksheet(config["worksheet_name"])
+    df = pd.DataFrame(sheet.get_all_records())
     original_row_count = len(df)
 
-    # ── KEEP only rows whose Site Sync Status is "new" ──
     df = df[df["Site Sync Status"].fillna("").str.strip().str.lower() == "new"]
     if df.empty:
         print("🚫  No new events to export.")
         return
-        
-    # ── drop events whose Ages column is ONLY "Adults 18+" ──
+
     df = df[~df["Ages"].fillna("").str.strip().eq("Adults 18+")]
+    time_info = df["Time"].astype(str).apply(_split_times)
+    df[["EVENT START TIME", "EVENT END TIME", "ALL DAY EVENT"]] = pd.DataFrame(time_info.tolist(), index=df.index)
 
-    df["Location"] = (
-        df["Location"]
-          .str.strip()
-          .map(LOCATION_MAP)                 # exact matches first
-          .fillna(                           # fallback: drop prefix
-              df["Location"].str.replace(r"^Library Branch:", "", regex=True).str.strip()
-          )
-    )
-    
-    # ── NEW: extract start/end/all-day from the “Time” column ──
-    time_info = df["Time"].astype(str).apply(_split_times)          # returns tuples
-    df[["EVENT START TIME", "EVENT END TIME", "ALL DAY EVENT"]] = \
-        pd.DataFrame(time_info.tolist(), index=df.index)
-
-    # ── format EVENT START / END DATE (unchanged) ──
     df["EVENT START DATE"] = pd.to_datetime(
         df["Month"] + " " + df["Day"].astype(str) + " " + df["Year"].astype(str)
     ).dt.strftime("%Y-%m-%d")
-    df["EVENT END DATE"] = df["EVENT START DATE"]                    # same-day events
+    df["EVENT END DATE"] = df["EVENT START DATE"]
 
-    # ── assemble export dataframe ──
     export_df = pd.DataFrame({
-        "EVENT NAME": df["Event Name"] + " at " + df["Location"] + " (Virginia Beach)",
+        "EVENT NAME": df["Event Name"] + config["event_name_suffix"],
         "EVENT EXCERPT": "",
         "EVENT VENUE NAME": df["Location"],
-        "EVENT ORGANIZER NAME": ORGANIZER_NAME,
+        "EVENT ORGANIZER NAME": config["organizer_name"],
         "EVENT START DATE": df["EVENT START DATE"],
-        "EVENT START TIME": df["EVENT START TIME"],                 # ★ Column F
+        "EVENT START TIME": df["EVENT START TIME"],
         "EVENT END DATE": df["EVENT END DATE"],
-        "EVENT END TIME": df["EVENT END TIME"],                     # ★ Column H
-        "ALL DAY EVENT": df["ALL DAY EVENT"],                       # ★ Column I  (TRUE/FALSE)
+        "EVENT END TIME": df["EVENT END TIME"],
+        "ALL DAY EVENT": df["ALL DAY EVENT"],
         "TIMEZONE": "America/New_York",
-        "HIDE FROM EVENT LISTINGS": "FALSE",                        # ★ Column K
+        "HIDE FROM EVENT LISTINGS": "FALSE",
         "STICKY IN MONTH VIEW": "FALSE",
         "EVENT CATEGORY": df["Categories"],
         "EVENT TAGS": "",
         "EVENT COST": "",
         "EVENT CURRENCY SYMBOL": "$",
-        "EVENT CURRENCY POSITION": "",                              # ★ Column Q (blank)
+        "EVENT CURRENCY POSITION": "",
         "EVENT ISO CURRENCY CODE": "USD",
         "EVENT FEATURED IMAGE": "",
         "EVENT WEBSITE": df["Event Link"],
-        "EVENT SHOW MAP LINK": "TRUE",                              # ★ Column U
-        "EVENT SHOW MAP": "TRUE",                                   # ★ Column V
-        "ALLOW COMMENTS": "FALSE",                                  # ★ Column W
-        "ALLOW TRACKBACKS AND PINGBACKS": "FALSE",                  # ★ Column X
-        "EVENT DESCRIPTION": df["Event Description"],
+        "EVENT SHOW MAP LINK": "TRUE",
+        "EVENT SHOW MAP": "TRUE",
+        "ALLOW COMMENTS": "FALSE",
+        "ALLOW TRACKBACKS AND PINGBACKS": "FALSE",
+        "EVENT DESCRIPTION": df["Event Description"]
     })
 
-    # ── strip curly quotes/apostrophes ──
     str_cols = export_df.select_dtypes(include="object").columns
-    export_df[str_cols] = export_df[str_cols].applymap(_clean_text)
+    export_df[str_cols] = export_df[str_cols].applymap(_ascii_quotes)
 
-
-    # === SAVE CSV ===
-    export_df.to_csv(CSV_EXPORT_PATH, index=False)
+    csv_path = f"events_for_upload_{library}.csv"
+    export_df.to_csv(csv_path, index=False)
     print(f"✅ Exported {len(export_df)} events to CSV (from {original_row_count} original rows)")
 
-    # ---------- STEP 2: update ‘Site Sync Status’ for ONLY the rows we just exported ----------
-    rows_to_mark = sorted(df.index + 2)          # sheet row numbers (header + 0-index)
-    
-    if rows_to_mark:
-        # build one batch request with many ranges
-        batch_body = {
-            "valueInputOption": "USER_ENTERED",
-            "data": []
-        }
-    
-        # group consecutive rows into single ranges (P5:P9, P15:P15, …)
-        def contiguous_groups(nums):
-            start = prev = nums[0]
-            for n in nums[1:]:
-                if n == prev + 1:
-                    prev = n
-                else:
-                    yield (start, prev)
-                    start = prev = n
-            yield (start, prev)
-    
-        for start, end in contiguous_groups(rows_to_mark):
-            batch_body["data"].append({
-                "range": f"P{start}:P{end}",
-                "values": [["on site"]] * (end - start + 1)
-            })
-    
-        # ONE Google Sheets call ↓
-        sheet.spreadsheet.values_batch_update(batch_body)
+    file_url = upload_csv_to_drive(csv_path, creds, config["drive_folder_id"])
+    send_notification_email(file_url, config["email_subject"], config["email_recipient"])
 
-    # ---------- DONE ----------
-
-    # === Upload to Drive and Email ===
-    file_url = upload_csv_to_drive(CSV_EXPORT_PATH)
-    send_notification_email(file_url)
-
-if __name__ == "__main__":
-    export_events_to_csv()
+    return csv_path
