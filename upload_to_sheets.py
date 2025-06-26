@@ -21,14 +21,12 @@ def _clean_link(url: str) -> str:
 
 def connect_to_sheet(spreadsheet_name, worksheet_name):
     creds = service_account.Credentials.from_service_account_file(
-        "/etc/secrets/google.json",  # or whatever path you configured in Render
-        scopes=[
-            "https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/drive"
-        ]
+        "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON",
+        scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
     )
     client = gspread.authorize(creds)
     return client.open(spreadsheet_name).worksheet(worksheet_name)
+
 
 def normalize(row):
     return [cell.strip() for cell in row[:13]] + [""] * (13 - len(row))  # A–M fields
