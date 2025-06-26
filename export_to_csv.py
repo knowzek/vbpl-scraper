@@ -26,7 +26,7 @@ def _format_time(raw: str) -> str:
     return txt.upper()
 
 def _split_times(time_str: str):
-    if not time_str or time_str.strip().lower() in ("all day", "ongoing"):
+    if not time_str or time_str.strip().lower() in ("all day", "all day event", "ongoing"):
         return "", "", "TRUE"
     parts = re.split(r"\s*[-–—]\s*", time_str)
     start = _format_time(parts[0] if parts else "")
