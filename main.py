@@ -17,6 +17,22 @@ NPL_AGE_TO_CATEGORIES = {
     "Teens (12-17)": "Audience - Teens, Event Location – Norfolk, Audience - School Age"
 }
 
+# Mapping of NPL campus names to simplified suffixes for event titles
+NPL_LIBRARY_NAME_SUFFIXES = {
+    "Mary D. Pretlow Anchor Branch Library": "Pretlow Library",
+    "Barron F. Black Branch Library": "Barron F. Black Library",
+    "Richard A. Tucker Memorial Library": "Tucker Library",
+    "Larchmont Branch Library": "Larchmont Library",
+    "Jordan-Newby Anchor Branch Library at Broad Creek": "Jordan-Newby Anchor Branch Library",
+    "Blyden Branch Library": "Blyden Branch Library",
+    "Lafayette Branch Library": "Lafayette Branch Library",
+    "Van Wyck Branch Library": "Van Wyck Branch Library",
+    "Downtown Branch at Slover": "Downtown Branch at Slover",
+    "Park Place Branch Library": "Park Place Branch Library",
+    "Little Creek Branch Library": "Little Creek Branch Library",
+    "Janaf Branch Library": "Janaf Branch Library"
+}
+
 if __name__ == "__main__":
     # usage: python main.py [library] [mode]
     library = sys.argv[1] if len(sys.argv) > 1 else "vbpl"
