@@ -94,6 +94,21 @@ def export_events_to_csv(library="vbpl"):
 
     # Sanitize and format event titles
     npl_suffixes = config.get("name_suffix_map", {})
+    venue_names = {
+        "Richard A. Tucker Memorial Library": "Richard A. Tucker Memorial Library",
+        "Barron F. Black Branch Library": "Barron F. Black Branch, Norfolk Public Library",
+        "Mary D. Pretlow Anchor Branch Library": "Pretlow Branch Library",
+        "Jordan-Newby Anchor Branch Library at Broad Creek": "Jordan-Newby Anchor Branch Library at Broad Creek",
+        "Blyden Branch Library": "Blyden Branch Library",
+        "Lafayette Branch Library": "Lafayette Branch, Norfolk Public Library",
+        "Larchmont Branch Library": "Larchmont Branch, Norfolk Public Library",
+        "Van Wyck Branch Library": "Van Wyck Branch, Norfolk Public Library",
+        "Downtown Branch at Slover": "The Slover / Downtown Branch Library",
+        "Park Place Branch Library": "Park Place Branch Library",
+        "Little Creek Branch Library": "Little Creek Branch, Norfolk Public Library",
+        "Janaf Branch Library": "Janaf Branch Library"
+    }
+
     def format_event_title(row):
         name = re.sub(r"\\s+at\\s+.*", "", row["Event Name"]).strip()
         loc = row["Location"].strip()
@@ -101,11 +116,12 @@ def export_events_to_csv(library="vbpl"):
         return f"{name} at {display_loc} (Norfolk)"
 
     df["Event Name"] = df.apply(format_event_title, axis=1)
+    df["Venue"] = df["Location"].map(venue_names).fillna(df["Location"])
 
     export_df = pd.DataFrame({
         "EVENT NAME": df["Event Name"],
         "EVENT EXCERPT": "",
-        "EVENT VENUE NAME": df["Location"],
+        "EVENT VENUE NAME": df["Venue"],
         "EVENT ORGANIZER NAME": config["organizer_name"],
         "EVENT START DATE": df["EVENT START DATE"],
         "EVENT START TIME": df["EVENT START TIME"],
