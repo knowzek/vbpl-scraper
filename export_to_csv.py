@@ -65,13 +65,13 @@ def send_notification_email(file_url, subject, recipient):
 def export_events_to_csv(library="vbpl"):
     config = get_library_config(library)
     creds = service_account.Credentials.from_service_account_file(
-    "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON",
-    scopes=[
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive",
-        "https://www.googleapis.com/auth/gmail.send"
-    ]
-)
+        "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON",
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive",
+            "https://www.googleapis.com/auth/gmail.send"
+        ]
+    )
 
     client = gspread.authorize(creds)
     sheet = client.open(config["spreadsheet_name"]).worksheet(config["worksheet_name"])
@@ -92,8 +92,11 @@ def export_events_to_csv(library="vbpl"):
     ).dt.strftime("%Y-%m-%d")
     df["EVENT END DATE"] = df["EVENT START DATE"]
 
+    # Sanitize and format event titles
+    df["Event Name"] = df.apply(lambda row: f"{re.sub(r'\\s+at\\s+.*', '', row['Event Name']).strip()} at {row['Location'].strip()} ({config['organizer_name'].split()[0]})", axis=1)
+
     export_df = pd.DataFrame({
-        "EVENT NAME": df["Event Name"] + config["event_name_suffix"],
+        "EVENT NAME": df["Event Name"],
         "EVENT EXCERPT": "",
         "EVENT VENUE NAME": df["Location"],
         "EVENT ORGANIZER NAME": config["organizer_name"],
