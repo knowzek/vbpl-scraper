@@ -13,7 +13,7 @@ LIBRARY_CONSTANTS = {
             "Books & Authors": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
             "Culture": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
             "History & Genealogy": "Event Location - Virginia Beach, Audience - Teens, Audience - Free Event"
-        }
+        },
         "name_suffix_map": {
             "Oceanfront Area Library": "Oceanfront Area Library",
             "Meyera E. Oberndorf Central Library": "MEO Central Library",
@@ -66,7 +66,7 @@ LIBRARY_CONSTANTS = {
             "Park Place Branch Library": "Park Place Branch Library",
             "Little Creek Branch Library": "Little Creek Branch, Norfolk Public Library",
             "Janaf Branch Library": "Janaf Branch Library"
-        }
+        },
     },
     "chpl": {
         "age_to_categories": {
@@ -86,8 +86,7 @@ LIBRARY_CONSTANTS = {
         },
         "venue_names": {
             "Russell Memorial Library": "Russell Memorial Library, Chesapeake Public Library",
-            ...
-        }
+        },
     },
     # Add other libraries here
 }
