@@ -4,6 +4,7 @@ from scrape_events import scrape_vbpl_events, filter_events_by_mode
 from scrape_npl_events import scrape_npl_events
 from upload_to_sheets import upload_events_to_sheet
 from export_to_csv import export_events_to_csv
+from scrape_chpl_events import scrape_chpl_events
 
 # Mapping of age group labels from NPL to their categories
 NPL_AGE_TO_CATEGORIES = {
