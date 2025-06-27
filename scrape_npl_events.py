@@ -63,7 +63,7 @@ def scrape_npl_events(mode="all"):
                     "Event Status": "Available",
                     "Time": time_str,
                     "Ages": ages,
-                    "Location": result.get("location", "").strip() or result.get("campus", "").strip(),
+                    "Location": result.get("campus", "").strip() or result.get("location", "").strip(),
                     "Month": dt.strftime("%b"),
                     "Day": str(dt.day),
                     "Year": str(dt.year),
