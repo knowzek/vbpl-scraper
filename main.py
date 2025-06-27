@@ -120,7 +120,7 @@ if __name__ == "__main__":
             age_to_categories=constants.get("age_to_categories"),
             name_suffix_map=constants.get("name_suffix_map")
         )
-        export_events_to_csv(library=library)
+        # export_events_to_csv(library=library)
         print("✅ Done.")
     else:
         print("⚠️ No events to upload.")
