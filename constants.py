@@ -83,16 +83,16 @@ LIBRARY_CONSTANTS = {
             "Dr. Clarence V. Cuffee Outreach and Innovation Library": "Cuffee Library",
             "Greenbrier Library": "Greenbrier Library",
             "Russell Memorial Library": "Russell Memorial Library",
-            "Central Library": "Central Library",
+            "Central Library": "Chesapeake Central Library",
             "Indian River Library": "Indian River Library",
             "South Norfolk Memorial Library": "South Norfolk Memorial Library",
             "Major Hillard Library": "Major Hillard Library"
         },
         "venue_names": {
-            "Dr. Clarence V. Cuffee Outreach and Innovation Library": "Cuffee Library",
+            "Dr. Clarence V. Cuffee Outreach and Innovation Library": "Dr. Clarence V. Cuffee Outreach & Innovation Library",
             "Greenbrier Library": "Greenbrier Library",
             "Russell Memorial Library": "Russell Memorial Library",
-            "Central Library": "Central Library",
+            "Central Library": "Chesapeake Central Library",
             "Indian River Library": "Indian River Library",
             "South Norfolk Memorial Library": "South Norfolk Memorial Library",
             "Major Hillard Library": "Major Hillard Library"
