@@ -1,6 +1,21 @@
 # constants.py
 
 LIBRARY_CONSTANTS = {
+    "vbpl": {
+        "program_type_to_categories": {
+            "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event, List - Storytimes",
+            "STEAM": "Event Location - Virginia Beach, List - STEM/STEAM, Audience - Free Event, Audience - Family Event",
+            "Computers & Technology": "Event Location - Virginia Beach, Audience - Free Event, Audience - Teens, Audience - Family Event",
+            "Workshops & Lectures": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+            "Discussion Groups": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+            "Arts & Crafts": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+            "Hobbies": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+            "Books & Authors": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+            "Culture": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+            "History & Genealogy": "Event Location - Virginia Beach, Audience - Teens, Audience - Free Event"
+        }
+    },
+    
     "npl": {
         "age_to_categories": {
             "Family": "Audience - Free Event, Event Location - Norfolk, Audience - Family Event",
