@@ -125,7 +125,10 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 categories = categories.replace("\u00A0", " ").replace("Â", "").strip()
 
                 name_original = event.get("Event Name", "")
-                name_cleaned = re.sub(r"\s+at\s+.*", "", name_original, flags=re.IGNORECASE).strip()
+                # Remove any "@ LibraryName" from event titles before suffixing
+                name_without_at = re.sub(r"\s*@\s*[^@,;:\\/]+", "", name_original, flags=re.IGNORECASE).strip()
+                name_cleaned = re.sub(r"\s+at\s+.*", "", name_without_at, flags=re.IGNORECASE).strip()
+
                 loc = event.get("Location", "")
                 suffix = config.get("event_name_suffix", "")
                 display_loc = name_suffix_map.get(loc, loc).strip()
