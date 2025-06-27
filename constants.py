@@ -14,6 +14,18 @@ LIBRARY_CONSTANTS = {
             "Culture": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
             "History & Genealogy": "Event Location - Virginia Beach, Audience - Teens, Audience - Free Event"
         }
+        "name_suffix_map": {
+            "Oceanfront Area Library": "Oceanfront Area Library",
+            "Meyera E. Oberndorf Central Library": "MEO Central Library",
+            "TCC/City Joint-Use Library": "TCC Joint-Use Library",
+            "Princess Anne Area Library": "Princess Anne Area Library",
+            "Bayside Area Library": "Bayside Area Library",
+            "Pungo-Blackwater Library": "Pungo Blackwater Library",
+            "Windsor Woods Area Library": "Windsor Woods Area Library",
+            "Great Neck Area Library": "Great Neck Area Library",
+            "Kempsville Area Library": "Kempsville Area Library"
+        },
+        "event_name_suffix": " (Virginia Beach)"
     },
     
     "npl": {
