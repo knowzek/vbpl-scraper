@@ -90,9 +90,9 @@ def export_events_to_csv(library="vbpl"):
 
     df = df[~df["Ages"].fillna("").str.strip().eq("Adults 18+")]
     time_info = df["Time"].astype(str).apply(_split_times)
-    time_df = pd.DataFrame(time_info.tolist(), index=df.index)
-    df[["EVENT START TIME", "EVENT END TIME"]] = time_df[[0, 1]]
-    df["ALL DAY EVENT"] = time_df[2]
+    time_df = pd.DataFrame(time_info.tolist(), index=df.index, columns=["start", "end", "all_day"])
+    df[["EVENT START TIME", "EVENT END TIME"]] = time_df[["start", "end"]]
+    df["ALL DAY EVENT"] = time_df["all_day"]
 
     # Clear times if all-day event is TRUE
     df.loc[df["ALL DAY EVENT"] == "TRUE", ["EVENT START TIME", "EVENT END TIME"]] = ["", ""]
@@ -103,7 +103,7 @@ def export_events_to_csv(library="vbpl"):
     df["EVENT END DATE"] = df["EVENT START DATE"]
 
     # Sanitize and format event titles
-    npl_suffixes = config.get("name_suffix_map", {})
+    suffix = config.get("event_name_suffix", "")
 
     def format_event_title(row):
         name = row["Event Name"]
