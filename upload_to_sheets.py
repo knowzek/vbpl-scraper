@@ -127,9 +127,13 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 name_original = event.get("Event Name", "")
                 name_cleaned = re.sub(r"\s+at\s+.*", "", name_original, flags=re.IGNORECASE).strip()
                 loc = event.get("Location", "")
+                suffix = config.get("event_name_suffix", "")
                 display_loc = name_suffix_map.get(loc, loc).strip()
-                event_name = f"{name_cleaned} at {display_loc} (Norfolk)"
-
+                
+                if name_cleaned.lower().endswith(display_loc.lower()):
+                    event_name = f"{name_cleaned}{suffix}"
+                else:
+                    event_name = f"{name_cleaned} at {display_loc}{suffix}"
                 row_core = [
                     event_name,
                     link,
