@@ -106,7 +106,9 @@ def export_events_to_csv(library="vbpl"):
     npl_suffixes = config.get("name_suffix_map", {})
 
     def format_event_title(row):
-        name = re.sub(r"\s+at\s+.*", "", row["Event Name"]).strip()
+        name = row["Event Name"]
+        name = re.sub(r"\s*@\s*[^@,;:\\/]+", "", name, flags=re.IGNORECASE).strip()
+        name = re.sub(r"\s+at\s+.*", "", name, flags=re.IGNORECASE).strip()
         loc = row["Location"].strip()
         display_loc = name_suffix_map.get(loc, loc)
         suffix = config.get("event_name_suffix", "")
