@@ -158,3 +158,14 @@ def export_events_to_csv(library="vbpl"):
     send_notification_email(file_url, config["email_subject"], config["email_recipient"])
 
     return csv_path
+
+if __name__ == "__main__":
+    LIBRARIES = ["vbpl", "npl", "chpl"]  # Add more libraries as needed
+
+    for lib in LIBRARIES:
+        print(f"\n📁 Exporting events for: {lib.upper()}")
+        try:
+            export_events_to_csv(lib)
+        except Exception as e:
+            print(f"❌ Failed to export for {lib}: {e}")
+
