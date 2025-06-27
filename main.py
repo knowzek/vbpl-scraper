@@ -119,8 +119,14 @@ if __name__ == "__main__":
                 NPL_AGE_TO_CATEGORIES if library == "npl"
                 else CHPL_AGE_TO_CATEGORIES if library == "chpl"
                 else None
+            ),
+            name_suffix_map=(
+                NPL_LIBRARY_NAME_SUFFIXES if library == "npl"
+                else CHPL_NAME_SUFFIXES if library == "chpl"
+                else None
             )
         )
+
         export_events_to_csv(library=library)
         print("✅ Done.")
     else:
