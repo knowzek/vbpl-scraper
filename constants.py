@@ -67,6 +67,7 @@ LIBRARY_CONSTANTS = {
             "Little Creek Branch Library": "Little Creek Branch, Norfolk Public Library",
             "Janaf Branch Library": "Janaf Branch Library"
         },
+        "event_name_suffix": " (Norfolk)",
     },
     "chpl": {
         "age_to_categories": {
@@ -86,7 +87,11 @@ LIBRARY_CONSTANTS = {
         },
         "venue_names": {
             "Russell Memorial Library": "Russell Memorial Library, Chesapeake Public Library",
+            "Greenbrier Library": "Greenbrier Library, Chesapeake Public Library",
+            "Major Hillard Library": "Major Hillard Library, Chesapeake Public Library",
+            "Dr. Clarence V. Cuffee Outreach and Innovation Library": "Cuffee Library, Chesapeake Public Library"
         },
+        "event_name_suffix": " (Chesapeake)",
     },
     # Add other libraries here
 }
