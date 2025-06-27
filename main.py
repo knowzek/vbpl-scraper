@@ -34,6 +34,24 @@ NPL_LIBRARY_NAME_SUFFIXES = {
     "Janaf Branch Library": "Janaf Branch Library"
 }
 
+# Mapping of age group labels from NPL to their categories
+CHPL_AGE_TO_CATEGORIES = {
+    "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Chesapeake, Audience - Parent & Me, Audience - Toddler/Infant",
+    "Elementary School": "Audience - School Age, Audience - Free Event, Event Location - Chesapeake",
+    "Middle School": "Audience - Teens, Audience - Free Event, Event Location - Chesapeake",
+    "High School": "Audience - Teens, Audience - Free Event, Event Location - Chesapeake",
+    "Families": "Audience - Family Event, Audience - Free Event, Event Location - Chesapeake",
+    "All Ages": "Audience - All Ages, Audience - Free Event, Event Location - Chesapeake",
+    "Adult": "Audience - Adult Event, Audience - Free Event, Event Location - Chesapeake"
+}
+
+CHPL_NAME_SUFFIXES = {
+    "Dr. Clarence V. Cuffee Outreach and Innovation Library": "Cuffee Library",
+    "Greenbrier Library": "Greenbrier Library",
+    "Russell Memorial Library": "Russell Library",
+    "Major Hillard Library": "Major Hillard Library"
+}
+
 if __name__ == "__main__":
     # usage: python main.py [library] [mode]
     library = sys.argv[1] if len(sys.argv) > 1 else "vbpl"
@@ -93,7 +111,16 @@ if __name__ == "__main__":
 
     if events:
         print("📤 Uploading to Google Sheets...")
-        upload_events_to_sheet(events, mode=mode, library=library, age_to_categories=NPL_AGE_TO_CATEGORIES if library == "npl" else None)
+        upload_events_to_sheet(
+            events,
+            mode=mode,
+            library=library,
+            age_to_categories=(
+                NPL_AGE_TO_CATEGORIES if library == "npl"
+                else CHPL_AGE_TO_CATEGORIES if library == "chpl"
+                else None
+            )
+        )
         export_events_to_csv(library=library)
         print("✅ Done.")
     else:
