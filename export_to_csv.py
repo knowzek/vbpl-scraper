@@ -11,6 +11,8 @@ import smtplib
 from email.mime.text import MIMEText
 import re
 from config import get_library_config
+from constants import LIBRARY_CONSTANTS
+
 
 # === UTILITY FUNCTIONS ===
 def _format_time(raw: str) -> str:
@@ -64,6 +66,9 @@ def send_notification_email(file_url, subject, recipient):
 # === EXPORT FUNCTION ===
 def export_events_to_csv(library="vbpl"):
     config = get_library_config(library)
+    constants = LIBRARY_CONSTANTS.get(library, {})
+    venue_names = constants.get("venue_names", {})
+    name_suffix_map = constants.get("name_suffix_map", {})
     creds = service_account.Credentials.from_service_account_file(
         "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON",
         scopes=[
@@ -99,28 +104,15 @@ def export_events_to_csv(library="vbpl"):
 
     # Sanitize and format event titles
     npl_suffixes = config.get("name_suffix_map", {})
-    venue_names = {
-        "Richard A. Tucker Memorial Library": "Richard A. Tucker Memorial Library",
-        "Barron F. Black Branch Library": "Barron F. Black Branch, Norfolk Public Library",
-        "Mary D. Pretlow Anchor Branch Library": "Pretlow Branch Library",
-        "Jordan-Newby Anchor Branch Library at Broad Creek": "Jordan-Newby Anchor Branch Library at Broad Creek",
-        "Blyden Branch Library": "Blyden Branch Library",
-        "Lafayette Branch Library": "Lafayette Branch, Norfolk Public Library",
-        "Larchmont Branch Library": "Larchmont Branch, Norfolk Public Library",
-        "Van Wyck Branch Library": "Van Wyck Branch, Norfolk Public Library",
-        "Downtown Branch at Slover": "The Slover / Downtown Branch Library",
-        "Park Place Branch Library": "Park Place Branch Library",
-        "Little Creek Branch Library": "Little Creek Branch, Norfolk Public Library",
-        "Janaf Branch Library": "Janaf Branch Library"
-    }
 
     def format_event_title(row):
         name = re.sub(r"\s+at\s+.*", "", row["Event Name"]).strip()
         loc = row["Location"].strip()
-        display_loc = npl_suffixes.get(loc, loc)
+        display_loc = name_suffix_map.get(loc, loc)
+        suffix = config.get("event_name_suffix", "")
         if name.lower().endswith(display_loc.lower()):
-            return f"{name} (Norfolk)"
-        return f"{name} at {display_loc} (Norfolk)"
+            return f"{name}{suffix}"
+        return f"{name} at {display_loc}{suffix}"
 
     df["Event Name"] = df.apply(format_event_title, axis=1)
     df["Venue"] = df["Location"].map(venue_names).fillna(df["Location"])
