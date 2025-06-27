@@ -57,8 +57,30 @@ if __name__ == "__main__":
 
     if library == "vbpl":
         events = scrape_vbpl_events(cutoff_date=cutoff)
+    
     elif library == "npl":
         events = scrape_npl_events(mode=mode)
+    
+    elif library == "chpl":
+        from scrape_chpl_events import scrape_chpl_events
+        events = scrape_chpl_events(mode=mode)
+    
+    elif library == "hpl":
+        from scrape_hpl_events import scrape_hpl_events
+        events = scrape_hpl_events(mode=mode)
+    
+    elif library == "nnpl":
+        from scrape_nnpl_events import scrape_nnpl_events
+        events = scrape_nnpl_events(mode=mode)
+    
+    elif library == "spl":
+        from scrape_spl_events import scrape_spl_events
+        events = scrape_spl_events(mode=mode)
+    
+    elif library == "ppl":
+        from scrape_ppl_events import scrape_ppl_events
+        events = scrape_ppl_events(mode=mode)
+    
     else:
         raise ValueError(f"Unknown library: {library}")
 
