@@ -5,6 +5,7 @@ from scrape_npl_events import scrape_npl_events
 from upload_to_sheets import upload_events_to_sheet
 from export_to_csv import export_events_to_csv
 from scrape_chpl_events import scrape_chpl_events
+from constants import LIBRARY_CONSTANTS
 
 # Mapping of age group labels from NPL to their categories
 NPL_AGE_TO_CATEGORIES = {
@@ -111,22 +112,14 @@ if __name__ == "__main__":
 
     if events:
         print("📤 Uploading to Google Sheets...")
+        constants = LIBRARY_CONSTANTS.get(library, {})
         upload_events_to_sheet(
             events,
             mode=mode,
             library=library,
-            age_to_categories=(
-                NPL_AGE_TO_CATEGORIES if library == "npl"
-                else CHPL_AGE_TO_CATEGORIES if library == "chpl"
-                else None
-            ),
-            name_suffix_map=(
-                NPL_LIBRARY_NAME_SUFFIXES if library == "npl"
-                else CHPL_NAME_SUFFIXES if library == "chpl"
-                else None
-            )
+            age_to_categories=constants.get("age_to_categories"),
+            name_suffix_map=constants.get("name_suffix_map")
         )
-
         export_events_to_csv(library=library)
         print("✅ Done.")
     else:
