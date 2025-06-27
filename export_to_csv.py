@@ -156,6 +156,14 @@ def export_events_to_csv(library="vbpl"):
 
     file_url = upload_csv_to_drive(csv_path, creds, config["drive_folder_id"])
     send_notification_email(file_url, config["email_subject"], config["email_recipient"])
+    # ✅ Mark exported rows as "on site" in the sheet
+    site_sync_col = df.columns.get_loc("Site Sync Status")  # column P, zero-indexed
+    values = sheet.get_all_values()
+    
+    # Start after header (row 2 onward)
+    for i, row in enumerate(values[1:], start=2):
+        if row[site_sync_col].strip().lower() == "new":
+            sheet.update_cell(i, site_sync_col + 1, "on site")  # Google Sheets uses 1-based indexing
 
     return csv_path
 
