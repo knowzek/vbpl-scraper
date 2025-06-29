@@ -22,6 +22,7 @@ def scrape_npl_events(mode="all"):
         for result in results:
             try:
                 dt = datetime.strptime(result["startdt"], "%Y-%m-%d %H:%M:%S")
+                end_dt = datetime.strptime(result["enddt"], "%Y-%m-%d %H:%M:%S")
 
                 if mode == "weekly" and dt > datetime.today() + timedelta(days=7):
                     continue
@@ -68,6 +69,7 @@ def scrape_npl_events(mode="all"):
                     "Day": str(dt.day),
                     "Year": str(dt.year),
                     "Event Date": dt.strftime("%Y-%m-%d"),
+                    "Event End Date": end_dt.strftime("%Y-%m-%d"),
                     "Event Description": result.get("description", "").strip(),
                     "Series": "",
                     "Program Type": "",
