@@ -100,7 +100,7 @@ def export_events_to_csv(library="vbpl"):
     df["EVENT START DATE"] = pd.to_datetime(
         df["Month"] + " " + df["Day"].astype(str) + " " + df["Year"].astype(str)
     ).dt.strftime("%Y-%m-%d")
-    df["EVENT END DATE"] = df["EVENT START DATE"]
+    df["EVENT END DATE"] = df.get("Event End Date", df["EVENT START DATE"])
 
     # Sanitize and format event titles
     suffix = config.get("event_name_suffix", "")
