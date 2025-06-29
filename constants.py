@@ -36,7 +36,7 @@ LIBRARY_CONSTANTS = {
             "Toddlers (2-3)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant",
             "Preschool (3-5)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Preschool Age",
             "Elementary School Age (5-9)": "Audience - Free Event, Event Location - Norfolk, Audience - School Age",
-            "Tweens (9-13)": "Audience - Teens, Event Location - Norfolk, Audience - School Age",
+            "Tweens (9-13)": "Event Location - Norfolk, Audience - School Age",
             "Teens (12-17)": "Audience - Teens, Event Location - Norfolk, Audience - School Age"
         },
         "name_suffix_map": {
