@@ -202,6 +202,32 @@ def export_events_to_csv(library="vbpl"):
 
     file_url = upload_csv_to_drive(csv_path, creds, config["drive_folder_id"])
     send_notification_email(file_url, config["email_subject"], config["email_recipient"])
+    # ✅ Mark exported rows as "on site" in the sheet
+    site_sync_col = df.columns.get_loc("Site Sync Status")
+    values = sheet.get_all_values()
+
+    # Build a map from Event Link → Sheet Row Number
+    link_col_idx = df.columns.get_loc("Event Link")
+    event_link_to_row = {}
+
+    for i, row in enumerate(values[1:], start=2):  # Skip header
+        if len(row) > link_col_idx:
+            link = row[link_col_idx].strip()
+            if link:
+                event_link_to_row[link] = i
+
+    # Prepare batch updates
+    updates = []
+    for link in df["Event Link"]:
+        row_num = event_link_to_row.get(link.strip())
+        if row_num:
+            cell = rowcol_to_a1(row_num, site_sync_col + 1)
+            updates.append({"range": cell, "values": [["on site"]]})
+
+    # Perform batch update
+    if updates:
+        sheet.batch_update([{"range": u["range"], "values": u["values"]} for u in updates])
+
     return csv_path
 
 if __name__ == "__main__":
