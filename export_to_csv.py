@@ -13,6 +13,15 @@ import re
 from config import get_library_config
 from constants import LIBRARY_CONSTANTS
 
+def infer_location_from_title(title, name_suffix_map):
+    match = re.search(r"@ ([\w\- ]+)", title)
+    if not match:
+        return ""
+    short_name = match.group(1).strip()
+    for full, short in name_suffix_map.items():
+        if short_name.lower() in short.lower():
+            return full
+    return ""
 
 # === UTILITY FUNCTIONS ===
 def _format_time(raw: str) -> str:
@@ -116,6 +125,28 @@ def export_events_to_csv(library="vbpl"):
             return f"{name}{suffix}"
         return f"{name} at {display_loc}{suffix}"
 
+    # Fix missing locations using @Title pattern
+    df["Location"] = df.apply(
+        lambda row: infer_location_from_title(row["Event Name"], npl_suffixes)
+        if not row["Location"].strip() else row["Location"],
+        axis=1
+    )
+    
+    # Format event title with deduplication
+    def format_event_title(row):
+        name = re.sub(r"\s+at\s+.*", "", row["Event Name"]).strip()
+        loc = row["Location"].strip()
+        display_loc = npl_suffixes.get(loc, loc)
+    
+        cleaned_name = name
+        if f"({display_loc})" not in name and "(Norfolk)" not in name:
+            cleaned_name = f"{name} at {display_loc}"
+    
+        if "(Norfolk)" not in cleaned_name:
+            cleaned_name += " (Norfolk)"
+    
+        return cleaned_name
+    
     df["Event Name"] = df.apply(format_event_title, axis=1)
     df["Venue"] = df["Location"].map(venue_names).fillna(df["Location"])
 
