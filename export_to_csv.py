@@ -144,7 +144,7 @@ def export_events_to_csv(library="vbpl"):
     
     df["Event Name"] = df.apply(format_event_title, axis=1)
     df["Venue"] = df["Location"].apply(
-        lambda loc: venue_names.get(loc.strip(), loc.strip())
+        lambda loc: venue_names.get(loc.strip(), name_suffix_map.get(loc.strip(), loc.strip()))
     )
     
     # ✅ Apply sync status AFTER all cleaning
