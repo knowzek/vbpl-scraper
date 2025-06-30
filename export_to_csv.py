@@ -157,6 +157,22 @@ def export_events_to_csv(library="vbpl"):
     df["Series"] = df["Series"].fillna("")
     df["Event Description"] = df["Event Description"].fillna("")
 
+    # Ensure missing columns are filled and aligned
+    required_cols = [
+        "Event Name", "Venue", "EVENT START DATE", "EVENT START TIME", "EVENT END DATE",
+        "EVENT END TIME", "ALL DAY EVENT", "Categories", "Event Link", "Event Description"
+    ]
+    
+    # ✅ Sanity check before building the DataFrame
+    for col in [
+        "Event Name", "Venue", "EVENT START DATE", "EVENT START TIME", "EVENT END DATE",
+        "EVENT END TIME", "ALL DAY EVENT", "Categories", "Event Link", "Event Description"
+    ]:
+        if col not in df.columns:
+            print(f"❌ Missing column: {col}")
+        else:
+            print(f"{col}: {len(df[col])}")
+
     export_df = pd.DataFrame({
         "EVENT NAME": df["Event Name"],
         "EVENT EXCERPT": "",
