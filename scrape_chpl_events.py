@@ -48,7 +48,7 @@ def scrape_chpl_events(mode="all"):
 
             if mode == "weekly" and dt > today + timedelta(days=7):
                 continue
-            elif mode == "monthly" and dt > today + timedelta(days=31):
+            elif mode == "monthly" and dt > today + timedelta(days=32):
                 continue
 
             # Time logic
