@@ -137,10 +137,13 @@ def export_events_to_csv(library="vbpl"):
         if not str(row["Location"]).strip() else row["Location"], axis=1
     )
 
+    venue_map = constants.get("venue_names") or name_suffix_map
+
     df["Venue"] = (
         df["Location"]
+          .str.replace(r"^Library Branch:", "", regex=True)
           .str.strip()
-          .map(name_suffix_map)
+          .map(venue_map)
           .fillna(df["Location"].str.replace(r"^Library Branch:", "", regex=True).str.strip())
     )
 
