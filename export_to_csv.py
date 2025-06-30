@@ -151,6 +151,12 @@ def export_events_to_csv(library="vbpl"):
     # ✅ Apply sync status AFTER all cleaning
     df["Site Sync Status"] = "on site"
 
+    # Ensure missing columns are filled with empty strings to match row count
+    df["Categories"] = df["Categories"].fillna("")
+    df["Program Type"] = df["Program Type"].fillna("")
+    df["Series"] = df["Series"].fillna("")
+    df["Event Description"] = df["Event Description"].fillna("")
+
     export_df = pd.DataFrame({
         "EVENT NAME": df["Event Name"],
         "EVENT EXCERPT": "",
