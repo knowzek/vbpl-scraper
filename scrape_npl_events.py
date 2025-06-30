@@ -2,6 +2,7 @@ import requests
 from datetime import datetime
 from time import sleep
 from datetime import datetime, timedelta
+from bs4 import BeautifulSoup
 
 def scrape_npl_events(mode="all"):
     print("🌐 Scraping Norfolk Public Library events via JSON feed...")
@@ -46,6 +47,21 @@ def scrape_npl_events(mode="all"):
                     continue
 
                 ages = ", ".join([a.get("name", "") for a in audiences if "name" in a])
+
+                # 🛠️ Fallback: infer "Adults 18+" from breadcrumb if Ages is empty
+                if not ages.strip():
+                    try:
+                        detail_url = result.get("url", "")
+                        detail_resp = requests.get(detail_url, timeout=10)
+                        detail_soup = BeautifulSoup(detail_resp.text, "html.parser")
+                        breadcrumb_links = detail_soup.select("nav[aria-label='breadcrumb'] a")
+                        for link in breadcrumb_links:
+                            if "Adult Programs" in link.get_text():
+                                ages = "Adults 18+"
+                                break
+                    except Exception as e:
+                        print(f"⚠️ Failed to fetch breadcrumb for {result.get('title')}: {e}")
+
                 start = result.get("start", "").strip()
                 end = result.get("end", "").strip()
 
