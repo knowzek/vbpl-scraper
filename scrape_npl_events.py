@@ -1,8 +1,8 @@
 import requests
-from datetime import datetime
-from time import sleep
 from datetime import datetime, timedelta
+from time import sleep
 from bs4 import BeautifulSoup
+import re
 
 def scrape_npl_events(mode="all"):
     print("🌐 Scraping Norfolk Public Library events via JSON feed...")
@@ -42,13 +42,12 @@ def scrape_npl_events(mode="all"):
                         continue
 
                 audiences = result.get("audiences", [])
-                # 🚫 Skip events that are ONLY for Adults 18+
                 if len(audiences) == 1 and audiences[0].get("name", "").strip() == "Adults (18+)":
                     continue
 
                 ages = ", ".join([a.get("name", "") for a in audiences if "name" in a])
 
-                # 🛠️ Fallback: infer "Adults 18+" from breadcrumb if Ages is empty
+                # Fallback: infer Adults 18+ from breadcrumb if no ages
                 if not ages.strip():
                     try:
                         detail_url = result.get("url", "")
@@ -74,13 +73,41 @@ def scrape_npl_events(mode="all"):
                 else:
                     time_str = ""
 
+                # Get initial location
+                location = result.get("campus", "").strip() or result.get("location", "").strip()
+
+                # Fallback: infer from "@ Tucker"
+                if not location:
+                    match = re.search(r"@ ([\w\- ]+)", result.get("title", ""))
+                    if match:
+                        short_name = match.group(1).strip()
+                        name_map = {
+                            "Tucker": "Richard A. Tucker Memorial Library",
+                            "Pretlow": "Mary D. Pretlow Anchor Branch Library",
+                            "Barron F. Black": "Barron F. Black Branch Library",
+                            "Jordan-Newby": "Jordan-Newby Anchor Branch Library at Broad Creek",
+                            "Blyden": "Blyden Branch Library",
+                            "Lafayette": "Lafayette Branch Library",
+                            "Larchmont": "Larchmont Branch Library",
+                            "Van Wyck": "Van Wyck Branch Library",
+                            "Downtown": "Downtown Branch at Slover",
+                            "Park Place": "Park Place Branch Library",
+                            "Little Creek": "Little Creek Branch Library",
+                            "Janaf": "Janaf Branch Library"
+                        }
+                        for key, full_name in name_map.items():
+                            if short_name.lower() in key.lower():
+                                location = full_name
+                                break
+
+                # Append event
                 events.append({
                     "Event Name": result.get("title", "").strip(),
                     "Event Link": result.get("url", ""),
                     "Event Status": "Available",
                     "Time": time_str,
                     "Ages": ages,
-                    "Location": result.get("campus", "").strip() or result.get("location", "").strip(),
+                    "Location": location,
                     "Month": dt.strftime("%b"),
                     "Day": str(dt.day),
                     "Year": str(dt.year),
@@ -90,6 +117,7 @@ def scrape_npl_events(mode="all"):
                     "Series": "",
                     "Program Type": "",
                 })
+
             except Exception as e:
                 print(f"⚠️ Error parsing event: {e}")
 
@@ -97,7 +125,7 @@ def scrape_npl_events(mode="all"):
             break
 
         page += 1
-        sleep(0.5)  # Be polite to their server
+        sleep(0.5)
 
     print(f"✅ Scraped {len(events)} events total.")
     return events
