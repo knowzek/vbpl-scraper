@@ -43,7 +43,7 @@ CHPL_AGE_TO_CATEGORIES = {
     "High School": "Audience - Teens, Audience - Free Event, Event Location - Chesapeake",
     "Families": "Audience - Family Event, Audience - Free Event, Event Location - Chesapeake",
     "All Ages": "Audience - All Ages, Audience - Free Event, Event Location - Chesapeake",
-    "Adult": "Audience - Adult Event, Audience - Free Event, Event Location - Chesapeake"
+    "Adult": "Audience - Free Event, Event Location - Chesapeake"
 }
 
 CHPL_NAME_SUFFIXES = {
