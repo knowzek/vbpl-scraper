@@ -101,6 +101,8 @@ def export_events_to_csv(library="vbpl"):
     df = df[~df["Ages"].fillna("").str.strip().eq("Adults 18+")]
     # Exclude events labeled "Classes & Workshops"
     df = df[~df["Program Type"].fillna("").str.contains("Classes & Workshops", case=False)]
+    df = df[~df["Categories"].fillna("").str.contains("Classes & Workshops", case=False)]
+
     time_info = df["Time"].astype(str).apply(_split_times)
     time_df = pd.DataFrame(time_info.tolist(), index=df.index, columns=["start", "end", "all_day"])
     df[["EVENT START TIME", "EVENT END TIME"]] = time_df[["start", "end"]]
@@ -131,7 +133,7 @@ def export_events_to_csv(library="vbpl"):
 
     # Fix missing locations using @Title pattern
     df["Location"] = df.apply(
-        lambda row: infer_location_from_title(row["Event Name"], npl_suffixes)
+        lambda row: infer_location_from_title(row["Event Name"], name_suffix_map)
         if not str(row["Location"]).strip() else row["Location"],
         axis=1
     )
@@ -152,7 +154,9 @@ def export_events_to_csv(library="vbpl"):
         return cleaned_name
     
     df["Event Name"] = df.apply(format_event_title, axis=1)
-    df["Venue"] = df["Location"].map(venue_names).fillna(df["Location"])
+    df["Venue"] = df["Location"].apply(
+        lambda loc: venue_names.get(loc.strip(), loc.strip())
+    )
     
     # ✅ Apply sync status AFTER all cleaning
     df["Site Sync Status"] = "on site"
@@ -200,8 +204,12 @@ def export_events_to_csv(library="vbpl"):
     
     # Start after header (row 2 onward)
     for i, row in enumerate(values[1:], start=2):
-        if row[site_sync_col].strip().lower() == "new":
-            sheet.update_cell(i, site_sync_col + 1, "on site")  # Google Sheets uses 1-based indexing
+        try:
+            current_val = row[site_sync_col].strip().lower()
+        except IndexError:
+            continue
+        if current_val in ("new", ""):
+            sheet.update_cell(i, site_sync_col + 1, "on site")
 
     return csv_path
 
