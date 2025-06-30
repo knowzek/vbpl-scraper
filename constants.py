@@ -31,7 +31,7 @@ LIBRARY_CONSTANTS = {
         "Princess Anne Area Library": "Princess Anne Area Library",
         "Oceanfront Area Library": "Oceanfront Area Library",
         "Bayside Area Library": "Bayside Area Library",
-        "Pungo-Blackwater Library": "Pungo-Blackwater Library",
+        "Pungo-Blackwater Library": "Pungo Blackwater Library",
         "Windsor Woods Area Library": "Windsor Woods Area Library",
         "Great Neck Area Library": "Great Neck Area Library",
         "Kempsville Area Library": "Kempsville Area Library"
