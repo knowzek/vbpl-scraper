@@ -105,6 +105,21 @@ def export_events_to_csv(library="vbpl"):
         else:
             print(f"{col}: {len(df[col])}")
 
+    # ✅ Ensure required columns exist, even if the sheet is empty or missing data
+    required_columns = [
+        "Event Name", "Location", "Categories", "Program Type", "Series", "Event Description",
+        "Event Link", "Month", "Day", "Year", "Event End Date", "Site Sync Status"
+    ]
+    for col in required_columns:
+        if col not in df.columns:
+            df[col] = ""
+    
+    # Also pre-create output columns to prevent mismatched lengths later
+    for col in ["Venue", "EVENT START DATE", "EVENT START TIME", "EVENT END DATE",
+                "EVENT END TIME", "ALL DAY EVENT"]:
+        df[col] = ""
+    
+    # ✅ Now do filtering
     df = df[df["Site Sync Status"].fillna("").str.strip().str.lower() == "new"]
     if df.empty:
         print("🚫  No new events to export.")
