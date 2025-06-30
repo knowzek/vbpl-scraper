@@ -12,6 +12,7 @@ from email.mime.text import MIMEText
 import re
 from config import get_library_config
 from constants import LIBRARY_CONSTANTS
+from gspread.utils import rowcol_to_a1
 
 def infer_location_from_title(title, name_suffix_map):
     match = re.search(r"@ ([\w\- ]+)", title)
@@ -115,7 +116,7 @@ def export_events_to_csv(library="vbpl"):
     df["EVENT START DATE"] = pd.to_datetime(
         df["Month"] + " " + df["Day"].astype(str) + " " + df["Year"].astype(str)
     ).dt.strftime("%Y-%m-%d")
-    df["EVENT END DATE"] = df.get("Event End Date", df["EVENT START DATE"])
+    df["EVENT END DATE"] = df["Event End Date"] if "Event End Date" in df.columns else df["EVENT START DATE"]
 
     # Sanitize and format event titles
     suffix = config.get("event_name_suffix", "")
@@ -202,10 +203,18 @@ def export_events_to_csv(library="vbpl"):
                 event_link_to_row[link] = i
     
     # Start after header (row 2 onward)
+
+    # Prepare batch updates
+    updates = []
     for link in df["Event Link"]:
         row_num = event_link_to_row.get(link.strip())
         if row_num:
-            sheet.update_cell(row_num, site_sync_col + 1, "on site")
+            cell = rowcol_to_a1(row_num, site_sync_col + 1)
+            updates.append({"range": cell, "values": [["on site"]]})
+    
+    # Perform a batch update
+    if updates:
+        sheet.batch_update([{"range": u["range"], "values": u["values"]} for u in updates])
 
     return csv_path
 
