@@ -199,6 +199,23 @@ def export_events_to_csv(library="vbpl"):
         else:
             print(f"{col}: {len(df[col])}")
 
+    # Final length check
+    print("🔍 Final export column lengths:")
+    for col in expected_export_cols:
+        print(f"{col}: {len(df[col])}")
+
+    # Ensure export columns are same length by filling missing values
+    expected_export_cols = [
+        "Event Name", "Venue", "EVENT START DATE", "EVENT START TIME", "EVENT END DATE",
+        "EVENT END TIME", "ALL DAY EVENT", "Categories", "Event Link", "Event Description"
+    ]
+    
+    for col in expected_export_cols:
+        if col not in df.columns:
+            df[col] = ""
+        else:
+            df[col] = df[col].fillna("").astype(str)
+    
     export_df = pd.DataFrame({
         "EVENT NAME": df["Event Name"],
         "EVENT EXCERPT": "",
