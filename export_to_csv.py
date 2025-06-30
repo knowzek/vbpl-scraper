@@ -120,17 +120,6 @@ def export_events_to_csv(library="vbpl"):
     # Sanitize and format event titles
     suffix = config.get("event_name_suffix", "")
 
-    def format_event_title(row):
-        name = row["Event Name"]
-        name = re.sub(r"\s*@\s*[^@,;:\\/]+", "", name, flags=re.IGNORECASE).strip()
-        name = re.sub(r"\s+at\s+.*", "", name, flags=re.IGNORECASE).strip()
-        loc = row["Location"].strip()
-        display_loc = name_suffix_map.get(loc, loc)
-        suffix = config.get("event_name_suffix", "")
-        if name.lower().endswith(display_loc.lower()):
-            return f"{name}{suffix}"
-        return f"{name} at {display_loc}{suffix}"
-
     # Fix missing locations using @Title pattern
     df["Location"] = df.apply(
         lambda row: infer_location_from_title(row["Event Name"], name_suffix_map)
@@ -142,7 +131,7 @@ def export_events_to_csv(library="vbpl"):
     def format_event_title(row):
         name = re.sub(r"\s+at\s+.*", "", row["Event Name"]).strip()
         loc = row["Location"].strip()
-        display_loc = npl_suffixes.get(loc, loc)
+        display_loc = name_suffix_map.get(loc, loc)
     
         cleaned_name = name
         if f"({display_loc})" not in name and "(Norfolk)" not in name:
@@ -201,15 +190,22 @@ def export_events_to_csv(library="vbpl"):
     # ✅ Mark exported rows as "on site" in the sheet
     site_sync_col = df.columns.get_loc("Site Sync Status")  # column P, zero-indexed
     values = sheet.get_all_values()
+
+    # Build a map from Event Link → Sheet Row Number
+    link_col_idx = df.columns.get_loc("Event Link")
+    event_link_to_row = {}
+    
+    for i, row in enumerate(values[1:], start=2):  # start=2 because sheet rows are 1-based
+        if len(row) > link_col_idx:
+            link = row[link_col_idx].strip()
+            if link:
+                event_link_to_row[link] = i
     
     # Start after header (row 2 onward)
-    for i, row in enumerate(values[1:], start=2):
-        try:
-            current_val = row[site_sync_col].strip().lower()
-        except IndexError:
-            continue
-        if current_val in ("new", ""):
-            sheet.update_cell(i, site_sync_col + 1, "on site")
+    for link in df["Event Link"]:
+        row_num = event_link_to_row.get(link.strip())
+        if row_num:
+            sheet.update_cell(row_num, site_sync_col + 1, "on site")
 
     return csv_path
 
