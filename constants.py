@@ -25,6 +25,17 @@ LIBRARY_CONSTANTS = {
             "Great Neck Area Library": "Great Neck Area Library",
             "Kempsville Area Library": "Kempsville Area Library"
         },
+        "venue_names": {
+        "Meyera E. Oberndorf Central Library": "MEO Central Library",
+        "TCC/City Joint-Use Library": "TCC Joint-Use Library",
+        "Princess Anne Area Library": "Princess Anne Area Library",
+        "Oceanfront Area Library": "Oceanfront Area Library",
+        "Bayside Area Library": "Bayside Area Library",
+        "Pungo-Blackwater Library": "Pungo-Blackwater Library",
+        "Windsor Woods Area Library": "Windsor Woods Area Library",
+        "Great Neck Area Library": "Great Neck Area Library",
+        "Kempsville Area Library": "Kempsville Area Library"
+    },
         "event_name_suffix": " (Virginia Beach)"
     },
     
