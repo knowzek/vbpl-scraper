@@ -54,10 +54,19 @@ def scrape_npl_events(mode="all"):
                         detail_resp = requests.get(detail_url, timeout=10)
                         detail_soup = BeautifulSoup(detail_resp.text, "html.parser")
                         breadcrumb_links = detail_soup.select("nav[aria-label='breadcrumb'] a")
+                        print(f"🔎 Breadcrumb for {result.get('title')}: {[link.get_text() for link in breadcrumb_links]}")
                         for link in breadcrumb_links:
                             if "Adult Programs" in link.get_text():
                                 ages = "Adults 18+"
                                 break
+
+                    # Secondary: check tag links if still blank
+                        if not ages.strip():
+                            tag_links = detail_soup.select("a[href*='/calendar?cid=']")
+                            for tag in tag_links:
+                                if "Adult Programs" in tag.get_text():
+                                    ages = "Adults 18+"
+                                    break
                     except Exception as e:
                         print(f"⚠️ Failed to fetch breadcrumb for {result.get('title')}: {e}")
 
