@@ -135,13 +135,13 @@ def export_events_to_csv(library="vbpl"):
         display_loc = name_suffix_map.get(loc, loc)
     
         cleaned_name = name
-        if f"({display_loc})" not in name and "(Norfolk)" not in name:
+        if f"({display_loc})" not in name and suffix not in name:
             cleaned_name = f"{name} at {display_loc}"
     
-        if "(Norfolk)" not in cleaned_name:
-            cleaned_name += " (Norfolk)"
+        if suffix not in cleaned_name:
+            cleaned_name += f" {suffix}"
     
-        return cleaned_name
+        return cleaned_name.strip()
     
     df["Event Name"] = df.apply(format_event_title, axis=1)
     df["Venue"] = df["Location"].apply(
