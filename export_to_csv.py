@@ -75,6 +75,7 @@ def send_notification_email(file_url, subject, recipient):
 # === EXPORT FUNCTION ===
 def export_events_to_csv(library="vbpl"):
     config = get_library_config(library)
+    npl_suffixes = config.get("name_suffix_map", {})
     constants = LIBRARY_CONSTANTS.get(library, {})
     venue_names = constants.get("venue_names", {})
     name_suffix_map = constants.get("name_suffix_map", {})
@@ -132,7 +133,7 @@ def export_events_to_csv(library="vbpl"):
         if not row["Location"].strip() else row["Location"],
         axis=1
     )
-    
+
     # Format event title with deduplication
     def format_event_title(row):
         name = re.sub(r"\s+at\s+.*", "", row["Event Name"]).strip()
@@ -150,6 +151,9 @@ def export_events_to_csv(library="vbpl"):
     
     df["Event Name"] = df.apply(format_event_title, axis=1)
     df["Venue"] = df["Location"].map(venue_names).fillna(df["Location"])
+    
+    # ✅ Apply sync status AFTER all cleaning
+    df["Site Sync Status"] = "on site"
 
     export_df = pd.DataFrame({
         "EVENT NAME": df["Event Name"],
