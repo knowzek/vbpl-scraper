@@ -92,6 +92,21 @@ def export_events_to_csv(library="vbpl"):
     client = gspread.authorize(creds)
     sheet = client.open(config["spreadsheet_name"]).worksheet(config["worksheet_name"])
     df = pd.DataFrame(sheet.get_all_records())
+
+    # Ensure all required columns exist in the DataFrame even if the sheet doesn't have them yet
+    required_columns = [
+        "Event Name", "Location", "Categories", "Program Type", "Series", "Event Description",
+        "Event Link", "Month", "Day", "Year", "Event End Date", "Site Sync Status",
+        "Venue", "EVENT START DATE", "EVENT START TIME", "EVENT END DATE", "EVENT END TIME", "ALL DAY EVENT"
+    ]
+    
+    for col in required_columns:
+        if col not in df.columns:
+            print(f"🛠️ Creating missing column: {col}")
+            df[col] = ""
+        else:
+            df[col] = df[col].fillna("").astype(str)
+
     original_row_count = len(df)
 
 
@@ -199,16 +214,16 @@ def export_events_to_csv(library="vbpl"):
         else:
             print(f"{col}: {len(df[col])}")
 
-    # Final length check
-    print("🔍 Final export column lengths:")
-    for col in expected_export_cols:
-        print(f"{col}: {len(df[col])}")
-
-    # Ensure export columns are same length by filling missing values
+# Ensure export columns are same length by filling missing values
     expected_export_cols = [
         "Event Name", "Venue", "EVENT START DATE", "EVENT START TIME", "EVENT END DATE",
         "EVENT END TIME", "ALL DAY EVENT", "Categories", "Event Link", "Event Description"
     ]
+
+    # Final length check
+    print("🔍 Final export column lengths:")
+    for col in expected_export_cols:
+        print(f"{col}: {len(df[col])}")
     
     for col in expected_export_cols:
         if col not in df.columns:
