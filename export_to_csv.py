@@ -94,6 +94,17 @@ def export_events_to_csv(library="vbpl"):
     df = pd.DataFrame(sheet.get_all_records())
     original_row_count = len(df)
 
+
+    print("\n🔎 Column counts before filtering:")
+    for col in [
+        "Event Name", "Venue", "EVENT START DATE", "EVENT START TIME", "EVENT END DATE",
+        "EVENT END TIME", "ALL DAY EVENT", "Categories", "Event Link", "Event Description"
+    ]:
+        if col not in df.columns:
+            print(f"❌ Missing column: {col}")
+        else:
+            print(f"{col}: {len(df[col])}")
+
     df = df[df["Site Sync Status"].fillna("").str.strip().str.lower() == "new"]
     if df.empty:
         print("🚫  No new events to export.")
