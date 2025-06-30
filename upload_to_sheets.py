@@ -141,7 +141,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 loc = event.get("Location", "")
                 suffix = config.get("event_name_suffix", "")
-                display_loc = name_suffix_map.get(loc, loc).strip()
+                loc_clean = re.sub(r"^Library Branch:", "", loc).strip()
+                display_loc = name_suffix_map.get(loc_clean, loc_clean)
                 
                 if name_cleaned.lower().endswith(display_loc.lower()):
                     event_name = f"{name_cleaned}{suffix}"
