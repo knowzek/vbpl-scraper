@@ -77,6 +77,7 @@ def export_events_to_csv(library="vbpl"):
     config = get_library_config(library)
     constants = LIBRARY_CONSTANTS.get(library, {})
     name_suffix_map = constants.get("name_suffix_map", {})
+    suffix = config.get("event_name_suffix", "")
 
     creds = service_account.Credentials.from_service_account_file(
         "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON",
@@ -135,6 +136,20 @@ def export_events_to_csv(library="vbpl"):
         lambda row: infer_location_from_title(row["Event Name"], name_suffix_map)
         if not str(row["Location"]).strip() else row["Location"], axis=1
     )
+
+    df["Venue"] = (
+        df["Location"]
+          .str.strip()
+          .map(name_suffix_map)
+          .fillna(df["Location"].str.replace(r"^Library Branch:", "", regex=True).str.strip())
+    )
+
+    def format_event_title(row):
+        base = re.sub(r"\s+at\s+.*", "", row["Event Name"]).strip()
+        venue = row["Venue"].strip()
+        return f"{base} at {venue}{suffix}" if venue else base + suffix
+
+    df["Event Name"] = df.apply(format_event_title, axis=1)
 
     expected_export_cols = [
         "Event Name", "Venue", "EVENT START DATE", "EVENT START TIME", "EVENT END DATE",
