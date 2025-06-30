@@ -99,6 +99,8 @@ def export_events_to_csv(library="vbpl"):
         return
 
     df = df[~df["Ages"].fillna("").str.strip().eq("Adults 18+")]
+    # Exclude events labeled "Classes & Workshops"
+    df = df[~df["Program Type"].fillna("").str.contains("Classes & Workshops", case=False)]
     time_info = df["Time"].astype(str).apply(_split_times)
     time_df = pd.DataFrame(time_info.tolist(), index=df.index, columns=["start", "end", "all_day"])
     df[["EVENT START TIME", "EVENT END TIME"]] = time_df[["start", "end"]]
@@ -130,7 +132,7 @@ def export_events_to_csv(library="vbpl"):
     # Fix missing locations using @Title pattern
     df["Location"] = df.apply(
         lambda row: infer_location_from_title(row["Event Name"], npl_suffixes)
-        if not row["Location"].strip() else row["Location"],
+        if not str(row["Location"]).strip() else row["Location"],
         axis=1
     )
 
