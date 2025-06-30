@@ -92,6 +92,16 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 program_type = event.get("Program Type", "")
                 categories = PROGRAM_TYPE_TO_CATEGORIES.get(program_type, "")
 
+                if library == "chpl" and age_to_categories:
+                    audience_keys = [a.strip() for a in event.get("Ages", "").split(",") if a.strip()]
+                    all_tags = []
+                    for tag in audience_keys:
+                        tags = age_to_categories.get(tag)
+                        if tags:
+                            all_tags.extend([t.strip() for t in tags.split(",")])
+                    if all_tags:
+                        categories = ", ".join(dict.fromkeys(all_tags))
+
                 ages_raw = event.get("Ages", "")
                 age_tags = []
                 nums = [int(n) for n in re.findall(r"\d+", ages_raw)]
