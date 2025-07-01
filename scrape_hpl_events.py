@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import requests
 from ics import Calendar
 from constants import LIBRARY_CONSTANTS
@@ -34,18 +34,18 @@ def is_likely_adult_event(text):
 def scrape_hpl_events(mode="all"):
     print("📚 Scraping Hampton Public Library events from iCal feed...")
 
-    today = datetime.today()
+    today = datetime.now(timezone.utc)
     if mode == "weekly":
         date_range_end = today + timedelta(days=7)
     elif mode == "monthly":
         if today.month == 12:
-            next_month = datetime(today.year + 1, 1, 1)
+            next_month = datetime(today.year + 1, 1, 1, tzinfo=timezone.utc)
         else:
-            next_month = datetime(today.year, today.month + 1, 1)
+            next_month = datetime(today.year, today.month + 1, 1, tzinfo=timezone.utc)
         if next_month.month == 12:
-            following_month = datetime(next_month.year + 1, 1, 1)
+            following_month = datetime(next_month.year + 1, 1, 1, tzinfo=timezone.utc)
         else:
-            following_month = datetime(next_month.year, next_month.month + 1, 1)
+            following_month = datetime(next_month.year, next_month.month + 1, 1, tzinfo=timezone.utc)
         date_range_end = following_month - timedelta(days=1)
     else:
         date_range_end = today + timedelta(days=90)
@@ -59,7 +59,7 @@ def scrape_hpl_events(mode="all"):
         try:
             if event.begin is None:
                 continue
-            event_date = event.begin.datetime
+            event_date = event.begin.datetime.astimezone(timezone.utc)
             if event_date > date_range_end:
                 continue
 
@@ -78,7 +78,7 @@ def scrape_hpl_events(mode="all"):
                     categories = cat
                     break
 
-            time_str = event.begin.strftime("%-I:%M %p") if event.begin else ""
+            time_str = event_date.strftime("%-I:%M %p")
 
             events.append({
                 "Event Name": name,
@@ -91,7 +91,7 @@ def scrape_hpl_events(mode="all"):
                 "Day": str(event_date.day),
                 "Year": str(event_date.year),
                 "Event Date": event_date.strftime("%Y-%m-%d"),
-                "Event End Date": event.end.datetime.strftime("%Y-%m-%d") if event.end else event_date.strftime("%Y-%m-%d"),
+                "Event End Date": event.end.datetime.astimezone(timezone.utc).strftime("%Y-%m-%d") if event.end else event_date.strftime("%Y-%m-%d"),
                 "Event Description": description,
                 "Series": "",
                 "Program Type": program_type,
