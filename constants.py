@@ -151,6 +151,7 @@ LIBRARY_CONSTANTS = {
         "Phoebus Branch Library": "Phoebus Branch Library",
         "Makerspace": "Hampton Main Library",
         "Children's Department": "Hampton Main Library",
+        "Willow Oaks Village Square 227 Fox Hill Rd. Hampton VA 23669": "Willow Oaks Branch Library",
         "Outside at Main Entrance": "Hampton Main Library"
     },
     "name_suffix_map": {} 
