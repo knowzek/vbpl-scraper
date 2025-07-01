@@ -78,15 +78,23 @@ def scrape_hpl_events(mode="all"):
                     categories = cat
                     break
 
-            time_str = event_date.strftime("%-I:%M %p")
+            start_time = event.begin.datetime.astimezone(timezone.utc).strftime("%-I:%M %p")
+            end_time = event.end.datetime.astimezone(timezone.utc).strftime("%-I:%M %p") if event.end else ""
+            time_str = f"{start_time} - {end_time}" if end_time else start_time
+
+            event_link = "https://www.hampton.gov/calendar.aspx?CID=24"
+            if event.uid and "EID=" in event.uid:
+                match = re.search(r"EID=(\\d+)", event.uid)
+                if match:
+                    event_link = f"https://www.hampton.gov/calendar.aspx?EID={match.group(1)}"
 
             events.append({
                 "Event Name": name,
-                "Event Link": "https://www.hampton.gov/library",
+                "Event Link": event_link,
                 "Event Status": "Available",
                 "Time": time_str,
                 "Ages": "",
-                "Location": "Hampton Public Library",
+                "Location": event.location.strip() if event.location else "Hampton Public Library",
                 "Month": event_date.strftime("%b"),
                 "Day": str(event_date.day),
                 "Year": str(event_date.year),
