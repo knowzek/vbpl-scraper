@@ -166,7 +166,7 @@ LIBRARY_CONSTANTS = {
         "Northampton Branch Library": "Northampton Branch Library",
         "Phoebus Branch Library": "Phoebus Branch Library"
     }
-}
+},
     "nnpl": {
         "name_suffix_map": {
             "Main Street Library": "Main Street Library",
