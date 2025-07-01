@@ -34,6 +34,9 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
     SPREADSHEET_NAME = config["spreadsheet_name"]
     WORKSHEET_NAME = config["worksheet_name"]
     LOG_WORKSHEET_NAME = config["log_worksheet_name"]
+    library_constants = LIBRARY_CONSTANTS.get(library, {})
+    program_type_to_categories = library_constants.get("program_type_to_categories", {})
+
 
     PROGRAM_TYPE_TO_CATEGORIES = {
         "Storytimes & Early Learning": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event, List - Storytimes",
@@ -94,10 +97,11 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     program_types = [pt.strip().lower() for pt in program_type.split(",") if pt.strip()]
                     matched_tags = []
                     for pt in program_types:
-                        cat = PROGRAM_TYPE_TO_CATEGORIES.get(pt)
+                        cat = program_type_to_categories.get(pt)
                         if cat:
                             matched_tags.extend([c.strip() for c in cat.split(",")])
                     categories = ", ".join(dict.fromkeys(matched_tags))  # remove duplicates, preserve order
+
                 else:
                     categories = program_type_to_categories.get(program_type, "")
 
