@@ -234,7 +234,7 @@ def export_events_to_csv(library="vbpl"):
     return csv_path
 
 if __name__ == "__main__":
-    LIBRARIES = ["vbpl", "npl", "chpl"]
+    LIBRARIES = ["vbpl", "npl", "chpl", "hpl"]
     for lib in LIBRARIES:
         print(f"\n📁 Exporting events for: {lib.upper()}")
         try:
