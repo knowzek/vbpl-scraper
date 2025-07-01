@@ -91,6 +91,12 @@ def export_events_to_csv(library="vbpl"):
     client = gspread.authorize(creds)
     sheet = client.open(config["spreadsheet_name"]).worksheet(config["worksheet_name"])
     df = pd.DataFrame(sheet.get_all_records())
+    # Force all relevant columns to string to avoid .str accessor errors
+    str_cols_to_fix = ["Month", "Day", "Year", "Ages", "Program Type", "Categories", "Site Sync Status"]
+    for col in str_cols_to_fix:
+        if col in df.columns:
+            df[col] = df[col].fillna("").astype(str)
+
     original_row_count = len(df)
 
     required_columns = [
@@ -127,10 +133,15 @@ def export_events_to_csv(library="vbpl"):
     df["ALL DAY EVENT"] = time_df["all_day"]
     df.loc[df["ALL DAY EVENT"] == "TRUE", ["EVENT START TIME", "EVENT END TIME"]] = ["", ""]
 
-    df["EVENT START DATE"] = pd.to_datetime(
-        df["Month"] + " " + df["Day"].astype(str) + " " + df["Year"].astype(str)
-    ).dt.strftime("%Y-%m-%d")
+    df["Month"] = df["Month"].astype(str)
+    df["Day"] = df["Day"].astype(str)
+    df["Year"] = df["Year"].astype(str)
+    
+    month_str = df["Month"] + " " + df["Day"] + " " + df["Year"]
+    
+    df["EVENT START DATE"] = pd.to_datetime(month_str, format="%b %d %Y", errors="raise").dt.strftime("%Y-%m-%d")
     df["EVENT END DATE"] = df["Event End Date"] if "Event End Date" in df.columns else df["EVENT START DATE"]
+    df["EVENT END DATE"] = df["EVENT END DATE"].fillna("").astype(str)
 
     df["Location"] = df.apply(
         lambda row: infer_location_from_title(row["Event Name"], name_suffix_map)
