@@ -23,6 +23,9 @@ HPL_LOCATION_MAP = {
     "Outside at Main Entrance": "Main Library"
 }
 
+# Set to collect unmapped locations
+UNMAPPED_LOCATIONS = set()
+
 def is_likely_adult_event(text):
     text = text.lower()
     keywords = [
@@ -59,6 +62,7 @@ def clean_location(location):
     for key in HPL_LOCATION_MAP:
         if key.lower() in raw.lower():
             return HPL_LOCATION_MAP[key]
+    UNMAPPED_LOCATIONS.add(raw)
     address_match = re.search(r"(?P<name>.*?)(\d{5}(?:-\d{4})?.*)", raw)
     if address_match:
         return address_match.group("name").strip(" -")
@@ -141,6 +145,11 @@ def scrape_hpl_events(mode="all"):
             })
         except Exception as e:
             print(f"⚠️ Error parsing event: {e}")
+
+    if UNMAPPED_LOCATIONS:
+        print("\n📌 Unmapped locations (consider adding to HPL_LOCATION_MAP):")
+        for loc in sorted(UNMAPPED_LOCATIONS):
+            print(f"  - '{loc}'")
 
     print(f"✅ Scraped {len(events)} events from Hampton Public Library.")
     return events
