@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 
 BASE_CALENDAR = "https://tockify.com/nnlibrary/upcoming"
 
+
 def format_date_from_timestamp(ts):
     dt = datetime.fromtimestamp(int(ts) / 1000)
     return dt.strftime("%Y-%m-%d"), dt.strftime("%b"), str(dt.day), str(dt.year)
@@ -20,12 +21,22 @@ async def scrape_nnpl_events(mode="all"):
         browser = await p.chromium.launch(headless=True, args=["--disable-gpu", "--no-sandbox"])
         page = await browser.new_page()
         await page.goto(BASE_CALENDAR, timeout=60000)
-        await page.wait_for_selector("a.item", timeout=15000)
 
-        event_links = await page.query_selector_all("a.item")
-        print(f"🔗 Found {len(event_links)} events on Tockify calendar")
+        try:
+            await page.wait_for_selector("iframe", timeout=20000)
+            iframe = page.frame_locator("iframe").first
+            await iframe.locator("a.item").first.wait_for(timeout=20000)
+        except Exception as e:
+            print("❌ Could not find event items — calendar iframe may not be loaded properly.")
+            content = await page.content()
+            print("📄 Page content preview:\n", content[:1000])
+            await browser.close()
+            return []
 
-        for el in event_links:
+        event_elements = await iframe.locator("a.item").all()
+        print(f"🔗 Found {len(event_elements)} events on Tockify calendar")
+
+        for el in event_elements:
             href = await el.get_attribute("href")
             if not href or not href.startswith("/nnlibrary/detail"):
                 continue
@@ -73,7 +84,7 @@ async def scrape_nnpl_events(mode="all"):
                 })
 
             except Exception as e:
-                print(f"⚠️ Failed to process event: {e}")
+                print(f"⚠️ Failed to process event: {full_url} — {e}")
             finally:
                 await detail_page.close()
 
