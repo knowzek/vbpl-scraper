@@ -1,19 +1,11 @@
-from playwright.sync_api import sync_playwright
-from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
-import re
+import requests
+from ics import Calendar
 from constants import LIBRARY_CONSTANTS
+import re
 
+ICAL_URL = "https://www.hampton.gov/common/modules/iCalendar/iCalendar.aspx?catID=24&feed=calendar"
 
-def fetch_rendered_html(url):
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
-        page = browser.new_page()
-        page.goto(url)
-        page.wait_for_selector(".catAgendaItem", timeout=10000)
-        html = page.content()
-        browser.close()
-        return html
 
 def is_likely_adult_event(text):
     text = text.lower()
@@ -31,8 +23,8 @@ def is_likely_adult_event(text):
         "beginner computer class",
         "tech detectives",
         "computer class series",
-        "adults", "adult", "21+", "18+", 
-        "genealogy", "book club", "knitting", 
+        "adults", "adult", "21+", "18+",
+        "genealogy", "book club", "knitting",
         "resume", "job search", "tax help",
         "investment", "social security", "medicare",
         "crafts for adults", "finance", "retirement"
@@ -40,13 +32,9 @@ def is_likely_adult_event(text):
     return any(kw in text for kw in keywords)
 
 def scrape_hpl_events(mode="all"):
-    print("📚 Scraping Hampton Public Library events...")
-
-    BASE_URL = "https://www.hampton.gov"
-    CALENDAR_URL = f"{BASE_URL}/calendar.aspx?CID=24&showPastEvents=false"
+    print("📚 Scraping Hampton Public Library events from iCal feed...")
 
     today = datetime.today()
-
     if mode == "weekly":
         date_range_end = today + timedelta(days=7)
     elif mode == "monthly":
@@ -62,62 +50,39 @@ def scrape_hpl_events(mode="all"):
     else:
         date_range_end = today + timedelta(days=90)
 
-    html = fetch_rendered_html(CALENDAR_URL)
-    soup = BeautifulSoup(html, "html.parser")
-    event_blocks = soup.select(".catAgendaItem")
+    resp = requests.get(ICAL_URL)
+    calendar = Calendar(resp.text)
+    program_type_to_categories = LIBRARY_CONSTANTS["hpl"].get("program_type_to_categories", {})
+
     events = []
-
-    for block in event_blocks:
+    for event in calendar.events:
         try:
-            title_link = block.select_one("a")
-            if not title_link:
+            if event.begin is None:
                 continue
-
-            event_name = title_link.get_text(strip=True)
-            event_link = BASE_URL + title_link["href"]
-
-            date_block = block.select_one(".catAgendaDate")
-            if not date_block:
-                continue
-            date_str = date_block.get_text(strip=True)
-            try:
-                event_date = datetime.strptime(date_str, "%A, %B %d, %Y")
-            except ValueError:
-                continue
-
+            event_date = event.begin.datetime
             if event_date > date_range_end:
                 continue
 
-            detail_html = fetch_rendered_html(event_link)
-            detail_soup = BeautifulSoup(detail_html, "html.parser")
+            name = event.name.strip() if event.name else ""
+            description = event.description.strip() if event.description else ""
 
-            description_tag = detail_soup.select_one("#main-content")
-            if description_tag:
-                for br in description_tag.find_all("br"):
-                    br.replace_with("\n")
-                description = description_tag.get_text(separator="\n\n", strip=True)
-            else:
-                description = ""
-
-            if is_likely_adult_event(event_name) or is_likely_adult_event(description):
+            if is_likely_adult_event(name) or is_likely_adult_event(description):
                 continue
-
-            time_match = re.search(r"\b(\d{1,2}:\d{2}\s*[APMapm]{2})\b", description)
-            time_str = time_match.group(1) if time_match else ""
 
             program_type = ""
             categories = ""
-            combined_text = f"{event_name} {description}".lower()
-            program_type_to_categories = LIBRARY_CONSTANTS["hpl"].get("program_type_to_categories", {})
+            combined_text = f"{name} {description}".lower()
             for keyword, cat in program_type_to_categories.items():
                 if keyword in combined_text:
                     program_type = keyword.capitalize()
                     categories = cat
                     break
 
+            time_str = event.begin.strftime("%-I:%M %p") if event.begin else ""
+
             events.append({
-                "Event Name": event_name,
-                "Event Link": event_link,
+                "Event Name": name,
+                "Event Link": "https://www.hampton.gov/library",
                 "Event Status": "Available",
                 "Time": time_str,
                 "Ages": "",
@@ -126,14 +91,14 @@ def scrape_hpl_events(mode="all"):
                 "Day": str(event_date.day),
                 "Year": str(event_date.year),
                 "Event Date": event_date.strftime("%Y-%m-%d"),
-                "Event End Date": event_date.strftime("%Y-%m-%d"),
+                "Event End Date": event.end.datetime.strftime("%Y-%m-%d") if event.end else event_date.strftime("%Y-%m-%d"),
                 "Event Description": description,
                 "Series": "",
                 "Program Type": program_type,
                 "Categories": categories
             })
         except Exception as e:
-            print(f"⚠️ Error parsing event block: {e}")
+            print(f"⚠️ Error parsing event: {e}")
 
     print(f"✅ Scraped {len(events)} events from Hampton Public Library.")
     return events
