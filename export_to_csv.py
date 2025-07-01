@@ -140,7 +140,8 @@ def export_events_to_csv(library="vbpl"):
     month_str = df["Month"] + " " + df["Day"] + " " + df["Year"]
     
     df["EVENT START DATE"] = pd.to_datetime(month_str, format="%b %d %Y", errors="raise").dt.strftime("%Y-%m-%d")
-    df["EVENT END DATE"] = df["Event End Date"] if "Event End Date" in df.columns else df["EVENT START DATE"]
+    df["EVENT END DATE"] = df["Event End Date"].fillna("").astype(str)
+    df.loc[df["EVENT END DATE"].str.strip() == "", "EVENT END DATE"] = df["EVENT START DATE"]
     df["EVENT END DATE"] = df["EVENT END DATE"].fillna("").astype(str)
 
     df["Location"] = df.apply(
