@@ -81,12 +81,19 @@ def scrape_hpl_events(mode="all"):
                     break
 
             # Extract clean location
-            raw_location = BeautifulSoup(event.location or "", "html.parser").get_text().strip()
-            location = raw_location
-            for known_key, mapped_name in HPL_LOCATION_MAP.items():
-                if known_key.lower() in raw_location.lower():
-                    location = mapped_name
+            # === LOCATION MAPPING ===
+            raw_location_html = event.location or ""
+            raw_location = BeautifulSoup(raw_location_html, "html.parser").get_text().strip()
+            normalized = raw_location.lower()
+            location = None
+            for key, mapped in HPL_LOCATION_MAP.items():
+                if key.lower() in normalized:
+                    location = mapped
                     break
+            if not location:
+                print(f"📌 Unmapped location: {repr(raw_location)}")
+                location = raw_location  # fallback so we still export it
+
 
             # Extract event link from description
             event_link = None
