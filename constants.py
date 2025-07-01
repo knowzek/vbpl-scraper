@@ -188,6 +188,4 @@ LIBRARY_CONSTANTS = {
             # Also optional unless you map ages later
         }
     }
-
-    # Add other libraries here
 }
