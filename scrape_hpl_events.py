@@ -51,8 +51,8 @@ def is_likely_adult_event(text):
     return any(kw in text for kw in keywords)
 
 def extract_event_link(text):
-    matches = re.findall(r"https://www\\.hampton\\.gov/calendar\\.aspx\\?EID=\\d+", text)
-    return matches[0] if matches else ""
+    match = re.search(r"https://www\.hampton\.gov/calendar\.aspx\?EID=\d+", text)
+    return match.group(0) if match else ""
 
 def clean_location(location):
     if not location:
