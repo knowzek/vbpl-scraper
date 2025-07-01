@@ -5,8 +5,7 @@ from playwright.async_api import async_playwright
 from datetime import datetime
 from bs4 import BeautifulSoup
 
-BASE_CALENDAR = "https://tockify.com/nnlibrary"
-
+BASE_CALENDAR = "https://tockify.com/nnlibrary/upcoming"
 
 def format_date_from_timestamp(ts):
     dt = datetime.fromtimestamp(int(ts) / 1000)
