@@ -16,7 +16,10 @@ HPL_LOCATION_MAP = {
     "Willow Oaks Branch Library": "Willow Oaks Branch Library",
     "Willow Oaks Branch Library Children's Area": "Willow Oaks Branch Library",
     "Northampton Branch Library": "Northampton Branch Library",
-    "Phoebus Branch Library": "Phoebus Branch Library"
+    "Phoebus Branch Library": "Phoebus Branch Library",
+    "Makerspace": "Main Library",
+    "Children's Department": "Main Library",
+    "Outside at Main Entrance": "Main Library"
 }
 
 def is_likely_adult_event(text):
@@ -52,11 +55,9 @@ def clean_location(location):
         return "Hampton Public Library"
     soup = BeautifulSoup(location, "html.parser")
     raw = soup.get_text(separator=" ").strip()
-    # Try matching by prefixing progressive simplification
     for key in HPL_LOCATION_MAP:
         if key.lower() in raw.lower():
             return HPL_LOCATION_MAP[key]
-    # fallback to raw cleaned
     address_match = re.search(r"(?P<name>.*?)(\d{5}(?:-\d{4})?.*)", raw)
     if address_match:
         return address_match.group("name").strip(" -")
