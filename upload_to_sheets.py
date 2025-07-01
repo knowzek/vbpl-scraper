@@ -94,7 +94,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     program_types = [pt.strip().lower() for pt in program_type.split(",") if pt.strip()]
                     matched_tags = []
                     for pt in program_types:
-                        cat = program_type_to_categories.get(pt)
+                        cat = PROGRAM_TYPE_TO_CATEGORIES.get(pt)
                         if cat:
                             matched_tags.extend([c.strip() for c in cat.split(",")])
                     categories = ", ".join(dict.fromkeys(matched_tags))  # remove duplicates, preserve order
