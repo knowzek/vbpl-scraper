@@ -1,32 +1,11 @@
 from datetime import datetime, timedelta, timezone
 import requests
 from ics import Calendar
+from bs4 import BeautifulSoup
 from constants import LIBRARY_CONSTANTS
 import re
-from bs4 import BeautifulSoup
 
 ICAL_URL = "https://www.hampton.gov/common/modules/iCalendar/iCalendar.aspx?catID=24&feed=calendar"
-
-# Manual location mapping to standardize noisy location text
-HPL_LOCATION_MAP = {
-    "Main Library": "Hampton Main Library",
-    "Main Library First Floor": "Hampton Main Library",
-    "Main Library Second Floor": "Hampton Main Library",
-    "Main Library > Children’s Programming Room": "Hampton Main Library",
-    "Willow Oaks Branch Library": "Willow Oaks Branch Library",
-    "Willow Oaks Branch Library Children's Area": "Willow Oaks Branch Library",
-    "Willow Oaks Branch Library > Children's Area": "Willow Oaks Branch Library",
-    "Northampton Branch Library": "Northampton Branch Library",
-    "Phoebus Branch Library": "Phoebus Branch Library",
-    "Makerspace": "Hampton Main Library",
-    "Children's Department": "Hampton Main Library",
-    "Outside at Main Entrance": "Hampton Main Library",
-    "- Willow Oaks Village Square 227 Fox Hill Rd. Hampton VA 23669": "Willow Oaks Branch Library"
-}
-
-# Set to collect unmapped locations
-UNMAPPED_LOCATIONS = set()
-
 
 def is_likely_adult_event(text):
     text = text.lower()
@@ -53,29 +32,8 @@ def is_likely_adult_event(text):
     ]
     return any(kw in text for kw in keywords)
 
-
-def extract_event_link(text):
-    match = re.search(r"https://www\\.hampton\\.gov/calendar\\.aspx\\?EID=\\d+", text)
-    return match.group(0) if match else ""
-
-
-def clean_location(location):
-    if not location:
-        return "Hampton Public Library"
-    soup = BeautifulSoup(location, "html.parser")
-    raw = soup.get_text(separator=" ").strip()
-    for key in HPL_LOCATION_MAP:
-        if key.lower() in raw.lower():
-            return HPL_LOCATION_MAP[key]
-    UNMAPPED_LOCATIONS.add(raw)
-    address_match = re.search(r"(?P<name>.*?)(\d{5}(?:-\d{4})?.*)", raw)
-    if address_match:
-        return address_match.group("name").strip(" -")
-    return raw.strip(" -")
-
-
 def scrape_hpl_events(mode="all"):
-    print("\U0001F4DA Scraping Hampton Public Library events from iCal feed...")
+    print("📚 Scraping Hampton Public Library events from iCal feed...")
 
     today = datetime.now(timezone.utc)
     if mode == "weekly":
@@ -96,6 +54,7 @@ def scrape_hpl_events(mode="all"):
     resp = requests.get(ICAL_URL)
     calendar = Calendar(resp.text)
     program_type_to_categories = LIBRARY_CONSTANTS["hpl"].get("program_type_to_categories", {})
+    HPL_LOCATION_MAP = LIBRARY_CONSTANTS["hpl"].get("location_map", {})
 
     events = []
     for event in calendar.events:
@@ -121,16 +80,28 @@ def scrape_hpl_events(mode="all"):
                     categories = cat
                     break
 
+            # Extract clean location
+            raw_location = BeautifulSoup(event.location or "", "html.parser").get_text().strip()
+            location = raw_location
+            for known_key, mapped_name in HPL_LOCATION_MAP.items():
+                if known_key.lower() in raw_location.lower():
+                    location = mapped_name
+                    break
+
+            # Extract event link from description
+            event_link = None
+            if description:
+                url_match = re.search(r"https://www\.hampton\.gov/calendar\.aspx\?EID=\d+", description)
+                if url_match:
+                    event_link = url_match.group(0)
+            if not event_link:
+                print(f"⚠️  Skipping malformed event (missing link): {name} @ {location}")
+                continue
+
+            # Format time
             start_time = event.begin.datetime.astimezone(timezone.utc).strftime("%-I:%M %p")
             end_time = event.end.datetime.astimezone(timezone.utc).strftime("%-I:%M %p") if event.end else ""
             time_str = f"{start_time} - {end_time}" if end_time else start_time
-
-            event_link = extract_event_link(description)
-            if not event_link:
-                print(f"⚠️  Skipping malformed event (missing link): {name} @ {event.location}")
-                continue
-
-            clean_loc = clean_location(event.location)
 
             events.append({
                 "Event Name": name,
@@ -138,7 +109,7 @@ def scrape_hpl_events(mode="all"):
                 "Event Status": "Available",
                 "Time": time_str,
                 "Ages": "",
-                "Location": clean_loc,
+                "Location": location,
                 "Month": event_date.strftime("%b"),
                 "Day": str(event_date.day),
                 "Year": str(event_date.year),
@@ -151,11 +122,6 @@ def scrape_hpl_events(mode="all"):
             })
         except Exception as e:
             print(f"⚠️ Error parsing event: {e}")
-
-    if UNMAPPED_LOCATIONS:
-        print("\n📌 Unmapped locations (consider adding to HPL_LOCATION_MAP):")
-        for loc in sorted(UNMAPPED_LOCATIONS):
-            print(f"  - '{loc}'")
 
     print(f"✅ Scraped {len(events)} events from Hampton Public Library.")
     return events
