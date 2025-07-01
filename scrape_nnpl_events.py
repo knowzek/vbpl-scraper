@@ -19,7 +19,14 @@ async def scrape_nnpl_events(mode="all"):
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True, args=["--disable-gpu", "--no-sandbox"])
-        page = await browser.new_page()
+        context = await browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
+            extra_http_headers={
+                "Referer": "https://library.nnva.gov/264/Events-Calendar",
+                "Accept-Language": "en-US,en;q=0.9"
+            }
+        )
+        page = await context.new_page()
         await page.goto(BASE_CALENDAR, timeout=60000)
 
         try:
@@ -43,7 +50,7 @@ async def scrape_nnpl_events(mode="all"):
 
             full_url = f"https://tockify.com{href}"
             print(f"📅 Visiting event: {full_url}")
-            detail_page = await browser.new_page()
+            detail_page = await context.new_page()
             try:
                 await detail_page.goto(full_url, timeout=20000)
                 content = await detail_page.content()
