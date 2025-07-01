@@ -138,6 +138,7 @@ LIBRARY_CONSTANTS = {
         "teen": "Event Location - Hampton, Audience - Free Event, Audience - Teens",
         "tween": "Event Location - Hampton, Audience - Free Event, Audience - School Age"
     },
+    "name_suffix_map": {} 
 }
 
     # Add other libraries here
