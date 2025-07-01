@@ -110,5 +110,35 @@ LIBRARY_CONSTANTS = {
         },
         "event_name_suffix": " (Chesapeake)",
     },
+    "hpl": {
+    "program_type_to_categories": {
+        "storytime": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Storytimes",
+        "lego": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - STEM/STEAM",
+        "steam": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - STEM/STEAM",
+        "slime": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - STEM/STEAM",
+        "craft": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Arts & Crafts",
+        "painting": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Arts & Crafts",
+        "art": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Arts & Crafts",
+        "baking": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Cooking",
+        "cookie": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Cooking",
+        "cupcake": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Cooking",
+        "sensory": "Event Location - Hampton, Audience - Free Event, Audience - Toddler/Infant",
+        "chalk": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Outdoor Activities",
+        "bubble": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Outdoor Activities",
+        "photography": "Event Location - Hampton, Audience - Free Event, Audience - Teens, List - STEM/STEAM",
+        "writing": "Event Location - Hampton, Audience - Free Event, Audience - Teens, List - Creative Writing",
+        "book club": "Event Location - Hampton, Audience - Free Event, Audience - Teens, List - Reading",
+        "movie": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Movies",
+        "game": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - Games & Activities",
+        "trivia": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Games & Activities",
+        "scavenger": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Games & Activities",
+        "hunt": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Games & Activities",
+        "music": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Music & Performance",
+        "dance": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Music & Performance",
+        "teen": "Event Location - Hampton, Audience - Free Event, Audience - Teens",
+        "tween": "Event Location - Hampton, Audience - Free Event, Audience - School Age"
+    },
+}
+
     # Add other libraries here
 }
