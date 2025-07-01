@@ -17,7 +17,7 @@ async def scrape_nnpl_events(mode="all"):
     events = []
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch()
+        browser = await p.chromium.launch(headless=True, args=["--disable-gpu", "--no-sandbox"])
         page = await browser.new_page()
         await page.goto(BASE_CALENDAR, timeout=60000)
         await page.wait_for_selector("a.item", timeout=15000)
