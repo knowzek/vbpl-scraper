@@ -7,6 +7,18 @@ from bs4 import BeautifulSoup
 
 ICAL_URL = "https://www.hampton.gov/common/modules/iCalendar/iCalendar.aspx?catID=24&feed=calendar"
 
+# Manual location mapping to standardize noisy location text
+HPL_LOCATION_MAP = {
+    "Main Library": "Main Library",
+    "Main Library First Floor": "Main Library",
+    "Main Library Second Floor": "Main Library",
+    "Main Library > Children’s Programming Room": "Main Library",
+    "Willow Oaks Branch Library": "Willow Oaks Branch Library",
+    "Willow Oaks Branch Library Children's Area": "Willow Oaks Branch Library",
+    "Northampton Branch Library": "Northampton Branch Library",
+    "Phoebus Branch Library": "Phoebus Branch Library"
+}
+
 def is_likely_adult_event(text):
     text = text.lower()
     keywords = [
@@ -20,7 +32,7 @@ def is_likely_adult_event(text):
         "documentary",
         "world war ii",
         "the joys of sourdough",
-        "beginner computer class", "blackout poetry",
+        "beginner computer class",
         "tech detectives",
         "computer class series",
         "adults", "adult", "21+", "18+",
@@ -39,15 +51,19 @@ def clean_location(location):
     if not location:
         return "Hampton Public Library"
     soup = BeautifulSoup(location, "html.parser")
-    text = soup.get_text(separator=" ").strip()
-    # Remove address after zip (or full address block)
-    address_match = re.search(r"(?P<name>.*?)(\d{5}(?:-\d{4})?.*)", text)
+    raw = soup.get_text(separator=" ").strip()
+    # Try matching by prefixing progressive simplification
+    for key in HPL_LOCATION_MAP:
+        if key.lower() in raw.lower():
+            return HPL_LOCATION_MAP[key]
+    # fallback to raw cleaned
+    address_match = re.search(r"(?P<name>.*?)(\d{5}(?:-\d{4})?.*)", raw)
     if address_match:
         return address_match.group("name").strip(" -")
-    return text.strip(" -")
+    return raw.strip(" -")
 
 def scrape_hpl_events(mode="all"):
-    print("📚 Scraping Hampton Public Library events from iCal feed...")
+    print("\U0001F4DA Scraping Hampton Public Library events from iCal feed...")
 
     today = datetime.now(timezone.utc)
     if mode == "weekly":
