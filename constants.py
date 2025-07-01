@@ -167,6 +167,27 @@ LIBRARY_CONSTANTS = {
         "Phoebus Branch Library": "Phoebus Branch Library"
     }
 }
+    "nnpl": {
+        "name_suffix_map": {
+            "Main Street Library": "Main Street Library",
+            "Grissom Library": "Grissom Library",
+            "Pearl Bailey Library": "Pearl Bailey Library",
+            "Avenue Branch": "Avenue Branch",
+            "Library Branch": "Library Branch"
+        },
+        "venue_names": {
+            "Main Street Library": "Main Street Library",
+            "Grissom Library": "Grissom Library",
+            "Pearl Bailey Library": "Pearl Bailey Library",
+            "Avenue Branch": "Avenue Branch"
+        },
+        "program_type_to_categories": {
+            # Tockify doesn't have program types — leave blank or extend later
+        },
+        "age_to_categories": {
+            # Also optional unless you map ages later
+        }
+    }
 
     # Add other libraries here
 }
