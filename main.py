@@ -7,52 +7,6 @@ from export_to_csv import export_events_to_csv
 from scrape_chpl_events import scrape_chpl_events
 from constants import LIBRARY_CONSTANTS
 
-# Mapping of age group labels from NPL to their categories
-NPL_AGE_TO_CATEGORIES = {
-    "Family": "Audience - Free Event, Event Location - Norfolk, Audience - Family Event",
-    "All Ages": "Audience - Free Event, Event Location - Norfolk",
-    "Babies (0-2)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant",
-    "Toddlers (2-3)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant",
-    "Preschool (3-5)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Preschool Age",
-    "Elementary School Age (5-9)": "Audience - Free Event, Event Location - Norfolk, Audience - School Age",
-    "Tweens (9-13)": "Audience - Teens, Event Location - Norfolk, Audience - School Age",
-    "Teens (12-17)": "Audience - Teens, Event Location - Norfolk, Audience - School Age"
-}
-
-# Mapping of NPL campus names to simplified suffixes for event titles
-NPL_LIBRARY_NAME_SUFFIXES = {
-    "Mary D. Pretlow Anchor Branch Library": "Pretlow Library",
-    "Barron F. Black Branch Library": "Barron F. Black Library",
-    "Richard A. Tucker Memorial Library": "Tucker Library",
-    "Larchmont Branch Library": "Larchmont Library",
-    "Jordan-Newby Anchor Branch Library at Broad Creek": "Jordan-Newby Anchor Branch Library",
-    "Blyden Branch Library": "Blyden Branch Library",
-    "Lafayette Branch Library": "Lafayette Branch Library",
-    "Van Wyck Branch Library": "Van Wyck Branch Library",
-    "Downtown Branch at Slover": "Downtown Branch at Slover",
-    "Park Place Branch Library": "Park Place Branch Library",
-    "Little Creek Branch Library": "Little Creek Branch Library",
-    "Janaf Branch Library": "Janaf Branch Library"
-}
-
-# Mapping of age group labels from NPL to their categories
-CHPL_AGE_TO_CATEGORIES = {
-    "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Chesapeake, Audience - Parent & Me, Audience - Toddler/Infant",
-    "Elementary School": "Audience - School Age, Audience - Free Event, Event Location - Chesapeake",
-    "Middle School": "Audience - Teens, Audience - Free Event, Event Location - Chesapeake",
-    "High School": "Audience - Teens, Audience - Free Event, Event Location - Chesapeake",
-    "Families": "Audience - Family Event, Audience - Free Event, Event Location - Chesapeake",
-    "All Ages": "Audience - All Ages, Audience - Free Event, Event Location - Chesapeake",
-    "Adult": "Audience - Free Event, Event Location - Chesapeake"
-}
-
-CHPL_NAME_SUFFIXES = {
-    "Dr. Clarence V. Cuffee Outreach and Innovation Library": "Cuffee Library",
-    "Greenbrier Library": "Greenbrier Library",
-    "Russell Memorial Library": "Russell Library",
-    "Major Hillard Library": "Major Hillard Library"
-}
-
 if __name__ == "__main__":
     # usage: python main.py [library] [mode]
     library = sys.argv[1] if len(sys.argv) > 1 else "vbpl"
