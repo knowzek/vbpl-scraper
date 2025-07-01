@@ -9,18 +9,19 @@ ICAL_URL = "https://www.hampton.gov/common/modules/iCalendar/iCalendar.aspx?catI
 
 # Manual location mapping to standardize noisy location text
 HPL_LOCATION_MAP = {
-    "Main Library": "Main Library",
-    "Main Library First Floor": "Main Library",
-    "Main Library Second Floor": "Main Library",
-    "Main Library > Children’s Programming Room": "Main Library",
+    "Main Library": "Hampton Main Library",
+    "Main Library First Floor": "Hampton Main Library",
+    "Main Library Second Floor": "Hampton Main Library",
+    "Main Library > Children’s Programming Room": "Hampton Main Library",
     "Willow Oaks Branch Library": "Willow Oaks Branch Library",
     "Willow Oaks Branch Library Children's Area": "Willow Oaks Branch Library",
     "Willow Oaks Branch Library > Children's Area": "Willow Oaks Branch Library",
     "Northampton Branch Library": "Northampton Branch Library",
     "Phoebus Branch Library": "Phoebus Branch Library",
-    "Makerspace": "Main Library",
-    "Children's Department": "Main Library",
-    "Outside at Main Entrance": "Main Library"
+    "Makerspace": "Hampton Main Library",
+    "Children's Department": "Hampton Main Library",
+    "Outside at Main Entrance": "Hampton Main Library",
+    "- Willow Oaks Village Square 227 Fox Hill Rd. Hampton VA 23669": "Willow Oaks Branch Library"
 }
 
 # Set to collect unmapped locations
@@ -46,12 +47,13 @@ def is_likely_adult_event(text):
         "genealogy", "book club", "knitting",
         "resume", "job search", "tax help",
         "investment", "social security", "medicare",
-        "crafts for adults", "finance", "retirement"
+        "crafts for adults", "finance", "retirement", "arts and crafts",
+        "blackout poetry"
     ]
     return any(kw in text for kw in keywords)
 
 def extract_event_link(text):
-    match = re.search(r"https://www\.hampton\.gov/calendar\.aspx\?EID=\d+", text)
+    match = re.search(r"https://www\\.hampton\\.gov/calendar\\.aspx\\?EID=\\d+", text)
     return match.group(0) if match else ""
 
 def clean_location(location):
