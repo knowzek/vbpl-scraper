@@ -2,9 +2,7 @@ services:
   - type: web
     name: vbpl-events-scraper
     runtime: python
-    buildCommand: |
-      pip install -r requirements.txt
-      playwright install --with-deps
+    buildCommand: "./build.sh"
     startCommand: "python main.py"
     envVars:
       - key: PYPPETEER_CHROMIUM_REVISION
