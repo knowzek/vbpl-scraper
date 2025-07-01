@@ -7,7 +7,7 @@ from constants import LIBRARY_CONSTANTS
 
 def fetch_rendered_html(url):
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
         page = browser.new_page()
         page.goto(url)
         page.wait_for_selector(".catAgendaItem", timeout=10000)
