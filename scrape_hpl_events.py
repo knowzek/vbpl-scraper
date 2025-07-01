@@ -1,8 +1,19 @@
-import requests
+from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import re
+from constants import LIBRARY_CONSTANTS
 
+
+def fetch_rendered_html(url):
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        page.goto(url)
+        page.wait_for_selector(".catAgendaItem", timeout=10000)
+        html = page.content()
+        browser.close()
+        return html
 
 def is_likely_adult_event(text):
     text = text.lower()
@@ -28,10 +39,6 @@ def is_likely_adult_event(text):
     ]
     return any(kw in text for kw in keywords)
 
-# moved to constants.py; imported instead
-
-from constants import LIBRARY_CONSTANTS
-
 def scrape_hpl_events(mode="all"):
     print("📚 Scraping Hampton Public Library events...")
 
@@ -53,13 +60,10 @@ def scrape_hpl_events(mode="all"):
             following_month = datetime(next_month.year, next_month.month + 1, 1)
         date_range_end = following_month - timedelta(days=1)
     else:
-        date_range_end = today + timedelta(days=90)  # Arbitrary large range
+        date_range_end = today + timedelta(days=90)
 
-    response = requests.get(CALENDAR_URL, timeout=20)
-    response.raise_for_status()
-    soup = BeautifulSoup(response.text, "html.parser")
-    print(soup.prettify()[:8000])  # just a snippet
-
+    html = fetch_rendered_html(CALENDAR_URL)
+    soup = BeautifulSoup(html, "html.parser")
     event_blocks = soup.select(".catAgendaItem")
     events = []
 
@@ -84,9 +88,8 @@ def scrape_hpl_events(mode="all"):
             if event_date > date_range_end:
                 continue
 
-            # Visit detail page for time, description, location
-            detail_resp = requests.get(event_link, timeout=15)
-            detail_soup = BeautifulSoup(detail_resp.text, "html.parser")
+            detail_html = fetch_rendered_html(event_link)
+            detail_soup = BeautifulSoup(detail_html, "html.parser")
 
             description_tag = detail_soup.select_one("#main-content")
             if description_tag:
@@ -96,7 +99,6 @@ def scrape_hpl_events(mode="all"):
             else:
                 description = ""
 
-            # Skip adult events
             if is_likely_adult_event(event_name) or is_likely_adult_event(description):
                 continue
 
