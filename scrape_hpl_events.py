@@ -15,6 +15,7 @@ HPL_LOCATION_MAP = {
     "Main Library > Children’s Programming Room": "Main Library",
     "Willow Oaks Branch Library": "Willow Oaks Branch Library",
     "Willow Oaks Branch Library Children's Area": "Willow Oaks Branch Library",
+    "Willow Oaks Branch Library > Children's Area": "Willow Oaks Branch Library",
     "Northampton Branch Library": "Northampton Branch Library",
     "Phoebus Branch Library": "Phoebus Branch Library",
     "Makerspace": "Main Library",
@@ -122,7 +123,7 @@ def scrape_hpl_events(mode="all"):
             clean_loc = clean_location(event.location)
 
             events.append({
-                "Event Name": f"{name} at {clean_loc} (Hampton)",
+                "Event Name": name,
                 "Event Link": event_link,
                 "Event Status": "Available",
                 "Time": time_str,
