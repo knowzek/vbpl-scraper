@@ -58,6 +58,7 @@ def scrape_hpl_events(mode="all"):
     response = requests.get(CALENDAR_URL, timeout=20)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
+    print(soup.prettify()[:8000])  # just a snippet
 
     event_blocks = soup.select(".catAgendaItem")
     events = []
