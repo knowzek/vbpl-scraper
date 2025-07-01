@@ -27,6 +27,7 @@ HPL_LOCATION_MAP = {
 # Set to collect unmapped locations
 UNMAPPED_LOCATIONS = set()
 
+
 def is_likely_adult_event(text):
     text = text.lower()
     keywords = [
@@ -47,14 +48,16 @@ def is_likely_adult_event(text):
         "genealogy", "book club", "knitting",
         "resume", "job search", "tax help",
         "investment", "social security", "medicare",
-        "crafts for adults", "finance", "retirement", "arts and crafts",
+        "crafts for adults", "finance", "retirement",
         "blackout poetry"
     ]
     return any(kw in text for kw in keywords)
 
+
 def extract_event_link(text):
     match = re.search(r"https://www\\.hampton\\.gov/calendar\\.aspx\\?EID=\\d+", text)
     return match.group(0) if match else ""
+
 
 def clean_location(location):
     if not location:
@@ -69,6 +72,7 @@ def clean_location(location):
     if address_match:
         return address_match.group("name").strip(" -")
     return raw.strip(" -")
+
 
 def scrape_hpl_events(mode="all"):
     print("\U0001F4DA Scraping Hampton Public Library events from iCal feed...")
