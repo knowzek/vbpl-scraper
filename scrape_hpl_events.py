@@ -33,13 +33,14 @@ def is_likely_adult_event(text):
 
 def extract_event_link(text):
     match = re.search(r"https://www\\.hampton\\.gov/calendar\\.aspx\\?EID=\\d+", text)
-    return match.group(0) if match else "https://www.hampton.gov/calendar.aspx?CID=24"
+    return match.group(0) if match else ""
 
 def clean_location(location):
     if not location:
         return "Hampton Public Library"
     soup = BeautifulSoup(location, "html.parser")
-    return soup.get_text().split("\n")[0].strip()
+    cleaned = soup.get_text(separator=" ").strip()
+    return re.split(r"\\d{5}(?:-\\d{4})?", cleaned)[0].strip()
 
 def scrape_hpl_events(mode="all"):
     print("📚 Scraping Hampton Public Library events from iCal feed...")
