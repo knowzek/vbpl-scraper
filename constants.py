@@ -154,7 +154,18 @@ LIBRARY_CONSTANTS = {
         "Willow Oaks Village Square 227 Fox Hill Rd. Hampton VA 23669": "Willow Oaks Branch Library",
         "Outside at Main Entrance": "Hampton Main Library"
     },
-    "name_suffix_map": {} 
+    "name_suffix_map": {
+        "Hampton Main Library": "Hamption Main Library",
+        "Willow Oaks Branch Library": "Willow Oaks Branch Library",
+        "Northampton Branch Library": "Northampton Branch Library",
+        "Phoebus Branch Library": "Phoebus Branch Library"
+    },
+    "venue_names": {
+        "Hampton Main Library": "Hamption Main Library",
+        "Willow Oaks Branch Library": "Willow Oaks Branch Library",
+        "Northampton Branch Library": "Northampton Branch Library",
+        "Phoebus Branch Library": "Phoebus Branch Library"
+    }
 }
 
     # Add other libraries here
