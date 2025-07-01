@@ -20,7 +20,7 @@ def is_likely_adult_event(text):
         "documentary",
         "world war ii",
         "the joys of sourdough",
-        "beginner computer class",
+        "beginner computer class", "blackout poetry",
         "tech detectives",
         "computer class series",
         "adults", "adult", "21+", "18+",
@@ -32,15 +32,19 @@ def is_likely_adult_event(text):
     return any(kw in text for kw in keywords)
 
 def extract_event_link(text):
-    matches = re.findall(r"https://www\.hampton\.gov/calendar\.aspx\?EID=\d+", text)
+    matches = re.findall(r"https://www\\.hampton\\.gov/calendar\\.aspx\\?EID=\\d+", text)
     return matches[0] if matches else ""
 
 def clean_location(location):
     if not location:
         return "Hampton Public Library"
     soup = BeautifulSoup(location, "html.parser")
-    cleaned = soup.get_text(separator=" ").strip()
-    return re.split(r"\d{5}(?:-\d{4})?", cleaned)[0].strip(" -")
+    text = soup.get_text(separator=" ").strip()
+    # Remove address after zip (or full address block)
+    address_match = re.search(r"(?P<name>.*?)(\d{5}(?:-\d{4})?.*)", text)
+    if address_match:
+        return address_match.group("name").strip(" -")
+    return text.strip(" -")
 
 def scrape_hpl_events(mode="all"):
     print("📚 Scraping Hampton Public Library events from iCal feed...")
@@ -98,15 +102,15 @@ def scrape_hpl_events(mode="all"):
                 print(f"⚠️  Skipping malformed event (missing link): {name} @ {event.location}")
                 continue
 
-            location = clean_location(event.location)
+            clean_loc = clean_location(event.location)
 
             events.append({
-                "Event Name": f"{name} at {location} (Hampton)",
+                "Event Name": f"{name} at {clean_loc} (Hampton)",
                 "Event Link": event_link,
                 "Event Status": "Available",
                 "Time": time_str,
                 "Ages": "",
-                "Location": location,
+                "Location": clean_loc,
                 "Month": event_date.strftime("%b"),
                 "Day": str(event_date.day),
                 "Year": str(event_date.year),
