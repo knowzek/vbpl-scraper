@@ -138,6 +138,21 @@ LIBRARY_CONSTANTS = {
         "teen": "Event Location - Hampton, Audience - Free Event, Audience - Teens",
         "tween": "Event Location - Hampton, Audience - Free Event, Audience - School Age"
     },
+
+    "location_map": {
+        "Main Library": "Hampton Main Library",
+        "Main Library First Floor": "Hampton Main Library",
+        "Main Library Second Floor": "Hampton Main Library",
+        "Main Library > Children’s Programming Room": "Hampton Main Library",
+        "Willow Oaks Branch Library": "Willow Oaks Branch Library",
+        "Willow Oaks Branch Library Children's Area": "Willow Oaks Branch Library",
+        "Willow Oaks Branch Library > Children's Area": "Willow Oaks Branch Library",
+        "Northampton Branch Library": "Northampton Branch Library",
+        "Phoebus Branch Library": "Phoebus Branch Library",
+        "Makerspace": "Hampton Main Library",
+        "Children's Department": "Hampton Main Library",
+        "Outside at Main Entrance": "Hampton Main Library"
+    },
     "name_suffix_map": {} 
 }
 
