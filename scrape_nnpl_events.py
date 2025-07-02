@@ -59,37 +59,21 @@ def scrape_nnpl_events(mode="all"):
     print("\U0001F4DA Scraping Newport News Public Library events from iCal feed...")
 
     today = datetime.now(timezone.utc)
+
     if mode == "weekly":
         date_range_start = today
         date_range_end = today + timedelta(days=7)
+    
     elif mode == "monthly":
         date_range_start = datetime(today.year, today.month, 1, tzinfo=timezone.utc)
         if today.month == 12:
             next_month = datetime(today.year + 1, 1, 1, tzinfo=timezone.utc)
         else:
             next_month = datetime(today.year, today.month + 1, 1, tzinfo=timezone.utc)
-        if next_month.month == 12:
-            following_month = datetime(next_month.year + 1, 1, 1, tzinfo=timezone.utc)
-        else:
-            following_month = datetime(next_month.year, next_month.month + 1, 1, tzinfo=timezone.utc)
-        date_range_end = following_month - timedelta(days=1)
+        date_range_end = next_month - timedelta(seconds=1)
+    
     else:
         date_range_start = today
-        date_range_end = today + timedelta(days=90)
-
-    if mode == "weekly":
-        date_range_end = today + timedelta(days=7)
-    elif mode == "monthly":
-        if today.month == 12:
-            next_month = datetime(today.year + 1, 1, 1, tzinfo=timezone.utc)
-        else:
-            next_month = datetime(today.year, today.month + 1, 1, tzinfo=timezone.utc)
-        if next_month.month == 12:
-            following_month = datetime(next_month.year + 1, 1, 1, tzinfo=timezone.utc)
-        else:
-            following_month = datetime(next_month.year, next_month.month + 1, 1, tzinfo=timezone.utc)
-        date_range_end = following_month - timedelta(days=1)
-    else:
         date_range_end = today + timedelta(days=90)
 
     resp = requests.get(ICAL_URL)
@@ -137,9 +121,6 @@ def scrape_nnpl_events(mode="all"):
                 print(f"⚠️ No event link found for: {name} — using fallback")
                 event_link = "https://library.nnva.gov/264/Events-Calendar"
 
-            name = event.name.strip() if event.name else ""
-            description = event.description.strip() if event.description else ""
-
             if is_likely_adult_event(name) or is_likely_adult_event(description):
                 continue
 
@@ -150,27 +131,12 @@ def scrape_nnpl_events(mode="all"):
                     categories = cat
                     break
 
-            raw_location_html = event.location or ""
-            raw_location = BeautifulSoup(raw_location_html, "html.parser").get_text().strip()
-            location_name = raw_location.split(",")[0].strip()
             if not location_name:
                 continue
             location = LIBRARY_CONSTANTS["nnpl"]["venue_names"].get(location_name)
             if not location:
                 print(f"\U0001F4CC Unmapped location: {repr(raw_location)}")
                 location = location_name
-
-            event_link = None
-            if description:
-                preferred = re.search(r"https://tockify.com/[^\s<>\"']+", description)
-                if preferred:
-                    event_link = preferred.group(0)
-                else:
-                    fallback = re.search(r"https?://[^\s<>\"']+", description)
-                    if fallback:
-                        event_link = fallback.group(0)
-            if not event_link:
-                continue
 
             start_time = event.begin.datetime.astimezone(timezone.utc).strftime("%-I:%M %p")
             end_time = event.end.datetime.astimezone(timezone.utc).strftime("%-I:%M %p") if event.end else ""
