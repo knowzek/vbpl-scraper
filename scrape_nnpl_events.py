@@ -60,6 +60,24 @@ def scrape_nnpl_events(mode="all"):
 
     today = datetime.now(timezone.utc)
     if mode == "weekly":
+        date_range_start = today
+        date_range_end = today + timedelta(days=7)
+    elif mode == "monthly":
+        date_range_start = datetime(today.year, today.month, 1, tzinfo=timezone.utc)
+        if today.month == 12:
+            next_month = datetime(today.year + 1, 1, 1, tzinfo=timezone.utc)
+        else:
+            next_month = datetime(today.year, today.month + 1, 1, tzinfo=timezone.utc)
+        if next_month.month == 12:
+            following_month = datetime(next_month.year + 1, 1, 1, tzinfo=timezone.utc)
+        else:
+            following_month = datetime(next_month.year, next_month.month + 1, 1, tzinfo=timezone.utc)
+        date_range_end = following_month - timedelta(days=1)
+    else:
+        date_range_start = today
+        date_range_end = today + timedelta(days=90)
+
+    if mode == "weekly":
         date_range_end = today + timedelta(days=7)
     elif mode == "monthly":
         if today.month == 12:
@@ -88,8 +106,8 @@ def scrape_nnpl_events(mode="all"):
                 continue
     
             event_date = event.begin.datetime.astimezone(timezone.utc)
-            if event_date > date_range_end:
-                print("⏭️ Skipping: Future date")
+            if event_date < date_range_start or event_date > date_range_end:
+                print(f"⏭️ Skipping: Outside date range ({event_date.date()})")
                 continue
     
             name = event.name.strip() if event.name else ""
