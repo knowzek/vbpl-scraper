@@ -240,9 +240,12 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 full_row = new_core + [now, status, site_sync_status]
 
                 if link not in existing_data:
+                    print("🔍 New row to append:", full_row)
                     new_rows.append(full_row)
                     added += 1
+    
                 elif new_core != existing_core:
+                    print(f"🔄 Updated row {link_to_row_index[link]}:", full_row)
                     row_index = link_to_row_index[link]
                     update_requests.append({
                         "range": f"A{row_index}:Q{row_index}",
@@ -258,6 +261,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
             sheet.batch_update(update_requests)
 
         if new_rows:
+            print("🔍 Full row to upload:", full_row)
             sheet.append_rows(new_rows, value_input_option="USER_ENTERED")
 
         try:
