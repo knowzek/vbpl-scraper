@@ -37,13 +37,20 @@ def extract_tags(text):
 
 def extract_ages(text):
     text = text.lower()
-    if "age 2" in text or "aged 2" in text:
-        return "Age 2"
-    if "teens" in text:
-        return "Teens"
-    if "18+" in text or "adults" in text or "adult" in text:
-        return "Adults 18+"
-    return ""
+    matches = []
+
+    if any(kw in text for kw in ["infants", "babies", "baby", "0-2"]):
+        matches.append("Infant")
+    if any(kw in text for kw in ["preschool", "toddlers", "age 2", "aged 2", "ages 2", "2-year-olds"]):
+        matches.append("Preschool")
+    if any(kw in text for kw in ["school age", "grades", "k-", "elementary", "children ages 5", "school-age"]):
+        matches.append("School Age")
+    if "teen" in text or "teens" in text or "middle school" in text or "high school" in text:
+        matches.append("Teens")
+    if any(kw in text for kw in ["18+", "adults", "adult", "grown-ups"]):
+        matches.append("Adults 18+")
+
+    return ", ".join(matches)
 
 def is_cancelled(name, description):
     return "cancelled" in name.lower() or "canceled" in description.lower()
