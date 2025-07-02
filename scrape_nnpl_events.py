@@ -11,7 +11,6 @@ def is_likely_adult_event(text):
     text = text.lower()
     keywords = [
         "veteran support services",
-        "workforce hampton",
         "all-comers writing club",
         "show and tell",
         "podcraft: seed sowing sessions",
@@ -33,7 +32,7 @@ def is_likely_adult_event(text):
     return any(kw in text for kw in keywords)
 
 def scrape_nnpl_events(mode="all"):
-    print("📚 Scraping Hampton Public Library events from iCal feed...")
+    print("📚 Scraping Newport News Public Library events from iCal feed...")
 
     today = datetime.now(timezone.utc)
     if mode == "weekly":
@@ -54,7 +53,6 @@ def scrape_nnpl_events(mode="all"):
     resp = requests.get(ICAL_URL)
     calendar = Calendar(resp.text)
     program_type_to_categories = LIBRARY_CONSTANTS["nnpl"].get("program_type_to_categories", {})
-    NNPL_LOCATION_MAP = LIBRARY_CONSTANTS["nnpl"].get("location_map", {})
 
     events = []
     for event in calendar.events:
@@ -85,20 +83,15 @@ def scrape_nnpl_events(mode="all"):
             raw_location_html = event.location or ""
             raw_location = BeautifulSoup(raw_location_html, "html.parser").get_text().strip()
             
-            # Take only the library name before the address
+            # Extract short location name (before comma)
             location_name = raw_location.split(",")[0].strip()
             
-            normalized = location_name.lower()
-            location = None
-            
-            for key, mapped in NNPL_LOCATION_MAP.items():
-                if key.lower() in normalized:
-                    location = mapped
-                    break
+            location = LIBRARY_CONSTANTS["nnpl"]["venue_names"].get(location_name)
             
             if not location:
                 print(f"📌 Unmapped location: {repr(raw_location)}")
-                location = location_name  # fallback to short name only
+                location = location_name  # fallback to short name
+
 
             # Extract event link from description
             event_link = None
@@ -136,5 +129,5 @@ def scrape_nnpl_events(mode="all"):
         except Exception as e:
             print(f"⚠️ Error parsing event: {e}")
 
-    print(f"✅ Scraped {len(events)} events from Hampton Public Library.")
+    print(f"✅ Scraped {len(events)} events from Newport News Public Library.")
     return events
