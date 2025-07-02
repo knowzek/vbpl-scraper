@@ -7,7 +7,7 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "craft": "Arts & Crafts",
     "lego": "STEM - Lego",
     "baby": "Audience - Infant", "Audience - Parent & Me",
-    "toddler": "Audience - Toddler", "Audience - Parent & Me",
+    "toddler": "Audience - Toddler/Infant", "Audience - Parent & Me", "List - Toddler Time Events",
     "preschool": "Audience - Preschool Age", "Audience - Parent & Me",
     "steam": "List - STEM/STEAM"
     "yoga": "Category - Fitness Events"
@@ -57,7 +57,7 @@ LIBRARY_CONSTANTS = {
             "Family": "Audience - Free Event, Event Location - Norfolk, Audience - Family Event",
             "All Ages": "Audience - Free Event, Event Location - Norfolk",
             "Babies (0-2)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant",
-            "Toddlers (2-3)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant",
+            "Toddlers (2-3)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events",
             "Preschool (3-5)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Preschool Age",
             "Elementary School Age (5-9)": "Audience - Free Event, Event Location - Norfolk, Audience - School Age",
             "Tweens (9-13)": "Event Location - Norfolk, Audience - School Age, Audience - Free Event",
@@ -95,7 +95,7 @@ LIBRARY_CONSTANTS = {
     },
     "chpl": {
         "age_to_categories": {
-            "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Chesapeake, Audience - Parent & Me, Audience - Toddler/Infant",
+            "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Chesapeake, Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events",
             "Elementary School": "Audience - School Age, Audience - Free Event, Event Location - Chesapeake",
             "Middle School": "Audience - Teens, Audience - Free Event, Event Location - Chesapeake",
             "High School": "Audience - Teens, Audience - Free Event, Event Location - Chesapeake",
@@ -125,7 +125,7 @@ LIBRARY_CONSTANTS = {
     },
     "hpl": {
     "program_type_to_categories": {
-        "storytime": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Storytimes",
+        "storytime": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Storytimes, List - Toddler Time Events",
         "lego": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - STEM/STEAM",
         "steam": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - STEM/STEAM",
         "slime": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - STEM/STEAM",
@@ -135,7 +135,7 @@ LIBRARY_CONSTANTS = {
         "baking": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Cooking",
         "cookie": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Cooking",
         "cupcake": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Cooking",
-        "sensory": "Event Location - Hampton, Audience - Free Event, Audience - Toddler/Infant",
+        "sensory": "Event Location - Hampton, Audience - Free Event, Audience - Toddler/Infant, List - Toddler Time Events",
         "chalk": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Outdoor Activities",
         "bubble": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Outdoor Activities",
         "photography": "Event Location - Hampton, Audience - Free Event, Audience - Teens, List - STEM/STEAM",
