@@ -8,7 +8,6 @@ import json
 import re
 from constants import LIBRARY_CONSTANTS, TITLE_KEYWORD_TO_CATEGORY
 
-
 def _clean_link(url: str) -> str:
     cleaned = (
         url.replace("/index.php/", "/")
@@ -155,17 +154,18 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
 
                 categories = categories.replace("\u00A0", " ").replace("Â", "").strip()
-                # === Add extra categories based on title keywords ===
-                extra_tags = []
+                # === Add extra categories based on title keywords (applies to ALL libraries)
                 title_text = event.get("Event Name", "").lower()
+                title_based_tags = []
+                
                 for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
                     if keyword in title_text:
-                        extra_tags.append(cat)
+                        title_based_tags.extend([c.strip() for c in cat.split(",")])
                 
-                if extra_tags:
+                if title_based_tags:
                     base = [c.strip() for c in categories.split(",") if c.strip()]
-                    combined = base + extra_tags
-                    categories = ", ".join(dict.fromkeys(combined))
+                    combined = base + title_based_tags
+                    categories = ", ".join(dict.fromkeys(combined))  # dedupe while preserving order
 
                 name_original = event.get("Event Name", "")
                 # Remove any "@ LibraryName" from event titles before suffixing
