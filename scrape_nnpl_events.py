@@ -157,6 +157,7 @@ def scrape_nnpl_events(mode="all"):
                 tag_elements = detail_soup.select("span.eventTags__text")
                 tag_texts = [t.get_text(strip=True) for t in tag_elements if t.get_text(strip=True)]
                 program_type = ", ".join(sorted(set(tag_texts)))
+                print(f"🏷️ Tags found for '{event.name}': {program_type}")
             except Exception as e:
                 print(f"⚠️ Failed to fetch tags from event page: {e}")
     
