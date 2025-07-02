@@ -32,7 +32,7 @@ def is_likely_adult_event(text):
     ]
     return any(kw in text for kw in keywords)
 
-def scrape_hpl_events(mode="all"):
+def scrape_nnpl_events(mode="all"):
     print("📚 Scraping Hampton Public Library events from iCal feed...")
 
     today = datetime.now(timezone.utc)
@@ -53,8 +53,8 @@ def scrape_hpl_events(mode="all"):
 
     resp = requests.get(ICAL_URL)
     calendar = Calendar(resp.text)
-    program_type_to_categories = LIBRARY_CONSTANTS["hpl"].get("program_type_to_categories", {})
-    HPL_LOCATION_MAP = LIBRARY_CONSTANTS["hpl"].get("location_map", {})
+    program_type_to_categories = LIBRARY_CONSTANTS["nnpl"].get("program_type_to_categories", {})
+    NNPL_LOCATION_MAP = LIBRARY_CONSTANTS["nnpl"].get("location_map", {})
 
     events = []
     for event in calendar.events:
@@ -86,7 +86,7 @@ def scrape_hpl_events(mode="all"):
             raw_location = BeautifulSoup(raw_location_html, "html.parser").get_text().strip()
             normalized = raw_location.lower()
             location = None
-            for key, mapped in HPL_LOCATION_MAP.items():
+            for key, mapped in NNPL_LOCATION_MAP.items():
                 if key.lower() in normalized:
                     location = mapped
                     break
