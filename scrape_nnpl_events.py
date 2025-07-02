@@ -190,8 +190,15 @@ def scrape_nnpl_events(mode="all"):
                 location = location_name
             
             start_dt = event.begin.datetime.astimezone(eastern)
-            end_dt = event.end.datetime.astimezone(eastern) if event.end else start_dt + timedelta(hours=1)
-            
+            if event.end and event.end.datetime:
+                raw_end_dt = event.end.datetime
+                if raw_end_dt == event.begin.datetime:
+                    end_dt = start_dt + timedelta(hours=1)
+                else:
+                    end_dt = raw_end_dt.astimezone(eastern)
+            else:
+                end_dt = start_dt + timedelta(hours=1)
+
             start_time = start_dt.strftime("%-I:%M %p")
             end_time = end_dt.strftime("%-I:%M %p")
             time_str = f"{start_time} - {end_time}"
