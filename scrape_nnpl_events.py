@@ -154,7 +154,7 @@ def scrape_nnpl_events(mode="all"):
             try:
                 detail_resp = requests.get(event_link, timeout=5)
                 detail_soup = BeautifulSoup(detail_resp.text, "html.parser")
-                tag_elements = detail_soup.select("span.eventTags__text")
+                tag_elements = detail_soup.select("div.eventDetail__tags span.eventTags__text")
                 tag_texts = [t.get_text(strip=True) for t in tag_elements if t.get_text(strip=True)]
                 program_type = ", ".join(sorted(set(tag_texts)))
                 print(f"🏷️ Tags found for '{event.name}': {program_type}")
