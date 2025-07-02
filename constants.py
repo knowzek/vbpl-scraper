@@ -57,7 +57,7 @@ LIBRARY_CONSTANTS = {
         "age_to_categories": {
             "Family": "Audience - Free Event, Event Location - Norfolk, Audience - Family Event",
             "All Ages": "Audience - Free Event, Event Location - Norfolk",
-            "Babies (0-2)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant",
+            "Babies (0-2)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events",
             "Toddlers (2-3)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events",
             "Preschool (3-5)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Preschool Age",
             "Elementary School Age (5-9)": "Audience - Free Event, Event Location - Norfolk, Audience - School Age",
@@ -126,7 +126,7 @@ LIBRARY_CONSTANTS = {
     },
     "hpl": {
     "program_type_to_categories": {
-        "storytime": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Storytimes, List - Toddler Time Events",
+        "storytime": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Storytimes, List - Toddler Time Events, Audience - Toddler/Infant",
         "lego": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - STEM/STEAM",
         "steam": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - STEM/STEAM",
         "slime": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - STEM/STEAM",
@@ -197,10 +197,34 @@ LIBRARY_CONSTANTS = {
             "Meeting Room": "Pearl Bailey Library"  # or whatever makes sense
         },
         "program_type_to_categories": {
-            # Tockify doesn't have program types — leave blank or extend later
+            "Storytime": "Audience - Family Event, List - Storytimes, Event Location - Newport News, Audience - Free Event",
+            "ArtsandCrafts": "Audience - Family Event, List - Arts & Crafts, Event Location - Newport News, Audience - Free Event",
+            "SummerReading": "Audience - Family Event, List - Summer Reading, Event Location - Newport News, Audience - Free Event",
+            "Community": "Audience - Family Event, Event Location - Newport News, Audience - Free Event",
+            "Teens": "Audience - Teens, Event Location - Newport News, Audience - Free Event",
+            "Tweens": "Audience - Tweens, Event Location - Newport News, Audience - Free Event",
+            "Children": "Audience - Family Event, Event Location - Newport News, Audience - Free Event",
+            "Adults": "Audience - Adults, Event Location - Newport News, Audience - Free Event",
+            "Book": "List - Books & Authors, Event Location - Newport News, Audience - Free Event",
+            "Reading": "List - Books & Authors, Event Location - Newport News, Audience - Free Event",
+            "STEAM": "List - STEM/STEAM, Event Location - Newport News, Audience - Free Event",
+            "Science": "List - STEM/STEAM, Event Location - Newport News, Audience - Free Event"
         },
         "age_to_categories": {
-            # Also optional unless you map ages later
+            "Babies": "Audience - Babies",
+            "Toddlers": "Audience – Toddler/Infant, List – Toddler Time Events",
+            "Preschool": "Audience - Preschoolers",
+            "Children": "Audience - Children, Audience - Family Event",
+            "Kids": "Audience - Children, Audience - Family Event",
+            "Tweens": "Audience - School Age",
+            "Teens": "Audience - Teens, Audience - School Age",
+            "Young Adults": "Audience - Teens",
+            "Adults": "Audience - Adults",
+            "18+": "Audience - Adults",
+            "21+": "Audience - Adults",
+            "Seniors": "Audience - Seniors",
+            "All Ages": "Audience - All Ages, Audience - Family Event",
+            "Family": "Audience - Family Event"
         }
     }
 }
