@@ -1,5 +1,17 @@
 # constants.py
 
+TITLE_KEYWORD_TO_CATEGORY = {
+    "storytime": "List - Storytimes",
+    "math": "STEM - Math",
+    "science": "STEM - Science",
+    "craft": "Arts & Crafts",
+    "lego": "STEM - Lego",
+    "baby": "Audience - Infant", "Audience - Parent & Me",
+    "toddler": "Audience - Toddler", "Audience - Parent & Me",
+    "preschool": "Audience - Preschool Age", "Audience - Parent & Me",
+    "steam": "List - STEM/STEAM"
+}
+
 LIBRARY_CONSTANTS = {
     "vbpl": {
         "program_type_to_categories": {
