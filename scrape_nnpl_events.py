@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta, timezone
 import requests
+import asyncio
+from playwright.async_api import async_playwright
 from ics import Calendar
 from bs4 import BeautifulSoup
 from constants import LIBRARY_CONSTANTS
@@ -102,8 +104,25 @@ def extract_ages(text):
 
 def is_cancelled(name, description):
     return "cancelled" in name.lower() or "canceled" in description.lower()
+    
+async def get_tags_with_playwright(event_link):
+    try:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            page = await browser.new_page()
+            await page.goto(event_link, timeout=10000)
+            await page.wait_for_selector(".eventTags__text", timeout=5000)
+            tags = await page.eval_on_selector_all(
+                ".eventTags__text",
+                "els => els.map(el => el.textContent.trim()).filter(Boolean)"
+            )
+            await browser.close()
+            return ", ".join(sorted(set(tags)))
+    except Exception as e:
+        print(f"⚠️ Playwright tag scrape failed for {event_link}: {e}")
+        return ""
 
-def scrape_nnpl_events(mode="all"):
+async def scrape_nnpl_events(mode="all"):
     print("\U0001F4DA Scraping Newport News Public Library events from iCal feed...")
 
     today = datetime.now(timezone.utc)
@@ -150,17 +169,10 @@ def scrape_nnpl_events(mode="all"):
                 event_link = f"https://tockify.com/nnlibrary/detail/{event_id}/{timestamp}"
 
             # === Extract tags from event page (e.g. "Adults", "PhotoEditing") ===
-            program_type = ""
-            try:
-                detail_resp = requests.get(event_link, timeout=5)
-                detail_soup = BeautifulSoup(detail_resp.text, "html.parser")
-                tag_elements = detail_soup.select("div.eventDetail__tags span.eventTags__text")
-                tag_texts = [t.get_text(strip=True) for t in tag_elements if t.get_text(strip=True)]
-                program_type = ", ".join(sorted(set(tag_texts)))
-                print(f"🏷️ Tags found for '{event.name}': {program_type}")
-            except Exception as e:
-                print(f"⚠️ Failed to fetch tags from event page: {e}")
-    
+
+            program_type = await get_tags_with_playwright(event_link)
+            print(f"🏷️ Tags found for '{event.name}': {program_type}")
+                    
             if event_date < date_range_start or event_date > date_range_end:
                 print(f"⏭️ Skipping: Outside date range ({event_date.date()})")
                 continue
