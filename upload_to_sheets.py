@@ -6,7 +6,7 @@ import traceback
 from config import get_library_config
 import json
 import re
-from constants import LIBRARY_CONSTANTS
+from constants import LIBRARY_CONSTANTS, TITLE_KEYWORD_TO_CATEGORY
 
 
 def _clean_link(url: str) -> str:
@@ -148,6 +148,17 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     categories = ", ".join(dict.fromkeys(combined))
 
                 categories = categories.replace("\u00A0", " ").replace("Â", "").strip()
+                # === Add extra categories based on title keywords ===
+                extra_tags = []
+                title_text = event.get("Event Name", "").lower()
+                for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
+                    if keyword in title_text:
+                        extra_tags.append(cat)
+                
+                if extra_tags:
+                    base = [c.strip() for c in categories.split(",") if c.strip()]
+                    combined = base + extra_tags
+                    categories = ", ".join(dict.fromkeys(combined))
 
                 name_original = event.get("Event Name", "")
                 # Remove any "@ LibraryName" from event titles before suffixing
