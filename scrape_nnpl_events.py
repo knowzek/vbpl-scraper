@@ -84,16 +84,21 @@ def scrape_nnpl_events(mode="all"):
             # === LOCATION MAPPING ===
             raw_location_html = event.location or ""
             raw_location = BeautifulSoup(raw_location_html, "html.parser").get_text().strip()
-            normalized = raw_location.lower()
+            
+            # Take only the library name before the address
+            location_name = raw_location.split(",")[0].strip()
+            
+            normalized = location_name.lower()
             location = None
+            
             for key, mapped in NNPL_LOCATION_MAP.items():
                 if key.lower() in normalized:
                     location = mapped
                     break
+            
             if not location:
                 print(f"📌 Unmapped location: {repr(raw_location)}")
-                location = raw_location  # fallback so we still export it
-
+                location = location_name  # fallback to short name only
 
             # Extract event link from description
             event_link = None
@@ -102,8 +107,9 @@ def scrape_nnpl_events(mode="all"):
                 if url_match:
                     event_link = url_match.group(0)
             if not event_link:
-                print(f"⚠️  Skipping malformed event (missing link): {name} @ {location}")
-                continue
+                # Fallback to library homepage
+                event_link = "https://library.nnva.gov/264/Events-Calendar"
+
 
             # Format time
             start_time = event.begin.datetime.astimezone(timezone.utc).strftime("%-I:%M %p")
