@@ -98,7 +98,7 @@ def scrape_nnpl_events(mode="all"):
             # Extract event link from description
             event_link = None
             if description:
-                url_match = re.search(r"https://www\.hampton\.gov/calendar\.aspx\?EID=\d+", description)
+                url_match = re.search(r"https?://[^\s<>\"']+", description)
                 if url_match:
                     event_link = url_match.group(0)
             if not event_link:
