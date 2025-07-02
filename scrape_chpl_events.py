@@ -62,7 +62,21 @@ def scrape_chpl_events(mode="all"):
             events.append({
                 "Event Name": item.get("title", "").strip(),
                 "Event Link": item.get("url", "").replace("\\/", "/"),
-                "Event Status": "Available",
+                title = item.get("title", "").strip()
+                event_url = item.get("url", "").replace("\\/", "/")
+                status = "Available"
+                
+                # Only fetch the detail page if the event was marked as changed
+                if item.get("changed") == "1":
+                    try:
+                        detail_resp = requests.get(event_url, timeout=10)
+                        detail_soup = BeautifulSoup(detail_resp.text, "html.parser")
+                        cancelled_msg = detail_soup.select_one(".eelist-changed-message")
+                        if cancelled_msg and "cancelled" in cancelled_msg.get_text(strip=True).lower():
+                            status = "Cancelled"
+                    except Exception as e:
+                        print(f"⚠️ Failed to fetch detail page for status check: {event_url} — {e}")
+                "Event Status": status,
                 "Time": time_str,
                 "Ages": ages,
                 "Location": item.get("location", "").strip(),
