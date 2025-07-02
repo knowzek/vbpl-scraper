@@ -6,9 +6,9 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "science": "STEM - Science",
     "craft": "Arts & Crafts",
     "lego": "STEM - Lego",
-    "baby": "Audience - Infant", "Audience - Parent & Me",
-    "toddler": "Audience - Toddler/Infant", "Audience - Parent & Me", "List - Toddler Time Events",
-    "preschool": "Audience - Preschool Age", "Audience - Parent & Me",
+    "baby": "Audience - Infant, Audience - Parent & Me",
+    "toddler": "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
+    "preschool": "Audience - Preschool Age, Audience - Parent & Me",
     "steam": "List - STEM/STEAM"
     "yoga": "Category - Fitness Events"
 }
