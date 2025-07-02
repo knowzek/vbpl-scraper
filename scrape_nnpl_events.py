@@ -170,9 +170,8 @@ async def scrape_nnpl_events(mode="all"):
 
             # === Extract tags from event page (e.g. "Adults", "PhotoEditing") ===
 
-            program_type = await get_tags_with_playwright(event_link)
-            print(f"🏷️ Tags found for '{event.name}': {program_type}")
-                    
+            program_type = ""  # or populate this using keyword inference if you want it visible on the sheet
+  
             if event_date < date_range_start or event_date > date_range_end:
                 print(f"⏭️ Skipping: Outside date range ({event_date.date()})")
                 continue
@@ -194,9 +193,10 @@ async def scrape_nnpl_events(mode="all"):
             if is_likely_adult_event(name) or is_likely_adult_event(description):
                 continue
 
+            combined_text = f"{name} {description}".lower()
             categories = ""
             for keyword, cat in program_type_to_categories.items():
-                if keyword.lower() in program_type.lower():
+                if keyword.lower() in combined_text:
                     categories = cat
                     break
 
