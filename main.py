@@ -47,7 +47,7 @@ if __name__ == "__main__":
     elif library == "nnpl":
         import asyncio
         from scrape_nnpl_events import scrape_nnpl_events
-        events = scrape_nnpl_events(mode=mode)
+        events = asyncio.run(scrape_nnpl_events(mode=mode))
 
     elif library == "spl":
         from scrape_spl_events import scrape_spl_events
