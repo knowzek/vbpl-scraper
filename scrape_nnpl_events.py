@@ -103,7 +103,7 @@ def scrape_nnpl_events(mode="all"):
             raw_location = BeautifulSoup(raw_location_html, "html.parser").get_text().strip()
             location_name = raw_location.split(",")[0].strip()
             if not location_name:
-                print(f"⏭️ Skipping: Missing location → {name}")
+                print(f"⏭️ Skipping: Missing location → {name} / raw location: {repr(raw_location)}")
                 continue
     
             event_link = None
@@ -116,9 +116,8 @@ def scrape_nnpl_events(mode="all"):
                     if fallback:
                         event_link = fallback.group(0)
             if not event_link:
-                print(f"⏭️ Skipping: No event link → {name}")
-                continue
-
+                print(f"⚠️ No event link found for: {name} — using fallback")
+                event_link = "https://library.nnva.gov/264/Events-Calendar"
 
             name = event.name.strip() if event.name else ""
             description = event.description.strip() if event.description else ""
