@@ -5,11 +5,15 @@ from playwright.async_api import async_playwright
 from datetime import datetime
 from bs4 import BeautifulSoup
 
-BASE_CALENDAR = "https://public.tockify.com/feeds/nnlibrary/iframe/calendar"
+BASE_CALENDAR = "https://library.nnva.gov/264/Events-Calendar"
 
 
-def format_date(dt):
-    return dt.strftime("%Y-%m-%d"), dt.strftime("%b"), str(dt.day), str(dt.year)
+def format_date_from_text(raw):
+    try:
+        dt = datetime.strptime(raw, "%B %d, %Y")
+        return dt.strftime("%Y-%m-%d"), dt.strftime("%b"), str(dt.day), str(dt.year)
+    except:
+        return "", "", "", ""
 
 
 async def scrape_nnpl_events(mode="all"):
@@ -20,71 +24,59 @@ async def scrape_nnpl_events(mode="all"):
         browser = await p.chromium.launch(headless=True, args=["--disable-gpu", "--no-sandbox"])
         page = await browser.new_page()
         await page.goto(BASE_CALENDAR, timeout=60000)
+        await page.wait_for_selector(".event-container", timeout=15000)
 
-        try:
-            await page.wait_for_selector("a.item", timeout=15000)
-        except Exception as e:
-            print("❌ Could not find event items — calendar may not be loaded properly.")
-            content = await page.content()
-            print("📄 Page content preview:\n", content[:1000])
-            await browser.close()
-            return []
+        event_links = await page.query_selector_all(".event-container a")
+        print(f"🔗 Found {len(event_links)} events on calendar")
 
-        event_elements = await page.query_selector_all("a.item")
-        print(f"🔗 Found {len(event_elements)} events on Tockify calendar")
-
-        for el in event_elements:
-            href = await el.get_attribute("href")
-            if not href or not href.startswith("/nnlibrary/detail"):
-                continue
-
-            full_url = f"https://tockify.com{href}"
-            print(f"📅 Visiting event: {full_url}")
-            detail_page = await browser.new_page()
+        for el in event_links:
             try:
-                await detail_page.goto(full_url, timeout=20000)
-                content = await detail_page.content()
-                soup = BeautifulSoup(content, "html.parser")
+                async with contextlib.asynccontextmanager(browser.new_page)() as detail_page:
+                    href = await el.get_attribute("href")
+                    full_url = f"https://library.nnva.gov{href}" if href else None
+                    if not full_url:
+                        continue
 
-                title = soup.select_one(".title-text")
-                title = title.get_text(strip=True) if title else "Untitled Event"
+                    print(f"📅 Visiting event: {full_url}")
+                    await detail_page.goto(full_url, timeout=30000)
+                    html = await detail_page.content()
+                    soup = BeautifulSoup(html, "html.parser")
 
-                description = soup.select_one(".description")
-                description = description.get_text("\n\n", strip=True) if description else ""
+                    title = soup.select_one(".calendarTitle")
+                    title = title.get_text(strip=True) if title else "Untitled Event"
 
-                time_tag = soup.select_one(".time")
-                time_text = time_tag.get_text(strip=True) if time_tag else "All Day Event"
+                    date_tag = soup.select_one(".calendarDate")
+                    raw_date = date_tag.get_text(strip=True) if date_tag else ""
+                    event_date, month, day, year = format_date_from_text(raw_date)
 
-                location_tag = soup.select_one(".location")
-                location = location_tag.get_text(strip=True) if location_tag else ""
+                    time_tag = soup.select_one(".calendarTime")
+                    time = time_tag.get_text(strip=True) if time_tag else "All Day Event"
 
-                parts = href.strip("/").split("/")
-                event_id = parts[-2]
-                timestamp = parts[-1]
-                dt = datetime.fromtimestamp(int(timestamp) / 1000)
-                event_date, month, day, year = format_date(dt)
+                    location_tag = soup.select_one(".calendarLocation")
+                    location = location_tag.get_text(strip=True) if location_tag else ""
 
-                events.append({
-                    "Event Name": title,
-                    "Event Link": full_url,
-                    "Event Status": "Available",
-                    "Time": time_text,
-                    "Ages": "",
-                    "Location": location,
-                    "Month": month,
-                    "Day": day,
-                    "Year": year,
-                    "Event Date": event_date,
-                    "Event End Date": event_date,
-                    "Event Description": description,
-                    "Series": "",
-                    "Program Type": ""
-                })
+                    desc_tag = soup.select_one(".calendarDescription")
+                    description = desc_tag.get_text("\n\n", strip=True) if desc_tag else ""
+
+                    events.append({
+                        "Event Name": title,
+                        "Event Link": full_url,
+                        "Event Status": "Available",
+                        "Time": time,
+                        "Ages": "",
+                        "Location": location,
+                        "Month": month,
+                        "Day": day,
+                        "Year": year,
+                        "Event Date": event_date,
+                        "Event End Date": event_date,
+                        "Event Description": description,
+                        "Series": "",
+                        "Program Type": ""
+                    })
 
             except Exception as e:
-                print(f"⚠️ Failed to process event: {full_url} — {e}")
-            finally:
-                await detail_page.close()
+                print(f"⚠️ Failed to process event: {e}")
 
         await browser.close()
 
