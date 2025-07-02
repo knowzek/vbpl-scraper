@@ -43,7 +43,6 @@ def scrape_chpl_events(mode="all"):
     events = []
 
     for item in data:
-        print(json.dumps(item, indent=2))
         try:
             dt = datetime.strptime(item["event_start"], "%Y-%m-%d %H:%M:%S")
 
