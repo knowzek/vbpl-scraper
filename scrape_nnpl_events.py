@@ -4,6 +4,8 @@ from ics import Calendar
 from bs4 import BeautifulSoup
 from constants import LIBRARY_CONSTANTS
 import re
+from zoneinfo import ZoneInfo
+eastern = ZoneInfo("America/New_York")
 
 ICAL_URL = "https://calendar.nnpl.org/api/feeds/ics/nnlibrary"
 
@@ -140,9 +142,9 @@ def scrape_nnpl_events(mode="all"):
             event_date = event.begin.datetime.astimezone(timezone.utc)
             
             # Extract event ID and timestamp from UID like: TKF/.../<eventId>/<timestamp>/...
-            event_id_match = re.findall(r"/(\d+)", event.uid)
-            if len(event_id_match) >= 2:
-                event_id, timestamp = event_id_match[-2], event_id_match[-1]
+            event_id_match = re.findall(r"/(\d{4,})/(\d{10,})", event.uid)
+            if event_id_match:
+                event_id, timestamp = event_id_match[0]
                 event_link = f"https://tockify.com/nnlibrary/detail/{event_id}/{timestamp}?tags=Event"
             else:
                 print(f"⚠️ Unexpected UID format: {event.uid}")
@@ -186,9 +188,9 @@ def scrape_nnpl_events(mode="all"):
             if not location:
                 print(f"\U0001F4CC Unmapped location: {repr(raw_location)}")
                 location = location_name
-
-            start_dt = event.begin.datetime.astimezone(timezone.utc)
-            end_dt = event.end.datetime.astimezone(timezone.utc) if event.end else start_dt + timedelta(hours=1)
+            
+            start_dt = event.begin.datetime.astimezone(eastern)
+            end_dt = event.end.datetime.astimezone(eastern) if event.end else start_dt + timedelta(hours=1)
             
             start_time = start_dt.strftime("%-I:%M %p")
             end_time = end_dt.strftime("%-I:%M %p")
@@ -205,7 +207,7 @@ def scrape_nnpl_events(mode="all"):
                 "Day": str(event_date.day),
                 "Year": str(event_date.year),
                 "Event Date": event_date.strftime("%Y-%m-%d"),
-                "Event End Date": event.end.datetime.astimezone(timezone.utc).strftime("%Y-%m-%d") if event.end else event_date.strftime("%Y-%m-%d"),
+                "Event End Date": end_dt.strftime("%Y-%m-%d"),
                 "Event Description": description,
                 "Series": "",
                 "Program Type": program_type,
