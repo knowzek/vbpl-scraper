@@ -10,6 +10,7 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "toddler": "Audience - Toddler", "Audience - Parent & Me",
     "preschool": "Audience - Preschool Age", "Audience - Parent & Me",
     "steam": "List - STEM/STEAM"
+    "yoga": "Category - Fitness Events"
 }
 
 LIBRARY_CONSTANTS = {
