@@ -139,7 +139,10 @@ def scrape_nnpl_events(mode="all"):
     
             event_date = event.begin.datetime.astimezone(timezone.utc)
             # Construct event link from UID and start time
-            event_id_match = re.search(r"(\d+)@tockify\.com", event.uid)
+            event_id_match = re.search(r"uid_(\d+)@tockify\.com", event.uid)
+            if not event_id_match:
+                print(f"⚠️ Unexpected UID format: {event.uid}")
+
             event_link = None
             if event_id_match:
                 event_id = event_id_match.group(1)
