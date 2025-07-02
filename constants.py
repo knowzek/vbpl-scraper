@@ -3,15 +3,16 @@
 TITLE_KEYWORD_TO_CATEGORY = {
     "storytime": "List - Storytimes, Audience - Family Event",
     "math": "STEM - Math",
-    "science": "STEM - Science",
-    "lego": "STEM - Lego",
-    "baby": "Audience - Infant, Audience - Parent & Me",
-    "toddler": "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
-    "preschool": "Audience - Preschool Age, Audience - Parent & Me",
-    "steam": "List - STEM/STEAM, Audience - Family Event",
-    "pride": "List - PRIDE Events",
-    "computers": "List - STEM/STEAM",
-    "yoga": "Category - Fitness Events"
+    "science": "STEM - Science, Audience - Free Event",
+    "lego": "STEM - Lego, Audience - Free Event",
+    "baby": "Audience - Infant, Audience - Parent & Me, Audience - Free Event",
+    "toddler": "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events, Audience - Free Event",
+    "preschool": "Audience - Preschool Age, Audience - Parent & Me, Audience - Free Event",
+    "steam": "List - STEM/STEAM, Audience - Family Event, Audience - Free Event",
+    "pride": "List - PRIDE Events, Audience - Free Event",
+    "computers": "List - STEM/STEAM, Audience - Free Event",
+    "yoga": "Category - Fitness Events, Audience - Free Event",
+    "summer": "List – Summer – Summer Reading Kickoff Events, Audience - Free Event"
 }
 
 LIBRARY_CONSTANTS = {
@@ -130,9 +131,9 @@ LIBRARY_CONSTANTS = {
         "lego": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - STEM/STEAM",
         "steam": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - STEM/STEAM",
         "slime": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - STEM/STEAM",
-        "craft": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Arts & Crafts",
-        "painting": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Arts & Crafts",
-        "art": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Arts & Crafts",
+        "craft": "Event Location - Hampton, Audience - Free Event, Audience - Family Event",
+        "painting": "Event Location - Hampton, Audience - Free Event, Audience - Family Event",
+        "art": "Event Location - Hampton, Audience - Free Event, Audience - Family Event",
         "baking": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Cooking",
         "cookie": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Cooking",
         "cupcake": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Cooking",
@@ -198,11 +199,11 @@ LIBRARY_CONSTANTS = {
         },
         "program_type_to_categories": {
             "Storytime": "Audience - Family Event, List - Storytimes, Event Location - Newport News, Audience - Free Event, Event Location – Newport News",
-            "ArtsandCrafts": "Audience - Family Event, List - Arts & Crafts, Event Location - Newport News, Audience - Free Event, Event Location – Newport News",
-            "SummerReading": "Audience - Family Event, List - Summer Reading, Event Location - Newport News, Audience - Free Event, Event Location – Newport News",
+            "ArtsandCrafts": "Audience - Family Event, Event Location - Newport News, Audience - Free Event, Event Location – Newport News",
+            "SummerReading": "Audience - Family Event, List – Summer – Summer Reading Kickoff Events, Event Location - Newport News, Audience - Free Event, Event Location – Newport News",
             "Community": "Audience - Family Event, Event Location - Newport News, Audience - Free Event, Event Location – Newport News",
             "Teens": "Audience - Teens, Event Location - Newport News, Audience - Free Event, Event Location – Newport News",
-            "Tweens": "Audience - Tweens, Event Location - Newport News, Audience - Free Event, Event Location – Newport News",
+            "Tweens": "Event Location - Newport News, Audience - Free Event, Event Location – Newport News",
             "Children": "Audience - Family Event, Event Location - Newport News, Audience - Free Event, Event Location – Newport News",
             "Adults": "Audience - Adults, Event Location - Newport News, Audience - Free Event, Event Location – Newport News",
             "Book": "List - Books & Authors, Event Location - Newport News, Audience - Free Event, Event Location – Newport News",
