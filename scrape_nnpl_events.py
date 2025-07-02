@@ -1,88 +1,134 @@
-# scrape_nnpl_events.py
-
-import asyncio
-from playwright.async_api import async_playwright
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+import requests
+from ics import Calendar
 from bs4 import BeautifulSoup
+from constants import LIBRARY_CONSTANTS
+import re
 
-BASE_CALENDAR = "https://library.nnva.gov/264/Events-Calendar"
+ICAL_URL = "https://calendar.nnpl.org/api/feeds/ics/nnlibrary"
 
+def is_likely_adult_event(text):
+    text = text.lower()
+    keywords = [
+        "veteran support services",
+        "workforce hampton",
+        "all-comers writing club",
+        "show and tell",
+        "podcraft: seed sowing sessions",
+        "legal aid",
+        "human services",
+        "documentary",
+        "world war ii",
+        "the joys of sourdough",
+        "beginner computer class",
+        "tech detectives",
+        "computer class series",
+        "adults", "adult", "21+", "18+",
+        "genealogy", "book club", "knitting",
+        "resume", "job search", "tax help",
+        "investment", "social security", "medicare",
+        "crafts for adults", "finance", "retirement",
+        "blackout poetry"
+    ]
+    return any(kw in text for kw in keywords)
 
-def format_date_from_text(raw):
-    try:
-        dt = datetime.strptime(raw, "%B %d, %Y")
-        return dt.strftime("%Y-%m-%d"), dt.strftime("%b"), str(dt.day), str(dt.year)
-    except:
-        return "", "", "", ""
+def scrape_hpl_events(mode="all"):
+    print("📚 Scraping Hampton Public Library events from iCal feed...")
 
+    today = datetime.now(timezone.utc)
+    if mode == "weekly":
+        date_range_end = today + timedelta(days=7)
+    elif mode == "monthly":
+        if today.month == 12:
+            next_month = datetime(today.year + 1, 1, 1, tzinfo=timezone.utc)
+        else:
+            next_month = datetime(today.year, today.month + 1, 1, tzinfo=timezone.utc)
+        if next_month.month == 12:
+            following_month = datetime(next_month.year + 1, 1, 1, tzinfo=timezone.utc)
+        else:
+            following_month = datetime(next_month.year, next_month.month + 1, 1, tzinfo=timezone.utc)
+        date_range_end = following_month - timedelta(days=1)
+    else:
+        date_range_end = today + timedelta(days=90)
 
-async def scrape_nnpl_events(mode="all"):
-    print("🧭 Launching Playwright for NNPL scrape...")
+    resp = requests.get(ICAL_URL)
+    calendar = Calendar(resp.text)
+    program_type_to_categories = LIBRARY_CONSTANTS["hpl"].get("program_type_to_categories", {})
+    HPL_LOCATION_MAP = LIBRARY_CONSTANTS["hpl"].get("location_map", {})
+
     events = []
+    for event in calendar.events:
+        try:
+            if event.begin is None:
+                continue
+            event_date = event.begin.datetime.astimezone(timezone.utc)
+            if event_date > date_range_end:
+                continue
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True, args=["--disable-gpu", "--no-sandbox"])
-        page = await browser.new_page()
-        await page.goto(BASE_CALENDAR, timeout=60000)
-        await page.wait_for_selector(".event-container", timeout=15000)
+            name = event.name.strip() if event.name else ""
+            description = event.description.strip() if event.description else ""
 
-        event_links = await page.query_selector_all(".event-container a")
-        print(f"🔗 Found {len(event_links)} events on calendar")
+            if is_likely_adult_event(name) or is_likely_adult_event(description):
+                continue
 
-        for el in event_links:
-            try:
-                async with contextlib.asynccontextmanager(browser.new_page)() as detail_page:
-                    href = await el.get_attribute("href")
-                    full_url = f"https://library.nnva.gov{href}" if href else None
-                    if not full_url:
-                        continue
+            program_type = ""
+            categories = ""
+            combined_text = f"{name} {description}".lower()
+            for keyword, cat in program_type_to_categories.items():
+                if keyword in combined_text:
+                    program_type = keyword.capitalize()
+                    categories = cat
+                    break
 
-                    print(f"📅 Visiting event: {full_url}")
-                    await detail_page.goto(full_url, timeout=30000)
-                    html = await detail_page.content()
-                    soup = BeautifulSoup(html, "html.parser")
+            # Extract clean location
+            # === LOCATION MAPPING ===
+            raw_location_html = event.location or ""
+            raw_location = BeautifulSoup(raw_location_html, "html.parser").get_text().strip()
+            normalized = raw_location.lower()
+            location = None
+            for key, mapped in HPL_LOCATION_MAP.items():
+                if key.lower() in normalized:
+                    location = mapped
+                    break
+            if not location:
+                print(f"📌 Unmapped location: {repr(raw_location)}")
+                location = raw_location  # fallback so we still export it
 
-                    title = soup.select_one(".calendarTitle")
-                    title = title.get_text(strip=True) if title else "Untitled Event"
 
-                    date_tag = soup.select_one(".calendarDate")
-                    raw_date = date_tag.get_text(strip=True) if date_tag else ""
-                    event_date, month, day, year = format_date_from_text(raw_date)
+            # Extract event link from description
+            event_link = None
+            if description:
+                url_match = re.search(r"https://www\.hampton\.gov/calendar\.aspx\?EID=\d+", description)
+                if url_match:
+                    event_link = url_match.group(0)
+            if not event_link:
+                print(f"⚠️  Skipping malformed event (missing link): {name} @ {location}")
+                continue
 
-                    time_tag = soup.select_one(".calendarTime")
-                    time = time_tag.get_text(strip=True) if time_tag else "All Day Event"
+            # Format time
+            start_time = event.begin.datetime.astimezone(timezone.utc).strftime("%-I:%M %p")
+            end_time = event.end.datetime.astimezone(timezone.utc).strftime("%-I:%M %p") if event.end else ""
+            time_str = f"{start_time} - {end_time}" if end_time else start_time
 
-                    location_tag = soup.select_one(".calendarLocation")
-                    location = location_tag.get_text(strip=True) if location_tag else ""
+            events.append({
+                "Event Name": name,
+                "Event Link": event_link,
+                "Event Status": "Available",
+                "Time": time_str,
+                "Ages": "",
+                "Location": location,
+                "Month": event_date.strftime("%b"),
+                "Day": str(event_date.day),
+                "Year": str(event_date.year),
+                "Event Date": event_date.strftime("%Y-%m-%d"),
+                "Event End Date": event.end.datetime.astimezone(timezone.utc).strftime("%Y-%m-%d") if event.end else event_date.strftime("%Y-%m-%d"),
+                "Event Description": description,
+                "Series": "",
+                "Program Type": program_type,
+                "Categories": categories
+            })
+        except Exception as e:
+            print(f"⚠️ Error parsing event: {e}")
 
-                    desc_tag = soup.select_one(".calendarDescription")
-                    description = desc_tag.get_text("\n\n", strip=True) if desc_tag else ""
-
-                    events.append({
-                        "Event Name": title,
-                        "Event Link": full_url,
-                        "Event Status": "Available",
-                        "Time": time,
-                        "Ages": "",
-                        "Location": location,
-                        "Month": month,
-                        "Day": day,
-                        "Year": year,
-                        "Event Date": event_date,
-                        "Event End Date": event_date,
-                        "Event Description": description,
-                        "Series": "",
-                        "Program Type": ""
-                    })
-
-            except Exception as e:
-                print(f"⚠️ Failed to process event: {e}")
-
-        await browser.close()
-
-    print(f"✅ Scraped {len(events)} NNPL events.")
+    print(f"✅ Scraped {len(events)} events from Hampton Public Library.")
     return events
-
-
-if __name__ == "__main__":
-    asyncio.run(scrape_nnpl_events())
