@@ -5,7 +5,7 @@ from playwright.async_api import async_playwright
 from datetime import datetime
 from bs4 import BeautifulSoup
 
-BASE_CALENDAR = "https://library.nnva.gov/264/Events-Calendar"
+BASE_CALENDAR = "https://public.tockify.com/feeds/nnlibrary/iframe/calendar"
 
 
 def format_date(dt):
@@ -22,17 +22,15 @@ async def scrape_nnpl_events(mode="all"):
         await page.goto(BASE_CALENDAR, timeout=60000)
 
         try:
-            await page.wait_for_selector("iframe", timeout=20000)
-            iframe = await page.frame_locator("iframe").first.content_frame()
-            await iframe.wait_for_selector("a.item", timeout=15000)
+            await page.wait_for_selector("a.item", timeout=15000)
         except Exception as e:
-            print("❌ Could not find event items — iframe may not be loaded properly.")
+            print("❌ Could not find event items — calendar may not be loaded properly.")
             content = await page.content()
             print("📄 Page content preview:\n", content[:1000])
             await browser.close()
             return []
 
-        event_elements = await iframe.locator("a.item").all()
+        event_elements = await page.query_selector_all("a.item")
         print(f"🔗 Found {len(event_elements)} events on Tockify calendar")
 
         for el in event_elements:
