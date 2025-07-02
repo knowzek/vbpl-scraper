@@ -190,10 +190,11 @@ LIBRARY_CONSTANTS = {
             "Library Branch": "Library Branch"
         },
         "venue_names": {
+            "Virgil I. Grissom Library": "Grissom Library",
             "Main Street Library": "Main Street Library",
-            "Grissom Library": "Grissom Library",
             "Pearl Bailey Library": "Pearl Bailey Library",
-            "Avenue Branch": "Avenue Branch"
+            "Avenue Branch": "Avenue Branch",
+            "Meeting Room": "Pearl Bailey Library"  # or whatever makes sense
         },
         "program_type_to_categories": {
             # Tockify doesn't have program types — leave blank or extend later
