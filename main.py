@@ -6,6 +6,7 @@ from upload_to_sheets import upload_events_to_sheet
 from export_to_csv import export_events_to_csv
 from scrape_chpl_events import scrape_chpl_events
 from constants import LIBRARY_CONSTANTS
+from scrape_nnpl_events import scrape_nnpl_events
 
 if __name__ == "__main__":
     # usage: python main.py [library] [mode]
