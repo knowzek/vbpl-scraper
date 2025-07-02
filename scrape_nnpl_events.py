@@ -31,8 +31,25 @@ def is_likely_adult_event(text):
     ]
     return any(kw in text for kw in keywords)
 
+def extract_tags(text):
+    matches = re.findall(r"\b(?:Event|[A-Z][a-z]+(?:[A-Z][a-z]+)*)\b", text)
+    return ", ".join(set(matches)) if matches else ""
+
+def extract_ages(text):
+    text = text.lower()
+    if "age 2" in text or "aged 2" in text:
+        return "Age 2"
+    if "teens" in text:
+        return "Teens"
+    if "18+" in text or "adults" in text or "adult" in text:
+        return "Adults 18+"
+    return ""
+
+def is_cancelled(name, description):
+    return "cancelled" in name.lower() or "canceled" in description.lower()
+
 def scrape_nnpl_events(mode="all"):
-    print("📚 Scraping Newport News Public Library events from iCal feed...")
+    print("\U0001F4DA Scraping Newport News Public Library events from iCal feed...")
 
     today = datetime.now(timezone.utc)
     if mode == "weekly":
@@ -69,42 +86,35 @@ def scrape_nnpl_events(mode="all"):
             if is_likely_adult_event(name) or is_likely_adult_event(description):
                 continue
 
-            program_type = ""
+            program_type = extract_tags(description)
             categories = ""
-            combined_text = f"{name} {description}".lower()
             for keyword, cat in program_type_to_categories.items():
-                if keyword in combined_text:
-                    program_type = keyword.capitalize()
+                if keyword.lower() in program_type.lower():
                     categories = cat
                     break
 
-            # Extract clean location
-            # === LOCATION MAPPING ===
             raw_location_html = event.location or ""
             raw_location = BeautifulSoup(raw_location_html, "html.parser").get_text().strip()
-            
-            # Extract short location name (before comma)
             location_name = raw_location.split(",")[0].strip()
-            
+            if not location_name:
+                continue
             location = LIBRARY_CONSTANTS["nnpl"]["venue_names"].get(location_name)
-            
             if not location:
-                print(f"📌 Unmapped location: {repr(raw_location)}")
-                location = location_name  # fallback to short name
+                print(f"\U0001F4CC Unmapped location: {repr(raw_location)}")
+                location = location_name
 
-
-            # Extract event link from description
             event_link = None
             if description:
-                url_match = re.search(r"https?://[^\s<>\"']+", description)
-                if url_match:
-                    event_link = url_match.group(0)
+                preferred = re.search(r"https://tockify.com/[^\s<>\"']+", description)
+                if preferred:
+                    event_link = preferred.group(0)
+                else:
+                    fallback = re.search(r"https?://[^\s<>\"']+", description)
+                    if fallback:
+                        event_link = fallback.group(0)
             if not event_link:
-                # Fallback to library homepage
-                event_link = "https://library.nnva.gov/264/Events-Calendar"
+                continue
 
-
-            # Format time
             start_time = event.begin.datetime.astimezone(timezone.utc).strftime("%-I:%M %p")
             end_time = event.end.datetime.astimezone(timezone.utc).strftime("%-I:%M %p") if event.end else ""
             time_str = f"{start_time} - {end_time}" if end_time else start_time
@@ -112,9 +122,9 @@ def scrape_nnpl_events(mode="all"):
             events.append({
                 "Event Name": name,
                 "Event Link": event_link,
-                "Event Status": "Available",
+                "Event Status": "Cancelled" if is_cancelled(name, description) else "Available",
                 "Time": time_str,
-                "Ages": "",
+                "Ages": extract_ages(name + " " + description),
                 "Location": location,
                 "Month": event_date.strftime("%b"),
                 "Day": str(event_date.day),
@@ -127,7 +137,7 @@ def scrape_nnpl_events(mode="all"):
                 "Categories": categories
             })
         except Exception as e:
-            print(f"⚠️ Error parsing event: {e}")
+            print(f"\u26A0\uFE0F Error parsing event: {e}")
 
-    print(f"✅ Scraped {len(events)} events from Newport News Public Library.")
+    print(f"\u2705 Scraped {len(events)} events from Newport News Public Library.")
     return events
