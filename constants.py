@@ -1,16 +1,16 @@
 # constants.py
 
 TITLE_KEYWORD_TO_CATEGORY = {
-    "storytime": "List - Storytimes",
+    "storytime": "List - Storytimes, Audience - Family Event",
     "math": "STEM - Math",
     "science": "STEM - Science",
-    "craft": "Arts & Crafts",
     "lego": "STEM - Lego",
     "baby": "Audience - Infant, Audience - Parent & Me",
     "toddler": "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
     "preschool": "Audience - Preschool Age, Audience - Parent & Me",
-    "steam": "List - STEM/STEAM",
+    "steam": "List - STEM/STEAM, Audience - Family Event",
     "pride": "List - PRIDE Events",
+    "computers": "List - STEM/STEAM",
     "yoga": "Category - Fitness Events"
 }
 
