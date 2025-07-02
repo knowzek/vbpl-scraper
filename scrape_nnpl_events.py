@@ -139,14 +139,14 @@ def scrape_nnpl_events(mode="all"):
             
             event_date = event.begin.datetime.astimezone(timezone.utc)
             
-            # Construct event link from UID and start time
-            event_id_match = re.search(r"uid_(\d+)@tockify\.com", event.uid)
+            # Extract event ID and timestamp from UID like: TKF/.../<eventId>/<timestamp>/...
+            event_id_match = re.search(r"/(\d{4,})/(\d{7,})/", event.uid)
             if not event_id_match:
                 print(f"⚠️ Unexpected UID format: {event.uid}")
                 event_link = "https://library.nnva.gov/264/Events-Calendar"
             else:
                 event_id = event_id_match.group(1)
-                timestamp = int(event.begin.datetime.timestamp() * 1000)
+                timestamp = int(event_id_match.group(2))
                 event_link = f"https://tockify.com/nnlibrary/detail/{event_id}/{timestamp}"
 
             # === Extract tags from event page (e.g. "Adults", "PhotoEditing") ===
