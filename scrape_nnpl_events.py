@@ -158,7 +158,7 @@ def scrape_nnpl_events(mode="all"):
                 tag_texts = [t.get_text(strip=True) for t in tag_elements if t.get_text(strip=True)]
                 program_type = ", ".join(sorted(set(tag_texts)))
             except Exception as e:
-                print(f"⚠️ Failed to fetch tags from event page for {event_link}: {e}")
+                print(f"⚠️ Failed to fetch tags from event page: {e}")
     
             if event_date < date_range_start or event_date > date_range_end:
                 print(f"⏭️ Skipping: Outside date range ({event_date.date()})")
