@@ -81,11 +81,44 @@ def scrape_nnpl_events(mode="all"):
     events = []
     for event in calendar.events:
         try:
+            print(f"🧪 Evaluating: {event.name}")
+    
             if event.begin is None:
+                print("⏭️ Skipping: No start time")
                 continue
+    
             event_date = event.begin.datetime.astimezone(timezone.utc)
             if event_date > date_range_end:
+                print("⏭️ Skipping: Future date")
                 continue
+    
+            name = event.name.strip() if event.name else ""
+            description = event.description.strip() if event.description else ""
+    
+            if is_likely_adult_event(name) or is_likely_adult_event(description):
+                print(f"⏭️ Skipping: Adult event → {name}")
+                continue
+    
+            raw_location_html = event.location or ""
+            raw_location = BeautifulSoup(raw_location_html, "html.parser").get_text().strip()
+            location_name = raw_location.split(",")[0].strip()
+            if not location_name:
+                print(f"⏭️ Skipping: Missing location → {name}")
+                continue
+    
+            event_link = None
+            if description:
+                preferred = re.search(r"https://tockify.com/[^\s<>\"']+", description)
+                if preferred:
+                    event_link = preferred.group(0)
+                else:
+                    fallback = re.search(r"https?://[^\s<>\"']+", description)
+                    if fallback:
+                        event_link = fallback.group(0)
+            if not event_link:
+                print(f"⏭️ Skipping: No event link → {name}")
+                continue
+
 
             name = event.name.strip() if event.name else ""
             description = event.description.strip() if event.description else ""
