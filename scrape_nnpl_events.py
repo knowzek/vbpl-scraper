@@ -140,7 +140,14 @@ def scrape_nnpl_events(mode="all"):
             event_date = event.begin.datetime.astimezone(timezone.utc)
             
             # Extract event ID and timestamp from UID like: TKF/.../<eventId>/<timestamp>/...
-            event_id_match = re.search(r"/(\d{4,})/(\d{7,})/", event.uid)
+            event_id_match = re.findall(r"/(\d+)", event.uid)
+            if len(event_id_match) >= 2:
+                event_id, timestamp = event_id_match[-2], event_id_match[-1]
+                event_link = f"https://tockify.com/nnlibrary/detail/{event_id}/{timestamp}?tags=Event"
+            else:
+                print(f"⚠️ Unexpected UID format: {event.uid}")
+                event_link = "https://library.nnva.gov/264/Events-Calendar"
+
             if not event_id_match:
                 print(f"⚠️ Unexpected UID format: {event.uid}")
                 event_link = "https://library.nnva.gov/264/Events-Calendar"
@@ -188,9 +195,12 @@ def scrape_nnpl_events(mode="all"):
                 print(f"\U0001F4CC Unmapped location: {repr(raw_location)}")
                 location = location_name
 
-            start_time = event.begin.datetime.astimezone(timezone.utc).strftime("%-I:%M %p")
-            end_time = event.end.datetime.astimezone(timezone.utc).strftime("%-I:%M %p") if event.end else ""
-            time_str = f"{start_time} - {end_time}" if end_time else start_time
+            start_dt = event.begin.datetime.astimezone(timezone.utc)
+            end_dt = event.end.datetime.astimezone(timezone.utc) if event.end else start_dt + timedelta(hours=1)
+            
+            start_time = start_dt.strftime("%-I:%M %p")
+            end_time = end_dt.strftime("%-I:%M %p")
+            time_str = f"{start_time} - {end_time}"
 
             events.append({
                 "Event Name": name,
