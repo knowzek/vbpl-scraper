@@ -134,18 +134,25 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     if max_age >= 13:
                         age_tags.append("Audience - Teens")
 
-                if library == "npl" and age_to_categories:
-                    audience_keys = [a.strip() for a in ages_raw.split(",") if a.strip()]
-                    all_tags = []
+                # Age-based category tags
+                audience_keys = [a.strip() for a in ages_raw.split(",") if a.strip()]
+                all_tags = []
+                
+                if age_to_categories:
                     for tag in audience_keys:
                         tags = age_to_categories.get(tag)
                         if tags:
                             all_tags.extend([t.strip() for t in tags.split(",")])
-                    categories = ", ".join(dict.fromkeys(all_tags))
-                elif age_tags:
-                    base = [c.strip() for c in categories.split(",") if c.strip()]
-                    combined = base + age_tags
-                    categories = ", ".join(dict.fromkeys(combined))
+                
+                # Add fuzzy age tags
+                if age_tags:
+                    all_tags.extend(age_tags)
+                
+                # Combine with existing program_type-based categories
+                base = [c.strip() for c in categories.split(",") if c.strip()]
+                combined = base + all_tags
+                categories = ", ".join(dict.fromkeys(combined))
+
 
                 categories = categories.replace("\u00A0", " ").replace("Â", "").strip()
                 # === Add extra categories based on title keywords ===
