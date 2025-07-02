@@ -27,6 +27,8 @@ def is_likely_adult_event(text):
         "resume", "job search", "tax help",
         "investment", "social security", "medicare",
         "crafts for adults", "finance", "retirement",
+        "meet up mondays",
+        "computer essentials", "computer basics", "basic computer skills", "excel", "word", "photoshop",
         "blackout poetry"
     ]
     return any(kw in text for kw in keywords)
@@ -50,6 +52,14 @@ def extract_ages(text):
         matches.add("Teens")
     if any(kw in text for kw in ["18+", "adults", "adult", "grown-ups"]):
         matches.add("Adults 18+")
+        
+    # === Specific phrasing detection ===
+    if re.search(r"ages?\s*\d+\s*(through|to)\s*\d+", text):
+        matches.add("Preschool")  # or logic to determine range if you want
+    if "all ages" in text:
+        matches.add("All Ages")
+    if "children of all ages" in text:
+        matches.add("Children")
 
     # === Range Detection: "ages 6–11" or "ages 6 to 11" ===
     range_match = re.search(r"ages?\s*(\d{1,2})\s*(?:[-–to]+)\s*(\d{1,2})", text)
@@ -128,10 +138,21 @@ def scrape_nnpl_events(mode="all"):
                 continue
     
             event_date = event.begin.datetime.astimezone(timezone.utc)
+            # Construct event link from UID and start time
+            event_id_match = re.search(r"(\d+)@tockify\.com", event.uid)
+            event_link = None
+            if event_id_match:
+                event_id = event_id_match.group(1)
+                timestamp = int(event.begin.datetime.timestamp() * 1000)
+                event_link = f"https://tockify.com/nnlibrary/detail/{event_id}/{timestamp}"
+            else:
+                print(f"⚠️ No UID match for: {event.name}")
+                event_link = "https://library.nnva.gov/264/Events-Calendar"
+                
             if event_date < date_range_start or event_date > date_range_end:
                 print(f"⏭️ Skipping: Outside date range ({event_date.date()})")
                 continue
-    
+
             name = event.name.strip() if event.name else ""
             description = event.description.strip() if event.description else ""
     
@@ -145,19 +166,6 @@ def scrape_nnpl_events(mode="all"):
             if not location_name:
                 print(f"⏭️ Skipping: Missing location → {name} / raw location: {repr(raw_location)}")
                 continue
-    
-            event_link = None
-            if description:
-                preferred = re.search(r"https://tockify.com/[^\s<>\"']+", description)
-                if preferred:
-                    event_link = preferred.group(0)
-                else:
-                    fallback = re.search(r"https?://[^\s<>\"']+", description)
-                    if fallback:
-                        event_link = fallback.group(0)
-            if not event_link:
-                print(f"⚠️ No event link found for: {name} — using fallback")
-                event_link = "https://library.nnva.gov/264/Events-Calendar"
 
             if is_likely_adult_event(name) or is_likely_adult_event(description):
                 continue
