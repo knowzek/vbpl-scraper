@@ -148,7 +148,17 @@ def scrape_nnpl_events(mode="all"):
             else:
                 print(f"⚠️ No UID match for: {event.name}")
                 event_link = "https://library.nnva.gov/264/Events-Calendar"
-                
+            # === Extract tags from event page (e.g. "Adults", "PhotoEditing") ===
+            program_type = ""
+            try:
+                detail_resp = requests.get(event_link, timeout=5)
+                detail_soup = BeautifulSoup(detail_resp.text, "html.parser")
+                tag_elements = detail_soup.select("span.eventTags__text")
+                tag_texts = [t.get_text(strip=True) for t in tag_elements if t.get_text(strip=True)]
+                program_type = ", ".join(sorted(set(tag_texts)))
+            except Exception as e:
+                print(f"⚠️ Failed to fetch tags from event page for {event_link}: {e}")
+    
             if event_date < date_range_start or event_date > date_range_end:
                 print(f"⏭️ Skipping: Outside date range ({event_date.date()})")
                 continue
@@ -170,7 +180,6 @@ def scrape_nnpl_events(mode="all"):
             if is_likely_adult_event(name) or is_likely_adult_event(description):
                 continue
 
-            program_type = extract_tags(description)
             categories = ""
             for keyword, cat in program_type_to_categories.items():
                 if keyword.lower() in program_type.lower():
