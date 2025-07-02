@@ -1,6 +1,7 @@
 import requests
 from datetime import datetime, timedelta
 import json
+from bs4 import BeautifulSoup
 
 
 def scrape_chpl_events(mode="all"):
