@@ -37,20 +37,58 @@ def extract_tags(text):
 
 def extract_ages(text):
     text = text.lower()
-    matches = []
+    matches = set()
 
+    # === Keyword-Based Detection ===
     if any(kw in text for kw in ["infants", "babies", "baby", "0-2"]):
-        matches.append("Infant")
+        matches.add("Infant")
     if any(kw in text for kw in ["preschool", "toddlers", "age 2", "aged 2", "ages 2", "2-year-olds"]):
-        matches.append("Preschool")
-    if any(kw in text for kw in ["school age", "grades", "k-", "elementary", "children ages 5", "school-age"]):
-        matches.append("School Age")
-    if "teen" in text or "teens" in text or "middle school" in text or "high school" in text:
-        matches.append("Teens")
+        matches.add("Preschool")
+    if any(kw in text for kw in ["school age", "school-age", "children ages 5", "elementary"]):
+        matches.add("School Age")
+    if any(kw in text for kw in ["teen", "teens", "middle school", "high school"]):
+        matches.add("Teens")
     if any(kw in text for kw in ["18+", "adults", "adult", "grown-ups"]):
-        matches.append("Adults 18+")
+        matches.add("Adults 18+")
 
-    return ", ".join(matches)
+    # === Range Detection: "ages 6–11" or "ages 6 to 11" ===
+    range_match = re.search(r"ages?\s*(\d{1,2})\s*(?:[-–to]+)\s*(\d{1,2})", text)
+    if range_match:
+        low = int(range_match.group(1))
+        high = int(range_match.group(2))
+        if high <= 3:
+            matches.add("Infant")
+        elif high <= 5:
+            matches.add("Preschool")
+        elif high <= 12:
+            matches.add("School Age")
+        elif high <= 17:
+            matches.add("Teens")
+        else:
+            matches.add("Adults 18+")
+
+    # === "under X" pattern: "children 5 and under" ===
+    under_match = re.search(r"(?:under|younger than|and under)\s*(\d{1,2})", text)
+    if under_match:
+        age = int(under_match.group(1))
+        if age <= 3:
+            matches.add("Infant")
+        elif age <= 5:
+            matches.add("Preschool")
+        else:
+            matches.add("School Age")
+
+    # === Grade Detection ===
+    grade_match = re.search(r"grades?\s*(\d{1,2})(?:\s*[-–to]+\s*(\d{1,2}))?", text)
+    if grade_match:
+        start_grade = int(grade_match.group(1))
+        end_grade = int(grade_match.group(2)) if grade_match.group(2) else start_grade
+        if end_grade <= 5:
+            matches.add("School Age")
+        else:
+            matches.add("Teens")
+
+    return ", ".join(sorted(matches))
 
 def is_cancelled(name, description):
     return "cancelled" in name.lower() or "canceled" in description.lower()
