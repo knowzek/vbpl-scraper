@@ -148,14 +148,6 @@ def scrape_nnpl_events(mode="all"):
                 print(f"⚠️ Unexpected UID format: {event.uid}")
                 event_link = "https://library.nnva.gov/264/Events-Calendar"
 
-            if not event_id_match:
-                print(f"⚠️ Unexpected UID format: {event.uid}")
-                event_link = "https://library.nnva.gov/264/Events-Calendar"
-            else:
-                event_id = event_id_match.group(1)
-                timestamp = int(event_id_match.group(2))
-                event_link = f"https://tockify.com/nnlibrary/detail/{event_id}/{timestamp}"
-
             # === Extract tags from event page (e.g. "Adults", "PhotoEditing") ===
 
             program_type = ""  # or populate this using keyword inference if you want it visible on the sheet
