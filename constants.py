@@ -97,8 +97,8 @@ LIBRARY_CONSTANTS = {
         "age_to_categories": {
             "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Chesapeake, Audience - Parent & Me",
             "Elementary School": "Audience - School Age, Audience - Free Event, Event Location - Chesapeake",
-            "Middle School": "Audience - Teens, Audience - Free Event, Event Location - Chesapeake",
-            "High School": "Audience - Teens, Audience - Free Event, Event Location - Chesapeake",
+            "Middle School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Chesapeake",
+            "High School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Chesapeake",
             "Families": "Audience - Family Event, Audience - Free Event, Event Location - Chesapeake",
             "All Ages": "Audience - All Ages, Audience - Free Event, Event Location - Chesapeake",
             "Adult": "Audience - Adult Event, Audience - Free Event, Event Location - Chesapeake"
