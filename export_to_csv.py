@@ -110,6 +110,7 @@ def export_events_to_csv(library="vbpl"):
             df[col] = ""
         else:
             df[col] = df[col].fillna("").astype(str)
+            
 
     print("\n🔎 Column counts before filtering:")
     for col in [
@@ -236,7 +237,9 @@ def export_events_to_csv(library="vbpl"):
     # Prepare batch updates
     updates = []
     for link in df["Event Link"]:
-        row_num = event_link_to_row.get(link.strip())
+        link = str(link).strip()
+        row_num = event_link_to_row.get(link)
+
         if row_num:
             cell = rowcol_to_a1(row_num, site_sync_col + 1)
             updates.append({"range": cell, "values": [["on site"]]})
@@ -248,7 +251,7 @@ def export_events_to_csv(library="vbpl"):
     return csv_path
 
 if __name__ == "__main__":
-    LIBRARIES = ["vbpl", "npl", "chpl", "hpl"]
+    LIBRARIES = ["vbpl", "npl", "chpl", "nnpl", "hpl"]
     for lib in LIBRARIES:
         print(f"\n📁 Exporting events for: {lib.upper()}")
         try:
