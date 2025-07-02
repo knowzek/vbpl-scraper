@@ -211,11 +211,11 @@ LIBRARY_CONSTANTS = {
             "Science": "List - STEM/STEAM, Event Location - Newport News, Audience - Free Event, Event Location – Newport News"
         },
         "age_to_categories": {
-            "Babies": "Audience - Babies, Audience - Free Event, Event Location – Newport News",
+            "Babies": "Audience - Toddler/Infant, Audience - Free Event, Event Location – Newport News",
             "Toddlers": "Audience – Toddler/Infant, List – Toddler Time Events, Audience - Free Event, Event Location – Newport News",
             "Preschool": "Audience - Preschoolers, Audience - Free Event, Event Location – Newport News",
-            "Children": "Audience - Children, Audience - Family Event, Audience - Free Event, Event Location – Newport News",
-            "Kids": "Audience - Children, Audience - Family Event, Audience - Free Event, Event Location – Newport News",
+            "Children": "Audience - Family Event, Audience - Free Event, Event Location – Newport News, Audience - School Age",
+            "Kids": "Audience - Family Event, Audience - Free Event, Event Location – Newport News",
             "Tweens": "Audience - School Age, Audience - Free Event, Event Location – Newport News",
             "Teens": "Audience - Teens, Audience - School Age, Audience - Free Event, Event Location – Newport News",
             "Young Adults": "Audience - Teens, Audience - Free Event, Event Location – Newport News",
@@ -223,7 +223,9 @@ LIBRARY_CONSTANTS = {
             "18+": "Audience - Adults, Audience - Free Event, Event Location – Newport News",
             "21+": "Audience - Adults, Audience - Free Event, Event Location – Newport News",
             "Seniors": "Audience - Seniors, Audience - Free Event, Event Location – Newport News",
+            "School Age": "Audience - Family Event, Audience - Free Event, Event Location – Newport News, Audience - School Age",
             "All Ages": "Audience - All Ages, Audience - Family Event, Audience - Free Event, Event Location – Newport News",
+            "Infant": "Audience - Toddler/Infant, Audience - Free Event, Event Location – Newport News",
             "Family": "Audience - Family Event, Audience - Free Event, Event Location – Newport News"
         }
     }
