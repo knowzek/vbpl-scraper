@@ -196,12 +196,16 @@ def scrape_nnpl_events(mode="all"):
             end_time = end_dt.strftime("%-I:%M %p")
             time_str = f"{start_time} - {end_time}"
 
+            ages = extract_ages(name + " " + description)
+            if not ages:
+                ages = "Adults 18+"
+    
             events.append({
                 "Event Name": name,
                 "Event Link": event_link,
                 "Event Status": "Cancelled" if is_cancelled(name, description) else "Available",
                 "Time": time_str,
-                "Ages": extract_ages(name + " " + description),
+                "Ages": ages,
                 "Location": location,
                 "Month": event_date.strftime("%b"),
                 "Day": str(event_date.day),
