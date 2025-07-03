@@ -181,6 +181,10 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     event_name = f"{name_cleaned}{suffix}"
                 else:
                     event_name = f"{name_cleaned} at {display_loc}{suffix}"
+
+                if not categories:
+                    categories = event.get("Categories", "") or f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event"
+
                 row_core = [
                     event_name,
                     link,
