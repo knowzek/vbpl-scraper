@@ -75,7 +75,7 @@ def scrape_spl_events(mode="all"):
         })
 
         soup = BeautifulSoup(resp.text, "html.parser")
-        event_listings = soup.find_all("div", class_="s-lc-event")
+        event_listings = soup.find_all("div", class_="media-body")
         if not event_listings:
             print("⚠️ No event listings found on page")
             break
