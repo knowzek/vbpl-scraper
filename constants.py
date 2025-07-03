@@ -12,7 +12,7 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "pride": "List - PRIDE Events, Audience - Free Event",
     "computers": "List - STEM/STEAM, Audience - Free Event",
     "yoga": "Category - Fitness Events, Audience - Free Event",
-    "summer": "List – Summer – Summer Reading Kickoff Events, Audience - Free Event"
+    "summer": "List - Summer - Summer Reading Kickoff Events, Audience - Free Event"
 }
 
 LIBRARY_CONSTANTS = {
@@ -200,7 +200,7 @@ LIBRARY_CONSTANTS = {
         "program_type_to_categories": {
             "Storytime": "Audience - Family Event, List - Storytimes, Event Location - Newport News, Audience - Free Event",
             "ArtsandCrafts": "Audience - Family Event, Event Location - Newport News, Audience - Free Event",
-            "SummerReading": "Audience - Family Event, List – Summer – Summer Reading Kickoff Events, Event Location - Newport News, Audience - Free Event",
+            "SummerReading": "Audience - Family Event, List - Summer - Summer Reading Kickoff Events, Event Location - Newport News, Audience - Free Event",
             "Community": "Audience - Family Event, Event Location - Newport News, Audience - Free Event",
             "Teens": "Audience - Teens, Event Location - Newport News, Audience - Free Event",
             "Tweens": "Event Location - Newport News, Audience - Free Event",
@@ -213,8 +213,8 @@ LIBRARY_CONSTANTS = {
         },
         "age_to_categories": {
             "Babies": "Audience - Toddler/Infant, Audience - Free Event, Event Location - Newport News",
-            "Toddlers": "Audience – Toddler/Infant, List – Toddler Time Events, Audience - Free Event, Event Location - Newport News",
-            "Preschool": "Audience – Preschool Age, Audience - Free Event, Event Location - Newport News",
+            "Toddlers": "Audience - Toddler/Infant, List - Toddler Time Events, Audience - Free Event, Event Location - Newport News",
+            "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Newport News",
             "Children": "Audience - Family Event, Audience - Free Event, Event Location - Newport News, Audience - School Age",
             "Kids": "Audience - Family Event, Audience - Free Event, Event Location - Newport News",
             "Tweens": "Audience - School Age, Audience - Free Event, Event Location - Newport News",
