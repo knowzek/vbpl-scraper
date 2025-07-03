@@ -3,6 +3,9 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import re
 
+BASE_URL = "https://suffolkpubliclibrary.libcal.com/ajax/calendar/list"
+
+
 def is_likely_adult_event(text):
     text = text.lower()
     keywords = [
@@ -11,6 +14,7 @@ def is_likely_adult_event(text):
         "seniors", "tax help", "real estate", "finance", "knitting"
     ]
     return any(kw in text for kw in keywords)
+
 
 def extract_ages(text):
     text = text.lower()
@@ -32,13 +36,17 @@ def extract_ages(text):
         matches.add("All Ages")
     return ", ".join(sorted(matches))
 
+
 def scrape_spl_events(mode="all"):
     print("🧭 Scraping Suffolk Public Library events...")
 
     today = datetime.now()
+
     if mode == "weekly":
+        start_date = today
         end_date = today + timedelta(days=7)
     elif mode == "monthly":
+        start_date = today
         if today.month == 12:
             next_month = datetime(today.year + 1, 1, 1)
         else:
@@ -49,52 +57,70 @@ def scrape_spl_events(mode="all"):
             following_month = datetime(next_month.year, next_month.month + 1, 1)
         end_date = following_month - timedelta(days=1)
     else:
+        start_date = today
         end_date = today + timedelta(days=90)
 
     events = []
     page = 0
+
     while True:
         print(f"🔄 Fetching page {page}...")
-        url = f"https://suffolkpubliclibrary.libcal.com/ajax/calendar/list?c=-1&date=0000-00-00&perpage=48&page={page}"
+        url = f"{BASE_URL}?cid=-1&t=d&d=0000-00-00&cal=-1&inc=0&perpage=48&page={page}"
         resp = requests.get(url)
-        if not resp.ok:
-            print("❌ Failed to load page.")
+
+        if not resp.headers.get("Content-Type", "").startswith("application/json"):
+            print("❌ Non-JSON response:")
+            print(resp.text[:300])
             break
+
         data = resp.json()
-        if not data:
+        results = data.get("results", [])
+
+        if not results:
             break
 
-        for item in data:
+        for result in results:
             try:
-                dt = datetime.strptime(item["start"], "%Y-%m-%d %H:%M:%S")
-                if mode == "weekly" and dt > today + timedelta(days=7):
-                    continue
-                elif mode == "monthly" and dt > end_date:
+                soup = BeautifulSoup(result, "html.parser")
+
+                name_tag = soup.find("a", class_="event-title")
+                name = name_tag.text.strip() if name_tag else "Untitled Event"
+                url = name_tag["href"] if name_tag and name_tag.has_attr("href") else ""
+
+                desc_tag = soup.find("div", class_="event-description")
+                desc = desc_tag.text.strip() if desc_tag else ""
+
+                date_tag = soup.find("div", class_="event-date")
+                time_tag = soup.find("div", class_="event-time")
+                time_str = time_tag.text.strip() if time_tag else ""
+                date_text = date_tag.text.strip() if date_tag else ""
+
+                if is_likely_adult_event(name) or is_likely_adult_event(desc):
                     continue
 
-                title = item.get("title", "").strip()
-                desc = item.get("description", "").strip()
-                if is_likely_adult_event(title) or is_likely_adult_event(desc):
+                # Format: Thursday, July 3, 2025
+                try:
+                    dt = datetime.strptime(date_text, "%A, %B %d, %Y")
+                    end_dt = dt
+                except:
+                    print("⚠️ Could not parse date:", date_text)
                     continue
 
-                start = item.get("start", "")
-                end = item.get("end", "")
-                time_str = "All Day Event" if item.get("all_day", False) else (f"{start} – {end}" if end else start)
-
-                ages = extract_ages(title + " " + desc)
+                ages = extract_ages(name + " " + desc)
+                location = "Suffolk Public Library"
 
                 events.append({
-                    "Event Name": title,
-                    "Event Link": item.get("url", ""),
+                    "Event Name": name,
+                    "Event Link": url,
                     "Event Status": "Available",
                     "Time": time_str,
                     "Ages": ages,
-                    "Location": item.get("location", "Suffolk Public Library"),
+                    "Location": location,
                     "Month": dt.strftime("%b"),
                     "Day": str(dt.day),
                     "Year": str(dt.year),
                     "Event Date": dt.strftime("%Y-%m-%d"),
-                    "Event End Date": dt.strftime("%Y-%m-%d"),
+                    "Event End Date": end_dt.strftime("%Y-%m-%d"),
                     "Event Description": desc,
                     "Series": "",
                     "Program Type": "",
@@ -104,7 +130,7 @@ def scrape_spl_events(mode="all"):
             except Exception as e:
                 print(f"⚠️ Error processing event: {e}")
 
-        if len(data) < 48:
+        if len(results) < 48:
             break
         page += 1
 
