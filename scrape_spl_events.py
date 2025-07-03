@@ -2,8 +2,7 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import re
 from playwright.sync_api import sync_playwright
-from constants import LIBRARY_CONSTANTS
-
+from constants import LIBRARY_CONSTANTS, TITLE_KEYWORD_TO_CATEGORY
 
 BASE_URL = "https://suffolkpubliclibrary.libcal.com/calendar"
 UNWANTED_PROGRAM_TYPES = {
@@ -134,7 +133,18 @@ def scrape_spl_events(mode="all"):
                     full_title = title
                 
                 event_name = f"{full_title} ({location})"
-
+                
+                # Build categories from both Program Type and Keywords
+                title_lower = title.lower()
+                keyword_tags = [tag for keyword, tag in TITLE_KEYWORD_TO_CATEGORY.items() if keyword in title_lower]
+                keyword_category_str = ", ".join(keyword_tags)
+                
+                program_type_categories = ""
+                if program_type:
+                    program_type_categories = LIBRARY_CONSTANTS["spl"].get("program_type_to_categories", {}).get(program_type, "")
+                
+                all_categories = ", ".join(filter(None, [program_type_categories, keyword_category_str]))
+                
                 events.append({
                     "Event Name": f"{full_title} ({location})",
                     "Event Link": url,
@@ -150,10 +160,7 @@ def scrape_spl_events(mode="all"):
                     "Event Description": desc,
                     "Series": "",
                     "Program Type": program_type,
-                    "Categories": ", ".join(filter(None, [
-                        LIBRARY_CONSTANTS["spl"]["program_type_to_categories"].get(program_type, ""),
-                        *[v for k, v in LIBRARY_CONSTANTS["spl"].get("keyword_to_categories", {}).items() if k.lower() in title.lower()]
-                    ]))
+                    "Categories": all_categories
                 })
             except Exception as e:
                 print(f"⚠️ Error parsing event: {e}")
