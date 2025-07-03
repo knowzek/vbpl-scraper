@@ -196,7 +196,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     program_type,
                     categories
                 ]
-
+                print("🧾 Raw row_core before normalize:", row_core)
                 new_core = normalize(row_core)
                 existing_row = existing_data.get(link, [""] * 16)
                 existing_core = normalize(existing_row)
