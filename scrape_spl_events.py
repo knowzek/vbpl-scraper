@@ -85,14 +85,14 @@ def scrape_spl_events(mode="all"):
 
         for result in results:
             try:
-                dt = datetime.strptime(result["startdt"], "%Y-%m-%d %H:%M:%S")
-                end_dt = datetime.strptime(result["enddt"], "%Y-%m-%d %H:%M:%S")
+                dt = datetime.strptime(result["start"], "%Y-%m-%d %H:%M:%S")
+                end_dt = dt  # No separate end time in API — assume 1-hour default or same day
 
                 if dt > end_date:
                     continue
 
                 name = result.get("title", "").strip()
-                desc = result.get("description", "").strip()
+                desc = result.get("short_desc", "").strip()
                 if is_likely_adult_event(name) or is_likely_adult_event(desc):
                     continue
 
@@ -107,7 +107,7 @@ def scrape_spl_events(mode="all"):
                 else:
                     time_str = ""
 
-                location = result.get("location", "Suffolk Public Library").strip()
+                location = "Suffolk Public Library"
                 url = result.get("url", "").strip()
 
                 ages = extract_ages(name + " " + desc)
