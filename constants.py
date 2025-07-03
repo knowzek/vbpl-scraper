@@ -196,7 +196,7 @@ LIBRARY_CONSTANTS = {
             "Chuckatuck Library": "Chuckatuck Library",
             "King's Landing Apartments: 1000 Linton Ln, Outreach": "Library2Go",
             "Online (See Description for Details)": "Online"
-        }
+        },
         "venue_names": {
             "Morgan Memorial Library": "Morgan Memorial Library",
             "North Suffolk Library": "North Suffolk Library",
