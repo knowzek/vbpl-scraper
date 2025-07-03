@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import re
 
-BASE_URL = "https://suffolkpubliclibrary.libcal.com/ajax/calendar/list"
+BASE_URL = "https://suffolkpubliclibrary.libcal.com/calendar"  # corrected endpoint
 
 
 def is_likely_adult_event(text):
@@ -61,44 +61,42 @@ def scrape_spl_events(mode="all"):
         end_date = today + timedelta(days=90)
 
     events = []
-    page = 0
+    page = 1
 
     while True:
         print(f"🔄 Fetching page {page}...")
-        url = f"{BASE_URL}?cid=-1&t=d&d=0000-00-00&cal=-1&inc=0&perpage=48&page={page}"
-        resp = requests.get(url)
+        resp = requests.get(BASE_URL, params={
+            "cid": "-1",
+            "t": "d",
+            "d": "0000-00-00",
+            "cal": "-1",
+            "inc": "0",
+            "page": str(page)
+        })
 
-        if not resp.headers.get("Content-Type", "").startswith("application/json"):
-            print("❌ Non-JSON response:")
-            print(resp.text[:300])
+        soup = BeautifulSoup(resp.text, "html.parser")
+        event_listings = soup.find_all("div", class_="event_list_item")
+
+        if not event_listings:
             break
 
-        data = resp.json()
-        results = data.get("results", [])
-
-        if not results:
-            break
-
-        for result in results:
+        for listing in event_listings:
             try:
-                soup = BeautifulSoup(result, "html.parser")
-
-                name_tag = soup.find("a", class_="event-title")
-                name = name_tag.text.strip() if name_tag else "Untitled Event"
+                name_tag = listing.find("a", class_="event-title")
+                name = name_tag.get_text(strip=True) if name_tag else "Untitled Event"
                 url = name_tag["href"] if name_tag and name_tag.has_attr("href") else ""
 
-                desc_tag = soup.find("div", class_="event-description")
-                desc = desc_tag.text.strip() if desc_tag else ""
+                desc_tag = listing.find("div", class_="event-description")
+                desc = desc_tag.get_text(strip=True) if desc_tag else ""
 
-                date_tag = soup.find("div", class_="event-date")
-                time_tag = soup.find("div", class_="event-time")
-                time_str = time_tag.text.strip() if time_tag else ""
-                date_text = date_tag.text.strip() if date_tag else ""
+                date_tag = listing.find("div", class_="event-date")
+                time_tag = listing.find("div", class_="event-time")
+                date_text = date_tag.get_text(strip=True) if date_tag else ""
+                time_str = time_tag.get_text(strip=True) if time_tag else ""
 
                 if is_likely_adult_event(name) or is_likely_adult_event(desc):
                     continue
 
-                # Format: Thursday, July 3, 2025
                 try:
                     dt = datetime.strptime(date_text, "%A, %B %d, %Y")
                     end_dt = dt
@@ -130,8 +128,6 @@ def scrape_spl_events(mode="all"):
             except Exception as e:
                 print(f"⚠️ Error processing event: {e}")
 
-        if len(results) < 48:
-            break
         page += 1
 
     print(f"✅ Scraped {len(events)} events from SPL.")
