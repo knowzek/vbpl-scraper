@@ -90,7 +90,7 @@ def scrape_ppl_events(mode="all"):
     venue_map = ppl_constants.get("venue_names", {})
     age_to_categories = ppl_constants.get("age_to_categories", {})
 
-    DEFAULT_CATEGORIES = "Audience - Family Event, Audience - Free Event, Audience - Preschool Age, Audience - School Age, Event Location - Portsmouth,"
+    DEFAULT_CATEGORIES = "Audience - Family Event, Audience - Free Event, Audience - Preschool Age, Audience - School Age, Event Location - Portsmouth"
 
     events = []
     for event in calendar.events:
