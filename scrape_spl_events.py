@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import re
 
-BASE_URL = "https://suffolkpubliclibrary.libcal.com/calendar"  # corrected endpoint
+BASE_URL = "https://suffolkpubliclibrary.libcal.com/calendar"
 
 
 def is_likely_adult_event(text):
@@ -75,37 +75,40 @@ def scrape_spl_events(mode="all"):
         })
 
         soup = BeautifulSoup(resp.text, "html.parser")
-        event_listings = soup.find_all("div", class_="event_list_item")
+        event_listings = soup.find_all("div", class_="s-lc-event")
 
         if not event_listings:
             break
 
         for listing in event_listings:
             try:
-                name_tag = listing.find("a", class_="event-title")
+                name_tag = listing.find("h3", class_="s-lc-event-title")
                 name = name_tag.get_text(strip=True) if name_tag else "Untitled Event"
-                url = name_tag["href"] if name_tag and name_tag.has_attr("href") else ""
+                url_tag = name_tag.find("a") if name_tag else None
+                url = url_tag["href"] if url_tag and url_tag.has_attr("href") else ""
 
-                desc_tag = listing.find("div", class_="event-description")
+                desc_tag = listing.find("div", class_="s-lc-event-desc")
                 desc = desc_tag.get_text(strip=True) if desc_tag else ""
 
-                date_tag = listing.find("div", class_="event-date")
-                time_tag = listing.find("div", class_="event-time")
-                date_text = date_tag.get_text(strip=True) if date_tag else ""
-                time_str = time_tag.get_text(strip=True) if time_tag else ""
+                datetime_tag = listing.find("div", class_="s-lc-event-time")
+                date_text = datetime_tag.get_text(strip=True) if datetime_tag else ""
 
-                if is_likely_adult_event(name) or is_likely_adult_event(desc):
-                    continue
-
+                date_match = re.search(r"([A-Za-z]+,\s+[A-Za-z]+\s+\d{1,2},\s+\d{4})", date_text)
                 try:
-                    dt = datetime.strptime(date_text, "%A, %B %d, %Y")
+                    dt = datetime.strptime(date_match.group(1), "%A, %B %d, %Y") if date_match else today
                     end_dt = dt
                 except:
                     print("⚠️ Could not parse date:", date_text)
                     continue
 
+                time_str = ""
+                if "–" in date_text:
+                    time_str = date_text.split(",")[-1].strip()
+
+                if is_likely_adult_event(name) or is_likely_adult_event(desc):
+                    continue
+
                 ages = extract_ages(name + " " + desc)
-                location = "Suffolk Public Library"
 
                 events.append({
                     "Event Name": name,
@@ -113,7 +116,7 @@ def scrape_spl_events(mode="all"):
                     "Event Status": "Available",
                     "Time": time_str,
                     "Ages": ages,
-                    "Location": location,
+                    "Location": "Suffolk Public Library",
                     "Month": dt.strftime("%b"),
                     "Day": str(dt.day),
                     "Year": str(dt.year),
