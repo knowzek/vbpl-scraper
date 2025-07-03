@@ -227,6 +227,9 @@ LIBRARY_CONSTANTS = {
             "Main Library": "Portsmouth Main Library",
             "Churchland Branch": "Churchland Branch Library",
             "Cradock Branch": "Cradock Branch Library",
+            "Churchland Branch Library > Rotunda": "Churchland Branch Library",
+            "Churchland Branch Library > Children's Programming Room": "Churchland Branch Library",
+            "Children's Event Room - Main": "Portsmouth Main Library",
             "Manor Branch": "Manor Branch Library"
         },
         "age_to_categories": {
