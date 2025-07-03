@@ -193,7 +193,8 @@ LIBRARY_CONSTANTS = {
             "North Suffolk Library": "North Suffolk Library",
             "Chuckatuck Library": "Chuckatuck Library"
         },
-        "event_name_suffix": " (Suffolk)"
+        "event_name_suffix": " (Suffolk)",
+        "age_to_categories": {}
     },
     "nnpl": {
         "name_suffix_map": {
