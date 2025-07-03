@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import re
 from playwright.sync_api import sync_playwright
+from constants import LIBRARY_CONSTANTS
+
 
 BASE_URL = "https://suffolkpubliclibrary.libcal.com/calendar"
 UNWANTED_PROGRAM_TYPES = {
@@ -83,7 +85,8 @@ def scrape_spl_events(mode="all"):
                     continue
 
                 title_tag = listing.find("h3", class_="media-heading")
-                title = title_tag.get_text(strip=True) if title_tag else "Untitled Event"
+                raw_title = title_tag.get_text(strip=True) if title_tag else "Untitled Event"
+                title = re.sub(r"\s*\[.*?\]", "", raw_title).strip()
                 url_tag = title_tag.find("a") if title_tag else None
                 url = url_tag["href"] if url_tag and url_tag.has_attr("href") else ""
 
@@ -112,16 +115,22 @@ def scrape_spl_events(mode="all"):
                     continue
 
                 time_str = info.get("time", "")
-                location = info.get("location", "Suffolk Public Library")
+                raw_location = info.get("location", "Suffolk Public Library")
+                location_match = re.search(r"(Morgan Memorial Library|North Suffolk Library)", raw_location)
+                location = location_match.group(1) if location_match else "Suffolk Public Library"
+                venue = LIBRARY_CONSTANTS["spl"]["venue_names"].get(location, location)
+
                 ages = extract_ages(title + " " + desc)
 
+                full_title = f"{title} ({location})"
+
                 events.append({
-                    "Event Name": title,
+                    "Event Name": f"{title} ({location})",
                     "Event Link": url,
                     "Event Status": "Available",
                     "Time": time_str,
                     "Ages": ages,
-                    "Location": location,
+                    "Location": venue,
                     "Month": dt.strftime("%b"),
                     "Day": str(dt.day),
                     "Year": str(dt.year),
