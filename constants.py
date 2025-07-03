@@ -182,6 +182,19 @@ LIBRARY_CONSTANTS = {
         "Phoebus Branch Library": "Phoebus Branch Library"
     }
 },
+    "spl": {
+        "name_suffix_map": {
+            "Morgan Memorial Library": "Morgan Memorial Library",
+            "North Suffolk Library": "North Suffolk Library",
+            "Chuckatuck Library": "Chuckatuck Library"
+        },
+        "venue_names": {
+            "Morgan Memorial Library": "Morgan Memorial Library",
+            "North Suffolk Library": "North Suffolk Library",
+            "Chuckatuck Library": "Chuckatuck Library"
+        },
+        "event_name_suffix": " (Suffolk)"
+    },
     "nnpl": {
         "name_suffix_map": {
             "Main Street Library": "Main Street Library",
