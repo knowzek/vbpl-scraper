@@ -215,6 +215,7 @@ LIBRARY_CONSTANTS = {
     },
     "ppl": {
         "name_suffix_map": {
+            "Main": "Main Library",
             "Main Library": "Main Library",
             "Churchland Branch": "Churchland Branch Library",
             "Cradock Branch": "Cradock Branch Library",
@@ -233,6 +234,9 @@ LIBRARY_CONSTANTS = {
             "Tweens": "Audience - School Age, Audience - Free Event, Event Location - Portsmouth",
             "Teens": "Audience - Teens, Audience - Free Event, Event Location - Portsmouth",
             "All Ages": "Audience - All Ages, Audience - Free Event, Event Location - Portsmouth"
+        },
+        "program_type_to_categories": {
+            # leave blank for now unless you want to map specific phrases like "STEAM", "craft", etc.
         },
         "event_name_suffix": " (Portsmouth)"
     },
