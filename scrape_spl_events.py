@@ -129,7 +129,7 @@ def scrape_spl_events(mode="all"):
                     "Event End Date": dt.strftime("%Y-%m-%d"),
                     "Event Description": desc,
                     "Series": "",
-                    "Program Type": "",
+                    "Program Type": program_type,
                     "Categories": ""
                 })
             except Exception as e:
