@@ -132,8 +132,9 @@ def scrape_ppl_events(mode="all"):
 
             # Title-based category tagging
             base_cats = []
+            combined_text = (name + " " + description).lower()
             for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
-                if keyword in name.lower():
+                if keyword in combined_text:
                     base_cats.extend([c.strip() for c in cat.split(",")])
 
             # Age-based category tagging
@@ -143,9 +144,11 @@ def scrape_ppl_events(mode="all"):
                 if cat:
                     age_tags.extend([c.strip() for c in cat.split(",")])
 
-            all_tags = list(dict.fromkeys(base_cats + age_tags))  # dedup, preserve order
-            categories = ", ".join(all_tags).strip()
-
+            # Clean and deduplicate tags
+            all_tags = [c.strip() for c in base_cats + age_tags if c.strip()]
+            categories = ", ".join(dict.fromkeys(all_tags))
+            
+            # Fallback if still empty
             if not categories:
                 categories = DEFAULT_CATEGORIES
 
