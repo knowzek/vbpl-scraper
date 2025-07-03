@@ -1,17 +1,20 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+import requests
+from ics import Calendar
 from bs4 import BeautifulSoup
+from constants import LIBRARY_CONSTANTS, TITLE_KEYWORD_TO_CATEGORY
 import re
-from playwright.sync_api import sync_playwright
-from constants import LIBRARY_CONSTANTS
+from zoneinfo import ZoneInfo
 
-BASE_URL = "https://www.portsmouthpubliclibrary.org/calendar.aspx?CID=24"
+eastern = ZoneInfo("America/New_York")
+ICAL_URL = "https://www.portsmouthpubliclibrary.org/common/modules/iCalendar/iCalendar.aspx?catID=24&feed=calendar"
 
 def is_likely_adult_event(text):
     text = text.lower()
     keywords = [
-        "adult", "18+", "21+", "resume", "medicare", "investment",
-        "retirement", "social security", "veterans", "seniors",
-        "tax help", "finance", "job help", "knitting"
+        "adult", "18+", "21+", "resume", "job help", "tax help",
+        "medicare", "investment", "retirement", "social security",
+        "veterans", "finance", "knitting", "real estate"
     ]
     return any(kw in text for kw in keywords)
 
@@ -32,100 +35,94 @@ def extract_ages(text):
         matches.add("All Ages")
     return ", ".join(sorted(matches))
 
-def scrape_ppl_events(mode="all"):
-    print("🧭 Launching Playwright for Portsmouth scrape...")
+def is_cancelled(name, description):
+    return "cancelled" in name.lower() or "canceled" in description.lower()
 
-    today = datetime.now()
+def scrape_ppl_events(mode="all"):
+    print("\U0001F4DA Scraping Portsmouth Public Library events from iCal feed...")
+
+    today = datetime.now(timezone.utc)
     if mode == "weekly":
-        start_date = today
-        end_date = today + timedelta(days=7)
+        date_range_end = today + timedelta(days=7)
     elif mode == "monthly":
-        start_date = datetime(today.year, today.month, 1)
         if today.month == 12:
-            end_date = datetime(today.year + 1, 1, 1) - timedelta(days=1)
+            next_month = datetime(today.year + 1, 1, 1, tzinfo=timezone.utc)
         else:
-            end_date = datetime(today.year, today.month + 1, 1) - timedelta(days=1)
+            next_month = datetime(today.year, today.month + 1, 1, tzinfo=timezone.utc)
+        date_range_end = next_month - timedelta(seconds=1)
     else:
-        start_date = today
-        end_date = today + timedelta(days=90)
+        date_range_end = today + timedelta(days=90)
+
+    resp = requests.get(ICAL_URL)
+    calendar = Calendar(resp.text)
+    ppl_constants = LIBRARY_CONSTANTS.get("ppl", {})
+    name_suffix_map = ppl_constants.get("name_suffix_map", {})
+    venue_map = ppl_constants.get("venue_names", {})
 
     events = []
+    for event in calendar.events:
+        try:
+            if event.begin is None:
+                continue
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context()
-        page = context.new_page()
+            event_date = event.begin.datetime.astimezone(eastern)
+            if event_date > date_range_end:
+                continue
 
-        page.goto(BASE_URL, timeout=30000)
-        page.wait_for_selector(".event-title", timeout=15000)
+            name = event.name.strip() if event.name else ""
+            description = event.description.strip() if event.description else ""
 
-        html = page.content()
-        soup = BeautifulSoup(html, "html.parser")
-        event_blocks = soup.select(".calendar a[href*='EID=']")
+            if is_likely_adult_event(name) or is_likely_adult_event(description):
+                print(f"⏭️ Skipping: Adult event → {name}")
+                continue
 
-        for block in event_blocks:
-            try:
-                title = block.get_text(strip=True)
-                url = "https://www.portsmouthpubliclibrary.org" + block["href"]
-                parent = block.find_parent("td")
+            event_link = None
+            match = re.search(r"https://www\.portsmouthpubliclibrary\.org/calendar\.aspx\?EID=\d+", description)
+            if match:
+                event_link = match.group(0)
+            else:
+                continue  # skip malformed events
 
-                date_el = parent.find_previous("tr").find("th")
-                if not date_el:
-                    continue
+            raw_location = BeautifulSoup(event.location or "", "html.parser").get_text().strip()
+            loc_parts = raw_location.split(" - ")
+            branch_guess = loc_parts[0].strip()
+            location = venue_map.get(branch_guess, branch_guess)
 
-                date_str = date_el.get_text(strip=True)
-                try:
-                    dt = datetime.strptime(date_str, "%A, %B %d, %Y")
-                except Exception:
-                    continue
+            start_dt = event.begin.datetime.astimezone(eastern)
+            end_dt = event.end.datetime.astimezone(eastern) if event.end else start_dt + timedelta(hours=1)
 
-                if dt < start_date or dt > end_date:
-                    continue
+            start_time = start_dt.strftime("%-I:%M %p")
+            end_time = end_dt.strftime("%-I:%M %p")
+            time_str = f"{start_time} - {end_time}" if end_time else start_time
 
-                detail_page = context.new_page()
-                detail_page.goto(url, timeout=15000)
-                detail_html = detail_page.content()
-                detail_soup = BeautifulSoup(detail_html, "html.parser")
+            ages = extract_ages(name + " " + description)
 
-                desc_tag = detail_soup.select_one(".calendarDetail")
-                desc = desc_tag.get_text(strip=True) if desc_tag else ""
+            # Title-based category tagging
+            categories = ""
+            for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
+                if keyword in name.lower():
+                    categories = cat
+                    break
 
-                time_match = re.search(r"Time:\s*(.*)", desc, re.IGNORECASE)
-                time_str = time_match.group(1).strip() if time_match else ""
-
-                loc_match = re.search(r"Location:\s*(.*)", desc, re.IGNORECASE)
-                raw_location = loc_match.group(1).strip() if loc_match else "Portsmouth Public Library"
-
-                if is_likely_adult_event(title) or is_likely_adult_event(desc):
-                    print(f"⏭️ Skipping: Adult event → {title}")
-                    continue
-
-                ages = extract_ages(title + " " + desc)
-
-                events.append({
-                    "Event Name": title,
-                    "Event Link": url,
-                    "Event Status": "Available",
-                    "Time": time_str,
-                    "Ages": ages,
-                    "Location": raw_location,
-                    "Month": dt.strftime("%b"),
-                    "Day": str(dt.day),
-                    "Year": str(dt.year),
-                    "Event Date": dt.strftime("%Y-%m-%d"),
-                    "Event End Date": dt.strftime("%Y-%m-%d"),
-                    "Event Description": desc,
-                    "Series": "",
-                    "Program Type": "",
-                    "Categories": ""
-                })
-
-                detail_page.close()
-
-            except Exception as e:
-                print(f"⚠️ Error parsing event: {e}")
-
-        browser.close()
+            events.append({
+                "Event Name": name,
+                "Event Link": event_link,
+                "Event Status": "Cancelled" if is_cancelled(name, description) else "Available",
+                "Time": time_str,
+                "Ages": ages,
+                "Location": location,
+                "Month": event_date.strftime("%b"),
+                "Day": str(event_date.day),
+                "Year": str(event_date.year),
+                "Event Date": event_date.strftime("%Y-%m-%d"),
+                "Event End Date": end_dt.strftime("%Y-%m-%d"),
+                "Event Description": description,
+                "Series": "",
+                "Program Type": "",
+                "Categories": categories
+            })
+        except Exception as e:
+            print(f"⚠️ Error parsing event: {e}")
 
     print(f"✅ Scraped {len(events)} events from Portsmouth Public Library.")
     return events
