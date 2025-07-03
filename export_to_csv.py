@@ -98,7 +98,11 @@ def export_events_to_csv(library="vbpl"):
 
     client = gspread.authorize(creds)
     sheet = client.open(config["spreadsheet_name"]).worksheet(config["worksheet_name"])
-    df = pd.DataFrame(sheet.get_all_records()).astype(str)
+    df = pd.DataFrame(sheet.get_all_records())
+
+    # 🔧 Convert all columns to string safely
+    for col in df.columns:
+        df[col] = df[col].astype(str)
 
     original_row_count = len(df)
 
@@ -121,17 +125,20 @@ def export_events_to_csv(library="vbpl"):
         "EVENT END TIME", "ALL DAY EVENT", "Categories", "Event Link", "Event Description"
     ]:
         print(f"{col}: {len(df[col])}" if col in df.columns else f"❌ Missing column: {col}")
+
+        # Convert all columns to string to avoid .str accessor errors
+        for col in df.columns:
+            df[col] = df[col].astype(str)
         
-    df = df.applymap(lambda x: str(x) if not isinstance(x, str) else x)
-    df = df[df["Site Sync Status"].fillna("").str.strip().str.lower() == "new"]
-
-    # Exclude events with "artist of the month" in the title
-    df = df[~df["Event Name"].str.lower().str.contains("artist of the month")]
-    
-    if df.empty:
-        print("🚫  No new events to export.")
-        return
-
+        # Filter new events
+        df = df[df["Site Sync Status"].fillna("").str.strip().str.lower() == "new"]
+        
+        # Exclude events with "artist of the month" in the title
+        df = df[~df["Event Name"].str.lower().str.contains("artist of the month")]
+        
+        if df.empty:
+            print("🚫  No new events to export.")
+            return
 
     # Exclude any event where the only age tag is adult-related
     df["Ages"] = df["Ages"].fillna("").astype(str)
