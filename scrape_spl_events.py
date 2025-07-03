@@ -4,6 +4,12 @@ import re
 from playwright.sync_api import sync_playwright
 
 BASE_URL = "https://suffolkpubliclibrary.libcal.com/calendar"
+UNWANTED_PROGRAM_TYPES = {
+    "Adult",
+    "Adult (Older Adult)",
+    "Library2Go",
+    "Child Care Providers"
+}
 
 def is_likely_adult_event(text):
     text = text.lower()
@@ -64,8 +70,18 @@ def scrape_spl_events(mode="all"):
         soup = BeautifulSoup(html, "html.parser")
         event_listings = soup.find_all("div", class_="media s-lc-c-evt")
 
+        # BEGIN loop
         for listing in event_listings:
             try:
+                # Extract category (Program Type)
+                category_tag = listing.select_one("span.s-lc-event-category-link a")
+                program_type = category_tag.get_text(strip=True) if category_tag else ""
+        
+                # Filter out unwanted categories
+                if program_type in UNWANTED_PROGRAM_TYPES:
+                    print(f"⏭️ Skipping: Unwanted category → {program_type}")
+                    continue
+
                 title_tag = listing.find("h3", class_="media-heading")
                 title = title_tag.get_text(strip=True) if title_tag else "Untitled Event"
                 url_tag = title_tag.find("a") if title_tag else None
