@@ -217,8 +217,8 @@ LIBRARY_CONSTANTS = {
     },
     "ppl": {
         "name_suffix_map": {
-            "Main": "Main Library",
-            "Main Library": "Main Library",
+            "Main": "Portsmouth Main Library",
+            "Main Library": "Portsmouth Main Library",
             "Churchland Branch": "Churchland Branch Library",
             "Cradock Branch": "Cradock Branch Library",
             "Manor Branch": "Manor Branch Library"
@@ -230,6 +230,7 @@ LIBRARY_CONSTANTS = {
             "Churchland Branch Library > Rotunda": "Churchland Branch Library",
             "Churchland Branch Library > Children's Programming Room": "Churchland Branch Library",
             "Children's Event Room - Main": "Portsmouth Main Library",
+            "Children's Event Room": "Portsmouth Main Library",
             "Manor Branch": "Manor Branch Library"
         },
         "age_to_categories": {
