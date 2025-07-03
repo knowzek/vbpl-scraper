@@ -125,9 +125,11 @@ def export_events_to_csv(library="vbpl"):
         return
 
     # Exclude any event where the only age tag is adult-related
+    df["Ages"] = df["Ages"].fillna("").astype(str)
     df = df[~df["Ages"].fillna("").str.lower().str.fullmatch(r"(adults|adults 18\+|adult|18\+)", na=False)]
-
+    df["Program Type"] = df["Program Type"].fillna("").astype(str)
     df = df[~df["Program Type"].fillna("").str.contains("Classes & Workshops", case=False)]
+    df["Categories"] = df["Categories"].fillna("").astype(str)
     df = df[~df["Categories"].fillna("").str.contains("Classes & Workshops", case=False)]
 
     time_info = df["Time"].astype(str).apply(_split_times)
