@@ -180,7 +180,7 @@ LIBRARY_CONSTANTS = {
         "Willow Oaks Branch Library": "Willow Oaks Branch Library",
         "Northampton Branch Library": "Northampton Branch Library",
         "Phoebus Branch Library": "Phoebus Branch Library"
-    }
+    },
 },
     "spl": {
         "name_suffix_map": {
