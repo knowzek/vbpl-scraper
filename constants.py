@@ -102,7 +102,7 @@ LIBRARY_CONSTANTS = {
             "Middle School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Chesapeake",
             "High School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Chesapeake",
             "Families": "Audience - Family Event, Audience - Free Event, Event Location - Chesapeake",
-            "All Ages": "Audience - All Ages, Audience - Free Event, Event Location - Chesapeake",
+            "All Ages": "Audience - Free Event, Event Location - Chesapeake",
             "Adult": "Audience - Adult Event, Audience - Free Event, Event Location - Chesapeake"
         },
         "name_suffix_map": {
@@ -239,7 +239,7 @@ LIBRARY_CONSTANTS = {
             "21+": "Audience - Adults, Audience - Free Event, Event Location - Newport News",
             "Seniors": "Audience - Seniors, Audience - Free Event, Event Location - Newport News",
             "School Age": "Audience - Family Event, Audience - Free Event, Event Location - Newport News, Audience - School Age",
-            "All Ages": "Audience - All Ages, Audience - Family Event, Audience - Free Event, Event Location - Newport News",
+            "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Newport News",
             "Infant": "Audience - Toddler/Infant, Audience - Free Event, Event Location - Newport News",
             "Family": "Audience - Family Event, Audience - Free Event, Event Location - Newport News"
         }
