@@ -103,7 +103,7 @@ LIBRARY_CONSTANTS = {
             "High School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Chesapeake",
             "Families": "Audience - Family Event, Audience - Free Event, Event Location - Chesapeake",
             "All Ages": "Audience - Free Event, Event Location - Chesapeake",
-            "Adult": "Audience - Adult Event, Audience - Free Event, Event Location - Chesapeake"
+            "Adult": "Audience - Free Event, Event Location - Chesapeake"
         },
         "name_suffix_map": {
             "Dr. Clarence V. Cuffee Outreach and Innovation Library": "Cuffee Library",
@@ -219,7 +219,7 @@ LIBRARY_CONSTANTS = {
             "Teens": "Audience - Teens, Event Location - Newport News, Audience - Free Event",
             "Tweens": "Event Location - Newport News, Audience - Free Event",
             "Children": "Audience - Family Event, Event Location - Newport News, Audience - Free Event",
-            "Adults": "Audience - Adults, Event Location - Newport News, Audience - Free Event",
+            "Adults": "Event Location - Newport News, Audience - Free Event",
             "Book": "List - Books & Authors, Event Location - Newport News, Audience - Free Event",
             "Reading": "List - Books & Authors, Event Location - Newport News, Audience - Free Event",
             "STEAM": "List - STEM/STEAM, Event Location - Newport News, Audience - Free Event",
@@ -234,9 +234,9 @@ LIBRARY_CONSTANTS = {
             "Tweens": "Audience - School Age, Audience - Free Event, Event Location - Newport News",
             "Teens": "Audience - Teens, Audience - School Age, Audience - Free Event, Event Location - Newport News",
             "Young Adults": "Audience - Teens, Audience - Free Event, Event Location - Newport News",
-            "Adults": "Audience - Adults, Audience - Free Event, Event Location - Newport News",
-            "18+": "Audience - Adults, Audience - Free Event, Event Location - Newport News",
-            "21+": "Audience - Adults, Audience - Free Event, Event Location - Newport News",
+            "Adults": "Audience - Free Event, Event Location - Newport News",
+            "18+": "Audience - Free Event, Event Location - Newport News",
+            "21+": "Audience - Free Event, Event Location - Newport News",
             "Seniors": "Audience - Seniors, Audience - Free Event, Event Location - Newport News",
             "School Age": "Audience - Family Event, Audience - Free Event, Event Location - Newport News, Audience - School Age",
             "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Newport News",
