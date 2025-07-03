@@ -2,9 +2,11 @@
 
 TITLE_KEYWORD_TO_CATEGORY = {
     "storytime": "List - Storytimes, Audience - Family Event",
-    "math": "STEM - Math",
-    "science": "STEM - Science, Audience - Free Event",
-    "lego": "STEM - Lego, Audience - Free Event",
+    "Story Time": "List - Storytimes, Audience - Family Event",
+    "Kids": "Audience - School Age, Audience - Free Event",
+    "math": "List - STEM/STEAM",
+    "science": "List - STEM/STEAM, Audience - Free Event",
+    "lego": "List - STEM/STEAM, Audience - Free Event",
     "baby": "Audience - Infant, Audience - Parent & Me, Audience - Free Event",
     "toddler": "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events, Audience - Free Event",
     "preschool": "Audience - Preschool Age, Audience - Parent & Me, Audience - Free Event",
