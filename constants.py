@@ -202,6 +202,14 @@ LIBRARY_CONSTANTS = {
             "North Suffolk Library": "North Suffolk Library",
             "Chuckatuck Library": "Chuckatuck Library"
         },
+        "program_type_to_categories": {
+            "Early Childhood": "Audience - Family Event, Event Location - Suffolk, Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me",
+            "Elementary": "Audience - School Age, Audience - Free Event, Event Location - Suffolk",
+            "Family": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk",
+            "High School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Suffolk",
+            "Middle School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Suffolk",
+            "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk"
+        },
         "event_name_suffix": " (Suffolk)",
         "age_to_categories": {}
     },
