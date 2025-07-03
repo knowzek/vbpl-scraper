@@ -1,7 +1,7 @@
-import requests
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import re
+from playwright.sync_api import sync_playwright
 
 BASE_URL = "https://suffolkpubliclibrary.libcal.com/calendar"
 
@@ -17,11 +17,11 @@ def is_likely_adult_event(text):
 def extract_ages(text):
     text = text.lower()
     matches = set()
-    if any(kw in text for kw in ["infants", "babies", "baby", "birth to 2", "0-2"]):
+    if any(kw in text for kw in ["infants", "babies", "baby", "0-2"]):
         matches.add("Infant")
     if any(kw in text for kw in ["toddlers", "2-3", "2 and 3", "age 2", "age 3"]):
         matches.add("Preschool")
-    if any(kw in text for kw in ["preschool", "ages 3-5", "3-5"]):
+    if any(kw in text for kw in ["preschool", "3-5", "ages 3-5"]):
         matches.add("Preschool")
     if any(kw in text for kw in ["school age", "elementary", "5-8", "ages 5", "grade"]):
         matches.add("School Age")
@@ -34,45 +34,35 @@ def extract_ages(text):
     return ", ".join(sorted(matches))
 
 def scrape_spl_events(mode="all"):
-    print("🌐 Scraping Suffolk Public Library events via HTML...")
+    print("🧭 Launching Playwright for SPL scrape...")
 
     today = datetime.now()
-
     if mode == "weekly":
         start_date = today
         end_date = today + timedelta(days=7)
     elif mode == "monthly":
-        start_date = today
+        start_date = datetime(today.year, today.month, 1)
         if today.month == 12:
-            next_month = datetime(today.year + 1, 1, 1)
+            end_date = datetime(today.year + 1, 1, 1) - timedelta(days=1)
         else:
-            next_month = datetime(today.year, today.month + 1, 1)
-        if next_month.month == 12:
-            following_month = datetime(next_month.year + 1, 1, 1)
-        else:
-            following_month = datetime(next_month.year, next_month.month + 1, 1)
-        end_date = following_month - timedelta(days=1)
+            end_date = datetime(today.year, today.month + 1, 1) - timedelta(days=1)
     else:
         start_date = today
         end_date = today + timedelta(days=90)
 
     events = []
-    page = 1
 
-    while True:
-        print(f"🔄 Fetching page {page}...")
-        resp = requests.get(BASE_URL, params={
-            "cid": -1,
-            "cal": -1,
-            "inc": 0,
-            "page": page
-        })
-        soup = BeautifulSoup(resp.text, "html.parser")
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context()
+        page = context.new_page()
+
+        page.goto(BASE_URL, timeout=30000)
+        page.wait_for_selector(".s-lc-c-evt", timeout=15000)
+
+        html = page.content()
+        soup = BeautifulSoup(html, "html.parser")
         event_listings = soup.find_all("div", class_="media s-lc-c-evt")
-
-        if not event_listings:
-            print("⚠️ No event listings found on page")
-            break
 
         for listing in event_listings:
             try:
@@ -97,20 +87,16 @@ def scrape_spl_events(mode="all"):
                 try:
                     dt = datetime.strptime(date_text, "%A, %B %d, %Y")
                 except Exception:
-                    print(f"⚠️ Skipping event with unrecognized date: {date_text}")
                     continue
 
-                if mode == "weekly" and dt > today + timedelta(days=7):
+                if dt < start_date or dt > end_date:
                     continue
-                elif mode == "monthly" and (dt < start_date or dt > end_date):
-                    continue
-
-                time_str = info.get("time", "")
-                location = info.get("location", "Suffolk Public Library")
 
                 if is_likely_adult_event(title) or is_likely_adult_event(desc):
                     continue
 
+                time_str = info.get("time", "")
+                location = info.get("location", "Suffolk Public Library")
                 ages = extract_ages(title + " " + desc)
 
                 events.append({
@@ -130,11 +116,10 @@ def scrape_spl_events(mode="all"):
                     "Program Type": "",
                     "Categories": ""
                 })
-
             except Exception as e:
                 print(f"⚠️ Error parsing event: {e}")
 
-        page += 1
+        browser.close()
 
     print(f"✅ Scraped {len(events)} events from SPL.")
     return events
