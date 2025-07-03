@@ -118,7 +118,8 @@ def export_events_to_csv(library="vbpl"):
         "EVENT END TIME", "ALL DAY EVENT", "Categories", "Event Link", "Event Description"
     ]:
         print(f"{col}: {len(df[col])}" if col in df.columns else f"❌ Missing column: {col}")
-
+        
+    df = df.applymap(lambda x: str(x) if not isinstance(x, str) else x)
     df = df[df["Site Sync Status"].fillna("").str.strip().str.lower() == "new"]
     if df.empty:
         print("🚫  No new events to export.")
@@ -214,7 +215,8 @@ def export_events_to_csv(library="vbpl"):
     })
 
     str_cols = export_df.select_dtypes(include="object").columns
-    export_df[str_cols] = export_df[str_cols].applymap(_ascii_quotes)
+    for col in str_cols:
+        export_df[col] = export_df[col].map(_ascii_quotes)
 
     csv_path = f"events_for_upload_{library}.csv"
     export_df.to_csv(csv_path, index=False)
