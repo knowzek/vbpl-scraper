@@ -75,14 +75,18 @@ def scrape_spl_events(mode="all"):
         })
 
         soup = BeautifulSoup(resp.text, "html.parser")
-        event_listings = soup.find_all("div", class_="s-lc-event")
+        listings_wrapper = soup.find("div", class_="s-lc-public-cal-list")
+        if not listings_wrapper:
+            print("⚠️ No listings container found on page")
+            break
 
+        event_listings = listings_wrapper.find_all("div", recursive=False)
         if not event_listings:
             break
 
         for listing in event_listings:
             try:
-                name_tag = listing.find("h3", class_="s-lc-event-title")
+                name_tag = listing.find("h3")
                 name = name_tag.get_text(strip=True) if name_tag else "Untitled Event"
                 url_tag = name_tag.find("a") if name_tag else None
                 url = url_tag["href"] if url_tag and url_tag.has_attr("href") else ""
