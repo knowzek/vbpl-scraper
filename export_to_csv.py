@@ -127,18 +127,25 @@ def export_events_to_csv(library="vbpl"):
         print(f"{col}: {len(df[col])}" if col in df.columns else f"❌ Missing column: {col}")
 
         # Convert all columns to string to avoid .str accessor errors
-        for col in df.columns:
-            df[col] = df[col].astype(str)
+    for col in df.columns:
+        df[col] = df[col].astype(str)
         
-        # Filter new events
-        df = df[df["Site Sync Status"].fillna("").str.strip().str.lower() == "new"]
-        
-        # Exclude events with "artist of the month" in the title
-        df = df[~df["Event Name"].str.lower().str.contains("artist of the month")]
-        
-        if df.empty:
-            print("🚫  No new events to export.")
-            return
+    # 🧪 DEBUG BLOCK: check for type issues
+    print("\n🔬 Dtypes snapshot before filtering:")
+    print(df.dtypes)
+    
+    print("\n🔍 Any non-strings in 'Event Name'?")
+    print(df[~df["Event Name"].apply(lambda x: isinstance(x, str))])
+    
+    # Filter new events
+    df = df[df["Site Sync Status"].fillna("").str.strip().str.lower() == "new"]
+    
+    # Exclude events with "artist of the month" in the title
+    df = df[~df["Event Name"].str.lower().str.contains("artist of the month")]
+    
+    if df.empty:
+        print("🚫  No new events to export.")
+        return
 
     # Exclude any event where the only age tag is adult-related
     df["Ages"] = df["Ages"].fillna("").astype(str)
