@@ -69,6 +69,7 @@ def scrape_spl_events(mode="all"):
             print("❌ Non-JSON response:")
             print(resp.text[:300])  # or save to a file for deeper debugging
             break
+        print(f"ℹ️ Content-Type: {resp.headers.get('Content-Type')}")
 
         try:
             data = resp.json()
