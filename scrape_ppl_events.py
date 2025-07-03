@@ -151,7 +151,7 @@ def scrape_ppl_events(mode="all"):
             # Fallback if still empty
             if not categories:
                 categories = DEFAULT_CATEGORIES
-
+            print(f"📌 Final categories for {name}: {categories}")
             events.append({
                 "Event Name": name,
                 "Event Link": event_link,
