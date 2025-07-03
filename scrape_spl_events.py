@@ -110,7 +110,12 @@ def scrape_spl_events(mode="all"):
 
                 if dt < start_date or dt > end_date:
                     continue
-
+                
+                # ✅ Skip "Closed for..." events
+                if "closed for" in title.lower():
+                    print(f"⏭️ Skipping: Closed event → {title}")
+                    continue
+                
                 if is_likely_adult_event(title) or is_likely_adult_event(desc):
                     continue
 
@@ -122,10 +127,16 @@ def scrape_spl_events(mode="all"):
 
                 ages = extract_ages(title + " " + desc)
 
-                full_title = f"{title} ({location})"
+                # Normalize title formatting for SPL — only add location if it's not already there
+                if location.lower() not in title.lower():
+                    full_title = f"{title} at {location}"
+                else:
+                    full_title = title
+                
+                event_name = f"{full_title} ({location})"
 
                 events.append({
-                    "Event Name": f"{title} ({location})",
+                    "Event Name": f"{full_title} ({location})",
                     "Event Link": url,
                     "Event Status": "Available",
                     "Time": time_str,
@@ -139,7 +150,10 @@ def scrape_spl_events(mode="all"):
                     "Event Description": desc,
                     "Series": "",
                     "Program Type": program_type,
-                    "Categories": ""
+                    "Categories": ", ".join(filter(None, [
+                        LIBRARY_CONSTANTS["spl"]["program_type_to_categories"].get(program_type, ""),
+                        *[v for k, v in LIBRARY_CONSTANTS["spl"].get("keyword_to_categories", {}).items() if k.lower() in title.lower()]
+                    ]))
                 })
             except Exception as e:
                 print(f"⚠️ Error parsing event: {e}")
