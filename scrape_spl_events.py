@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import re
 
 CID = 4688
-BASE_URL = "https://suffolkpubliclibrary.libcal.com/ajax/calendar/list"
+BASE_URL = "https://api3.libcal.com/widget/events/calendar/list"
 
 def is_likely_adult_event(text):
     text = text.lower()
@@ -61,17 +61,18 @@ def scrape_spl_events(mode="all"):
     while True:
         print(f"🔄 Fetching page offset {page}...")
         params = {
-            "cid": 4688,
-            "page": page,
-            "perpage": 48,
+            "c": 4688,
+            "sp": page,
             "iid": 3631,
-            "c": -1,
-            "t": "g",
-            "d": start_date.strftime("%Y-%m-%d"),
-            "inc": 0
+            "start": start_date.strftime("%Y-%m-%dT00:00:00-05:00"),
+            "end": end_date.strftime("%Y-%m-%dT00:00:00-05:00")
         }
 
-        resp = requests.get(BASE_URL, params=params)
+        headers = {
+            "Referer": "https://api3.libcal.com/embed_calendar.php?iid=3631"
+        }
+        resp = requests.get(BASE_URL, params=params, headers=headers)
+
         if not resp.headers.get("Content-Type", "").startswith("application/json"):
             print("❌ Non-JSON response:")
             print(resp.text[:300])
