@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import re
 
-BASE_URL = "https://suffolkpubliclibrary.libcal.com/calendar"
+BASE_URL = "https://suffolkpubliclibrary.libcal.com/calendar.php"
 
 
 def is_likely_adult_event(text):
@@ -73,9 +73,9 @@ def scrape_spl_events(mode="all"):
             "inc": "0",
             "page": str(page)
         })
-
+        print(resp.text[:2000]) 
         soup = BeautifulSoup(resp.text, "html.parser")
-        listings_wrapper = soup.find("div", class_="s-lc-public-cal-list")
+        listings_wrapper = soup.find("div", id="s-lc-public-cal-list")
         if not listings_wrapper:
             print("⚠️ No listings container found on page")
             break
