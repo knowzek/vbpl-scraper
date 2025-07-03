@@ -67,7 +67,7 @@ def scrape_spl_events(mode="all"):
             "iid": 3631,
             "c": -1,
             "t": "g",
-            "d": "0000-00-00",
+            "d": start_date.strftime("%Y-%m-%d"),
             "inc": 0
         }
 
