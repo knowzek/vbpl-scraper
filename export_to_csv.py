@@ -147,11 +147,18 @@ def export_events_to_csv(library="vbpl"):
 
     # Exclude any event where the only age tag is adult-related
     df["Ages"] = df["Ages"].fillna("").astype(str)
-    df = df[~df["Ages"].fillna("").str.lower().str.fullmatch(r"(adults|adults 18\+|adult|18\+)", na=False)]
+    df = df[~df["Ages"].str.lower().str.fullmatch(r"(adults|adults 18\+|adult|18\+)", na=False)]
+    
+    # 🔎 Debug: Check for non-string issues in Categories
+    print("Categories type preview:")
+    print(df["Categories"].apply(lambda x: f"{type(x)} - {x}" if pd.notnull(x) else "None").head(10))
+    
+    # ✅ Enforce type before using .str.contains
     df["Program Type"] = df["Program Type"].fillna("").astype(str)
-    df = df[~df["Program Type"].fillna("").str.contains("Classes & Workshops", case=False)]
     df["Categories"] = df["Categories"].fillna("").astype(str)
-    df = df[~df["Categories"].fillna("").str.contains("Classes & Workshops", case=False)]
+    
+    df = df[~df["Program Type"].str.contains("Classes & Workshops", case=False)]
+    df = df[~df["Categories"].str.contains("Classes & Workshops", case=False)]
 
     time_info = df["Time"].astype(str).apply(_split_times)
     time_df = pd.DataFrame(time_info.tolist(), index=df.index, columns=["start", "end", "all_day"])
