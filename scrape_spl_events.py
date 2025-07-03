@@ -78,8 +78,7 @@ def scrape_spl_events(mode="all"):
             print(resp.text[:300])
             break
 
-        data = resp.json()
-        results = data.get("results", [])
+        results = resp.json()
 
         if not results:
             break
