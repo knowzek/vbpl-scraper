@@ -121,9 +121,14 @@ def export_events_to_csv(library="vbpl"):
         
     df = df.applymap(lambda x: str(x) if not isinstance(x, str) else x)
     df = df[df["Site Sync Status"].fillna("").str.strip().str.lower() == "new"]
+
+    # Exclude events with "artist of the month" in the title
+    df = df[~df["Event Name"].str.lower().str.contains("artist of the month")]
+    
     if df.empty:
         print("🚫  No new events to export.")
         return
+
 
     # Exclude any event where the only age tag is adult-related
     df["Ages"] = df["Ages"].fillna("").astype(str)
