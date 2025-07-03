@@ -98,15 +98,19 @@ def scrape_spl_events(mode="all"):
                     title = re.sub(r"\s*\[.*?\]", "", raw_title).strip()
                     url_tag = title_tag.find("a") if title_tag else None
                     url = url_tag["href"] if url_tag and url_tag.has_attr("href") else ""
-    
+                    
                     desc_tag = listing.find("div", class_="s-lc-c-evt-des")
                     desc = desc_tag.get_text(strip=True) if desc_tag else ""
-                    if "..." in desc or "…" in desc:
-                        for punct in [".", "!", "?"]:
-                            last = desc.rfind(punct)
-                            if last != -1:
-                                desc = desc[:last + 1].strip()
-                                break
+                    
+                    # ✅ Clean up truncated descriptions
+                    if desc.endswith("...") or desc.endswith("…"):
+                        # Remove the trailing dots
+                        desc = desc.rstrip(".… ").strip()
+                        
+                        # Try to truncate to the last full sentence
+                        last_punct = max(desc.rfind("."), desc.rfind("!"), desc.rfind("?"))
+                        if last_punct != -1:
+                            desc = desc[:last_punct + 1].strip()
 
                     dl = listing.find("dl", class_="dl-horizontal")
                     info = {}
