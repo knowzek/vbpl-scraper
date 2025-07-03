@@ -93,7 +93,14 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 program_type = event.get("Program Type", "")
-                if library == "hpl":
+
+                if library == "ppl":
+                    # Use pre-tagged categories or fallback from scraper
+                    categories = event.get("Categories", "").strip()
+                    if not categories:
+                        categories = "Audience - Family Event, Audience - Free Event, Audience - Preschool Age, Audience - School Age, Event Location - Portsmouth"
+                
+                elif library == "hpl":
                     program_types = [pt.strip().lower() for pt in program_type.split(",") if pt.strip()]
                     matched_tags = []
                     for pt in program_types:
@@ -101,10 +108,10 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                         if cat:
                             matched_tags.extend([c.strip() for c in cat.split(",")])
                     categories = ", ".join(dict.fromkeys(matched_tags))  # remove duplicates, preserve order
-
+                
                 else:
+                    # Default case for vbpl, npl, chpl, etc.
                     categories = program_type_to_categories.get(program_type, "")
-
 
                 if library == "chpl" and age_to_categories:
                     audience_keys = [a.strip() for a in event.get("Ages", "").split(",") if a.strip()]
