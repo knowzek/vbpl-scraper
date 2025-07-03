@@ -13,6 +13,14 @@ import re
 from config import get_library_config
 from constants import LIBRARY_CONSTANTS
 from gspread.utils import rowcol_to_a1
+import unicodedata
+
+def _ascii_normalize(val):
+    if not isinstance(val, str):
+        return val
+    # Normalize to NFKD and encode to ASCII, ignoring errors
+    return unicodedata.normalize("NFKD", val).encode("ascii", "ignore").decode("ascii")
+
 
 def infer_location_from_title(title, name_suffix_map):
     match = re.search(r"@ ([\w\- ]+)", title)
@@ -216,7 +224,8 @@ def export_events_to_csv(library="vbpl"):
 
     str_cols = export_df.select_dtypes(include="object").columns
     for col in str_cols:
-        export_df[col] = export_df[col].map(_ascii_quotes)
+        export_df[col] = export_df[col].map(_ascii_normalize).map(_ascii_quotes)
+
 
     csv_path = f"events_for_upload_{library}.csv"
     export_df.to_csv(csv_path, index=False)
