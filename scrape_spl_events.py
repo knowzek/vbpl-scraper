@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import re
 
-BASE_URL = "https://suffolkpubliclibrary.libcal.com/calendar"
+BASE_URL = "https://suffolkpubliclibrary.libcal.com/calendar?cid=-1&t=d&d=0000-00-00&cal=-1&inc=0"
 
 
 def is_likely_adult_event(text):
