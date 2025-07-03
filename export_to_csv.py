@@ -90,12 +90,7 @@ def export_events_to_csv(library="vbpl"):
 
     client = gspread.authorize(creds)
     sheet = client.open(config["spreadsheet_name"]).worksheet(config["worksheet_name"])
-    df = pd.DataFrame(sheet.get_all_records())
-    # Force all relevant columns to string to avoid .str accessor errors
-    str_cols_to_fix = ["Month", "Day", "Year", "Ages", "Program Type", "Categories", "Site Sync Status"]
-    for col in str_cols_to_fix:
-        if col in df.columns:
-            df[col] = df[col].fillna("").astype(str)
+    df = pd.DataFrame(sheet.get_all_records()).astype(str)
 
     original_row_count = len(df)
 
