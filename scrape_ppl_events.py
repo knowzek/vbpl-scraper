@@ -21,6 +21,35 @@ def is_likely_adult_event(text):
 def extract_ages(text):
     text = text.lower()
     matches = set()
+
+    # Range detection: ages 4-11, ages 5 – 12
+    range_match = re.search(r"ages?\s*(\d{1,2})\s*[-–to]+\s*(\d{1,2})", text)
+    if range_match:
+        low = int(range_match.group(1))
+        high = int(range_match.group(2))
+        if high <= 3:
+            matches.add("Infant")
+        elif high <= 5:
+            matches.add("Preschool")
+        elif high <= 12:
+            matches.add("School Age")
+        elif high <= 17:
+            matches.add("Teens")
+        else:
+            matches.add("Adults 18+")
+
+    # "Under X" pattern
+    under_match = re.search(r"(under|younger than)\s*(\d{1,2})", text)
+    if under_match:
+        age = int(under_match.group(2))
+        if age <= 3:
+            matches.add("Infant")
+        elif age <= 5:
+            matches.add("Preschool")
+        else:
+            matches.add("School Age")
+
+    # Keyword detection
     if any(kw in text for kw in ["infants", "babies", "baby", "0-2"]):
         matches.add("Infant")
     if any(kw in text for kw in ["toddlers", "2-3", "2 and 3", "age 2", "age 3", "preschool"]):
@@ -33,6 +62,7 @@ def extract_ages(text):
         matches.add("Teens")
     if "all ages" in text:
         matches.add("All Ages")
+
     return ", ".join(sorted(matches))
 
 def is_cancelled(name, description):
@@ -58,6 +88,7 @@ def scrape_ppl_events(mode="all"):
     ppl_constants = LIBRARY_CONSTANTS.get("ppl", {})
     name_suffix_map = ppl_constants.get("name_suffix_map", {})
     venue_map = ppl_constants.get("venue_names", {})
+    age_to_categories = ppl_constants.get("age_to_categories", {})
 
     events = []
     for event in calendar.events:
@@ -98,11 +129,20 @@ def scrape_ppl_events(mode="all"):
             ages = extract_ages(name + " " + description)
 
             # Title-based category tagging
-            categories = ""
+            base_cats = []
             for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
                 if keyword in name.lower():
-                    categories = cat
-                    break
+                    base_cats.extend([c.strip() for c in cat.split(",")])
+
+            # Age-based category tagging
+            age_tags = []
+            for a in [a.strip() for a in ages.split(",") if a.strip()]:
+                cat = age_to_categories.get(a)
+                if cat:
+                    age_tags.extend([c.strip() for c in cat.split(",")])
+
+            all_tags = list(dict.fromkeys(base_cats + age_tags))  # dedup, preserve order
+            categories = ", ".join(all_tags)
 
             events.append({
                 "Event Name": name,
