@@ -205,6 +205,30 @@ LIBRARY_CONSTANTS = {
         "event_name_suffix": " (Suffolk)",
         "age_to_categories": {}
     },
+    "ppl": {
+        "name_suffix_map": {
+            "Main Library": "Main Library",
+            "Churchland Branch": "Churchland Branch Library",
+            "Cradock Branch": "Cradock Branch Library",
+            "Manor Branch": "Manor Branch Library"
+        },
+        "venue_names": {
+            "Main Library": "Portsmouth Main Library",
+            "Churchland Branch": "Churchland Branch Library",
+            "Cradock Branch": "Cradock Branch Library",
+            "Manor Branch": "Manor Branch Library"
+        },
+        "age_to_categories": {
+            "Infant": "Audience - Toddler/Infant, Audience - Free Event, Event Location - Portsmouth",
+            "Preschool": "Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Event Location - Portsmouth",
+            "School Age": "Audience - School Age, Audience - Free Event, Event Location - Portsmouth",
+            "Tweens": "Audience - School Age, Audience - Free Event, Event Location - Portsmouth",
+            "Teens": "Audience - Teens, Audience - Free Event, Event Location - Portsmouth",
+            "All Ages": "Audience - All Ages, Audience - Free Event, Event Location - Portsmouth"
+        },
+        "event_name_suffix": " (Portsmouth)"
+    },
+
     "nnpl": {
         "name_suffix_map": {
             "Main Street Library": "Main Street Library",
