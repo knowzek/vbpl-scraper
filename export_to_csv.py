@@ -148,7 +148,10 @@ def export_events_to_csv(library="vbpl"):
     # Exclude any event where the only age tag is adult-related
     df["Ages"] = df["Ages"].fillna("").astype(str)
     df = df[~df["Ages"].str.lower().str.fullmatch(r"(adults|adults 18\+|adult|18\+)", na=False)]
-    
+    # ✅ Add another short-circuit here
+    if df.empty:
+        print("🚫  No new events to export (after age filters).")
+        return
     # 🔎 Debug: Check for non-string issues in Categories
     print("Categories type preview:")
     print(df["Categories"].apply(lambda x: f"{type(x)} - {x}" if pd.notnull(x) else "None").head(10))
