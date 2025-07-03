@@ -214,7 +214,7 @@ LIBRARY_CONSTANTS = {
         "age_to_categories": {
             "Babies": "Audience - Toddler/Infant, Audience - Free Event, Event Location – Newport News",
             "Toddlers": "Audience – Toddler/Infant, List – Toddler Time Events, Audience - Free Event, Event Location – Newport News",
-            "Preschool": "Audience - Preschoolers, Audience - Free Event, Event Location – Newport News",
+            "Preschool": "Audience – Preschool Age, Audience - Free Event, Event Location – Newport News",
             "Children": "Audience - Family Event, Audience - Free Event, Event Location – Newport News, Audience - School Age",
             "Kids": "Audience - Family Event, Audience - Free Event, Event Location – Newport News",
             "Tweens": "Audience - School Age, Audience - Free Event, Event Location – Newport News",
