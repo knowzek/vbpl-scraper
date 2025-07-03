@@ -90,6 +90,8 @@ def scrape_ppl_events(mode="all"):
     venue_map = ppl_constants.get("venue_names", {})
     age_to_categories = ppl_constants.get("age_to_categories", {})
 
+    DEFAULT_CATEGORIES = "Audience - Free Event, Audience - Family Event, Event Location - Portsmouth"
+
     events = []
     for event in calendar.events:
         try:
@@ -142,7 +144,10 @@ def scrape_ppl_events(mode="all"):
                     age_tags.extend([c.strip() for c in cat.split(",")])
 
             all_tags = list(dict.fromkeys(base_cats + age_tags))  # dedup, preserve order
-            categories = ", ".join(all_tags)
+            categories = ", ".join(all_tags).strip()
+
+            if not categories:
+                categories = DEFAULT_CATEGORIES
 
             events.append({
                 "Event Name": name,
