@@ -101,7 +101,7 @@ def scrape_spl_events(mode="all"):
     
                     desc_tag = listing.find("div", class_="s-lc-c-evt-des")
                     desc = desc_tag.get_text(strip=True) if desc_tag else ""
-                    if desc.endswith("..."):
+                    if "..." in desc or "…" in desc:
                         for punct in [".", "!", "?"]:
                             last = desc.rfind(punct)
                             if last != -1:
