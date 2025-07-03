@@ -68,12 +68,17 @@ def scrape_spl_events(mode="all"):
         while True:
             print(f"📄 Fetching page {page_number}...")
             page.goto(f"{BASE_URL}?cid=-1&t=d&d=0000-00-00&cal=-1&page={page_number}&inc=0", timeout=30000)
-            page.wait_for_selector(".s-lc-c-evt", timeout=15000)
-        
             html = page.content()
             soup = BeautifulSoup(html, "html.parser")
             event_listings = soup.find_all("div", class_="media s-lc-c-evt")
-        
+            
+            if not event_listings:
+                print("🛑 No more events found.")
+                break
+            
+            # only wait for selector if listings were found — optional but safe
+            page.wait_for_selector(".s-lc-c-evt", timeout=15000)
+
             if not event_listings:
                 print("🛑 No more events found.")
                 break
