@@ -65,10 +65,20 @@ def scrape_spl_events(mode="all"):
         print(f"🔄 Fetching page offset {page}...")
         params = {
             "cid": CID,
-            "offset": page,
-            "pp": 48
+            "page": page,
+            "perpage": 48,
+            "c": -1,
+            "inc": 0,
+            "t": "g",
+            "d": "0000-00-00"
         }
+
         resp = requests.get(BASE_URL, params=params)
+        if not resp.headers.get("Content-Type", "").startswith("application/json"):
+            print("❌ Non-JSON response:")
+            print(resp.text[:300])
+            break
+
         data = resp.json()
         results = data.get("results", [])
 
