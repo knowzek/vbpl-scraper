@@ -65,40 +65,58 @@ def scrape_spl_events(mode="all"):
             "inc": 0
         })
 
-        data = resp.json()
+        if not resp.headers.get("Content-Type", "").startswith("application/json"):
+            print("❌ Non-JSON response:")
+            print(resp.text[:300])  # or save to a file for deeper debugging
+            break
+
+        try:
+            data = resp.json()
+        except Exception:
+            print("❌ Non-JSON response:")
+            print(resp.text[:300])
+            break
+
         results = data.get("results", [])
         if not results:
             break
 
         for result in results:
             try:
-                dt = datetime.strptime(result["startdt"], "%Y-%m-%d %H:%M:%S")
-                end_dt = datetime.strptime(result["enddt"], "%Y-%m-%d %H:%M:%S")
+                soup = BeautifulSoup(result, "html.parser")
+
+                title_tag = soup.find("h3", class_="media-heading")
+                title = title_tag.get_text(strip=True) if title_tag else "Untitled Event"
+                url_tag = title_tag.find("a") if title_tag else None
+                url = url_tag["href"] if url_tag and url_tag.has_attr("href") else ""
+
+                desc_tag = soup.find("div", class_="s-lc-c-evt-des")
+                desc = desc_tag.get_text(strip=True) if desc_tag else ""
+
+                dl = soup.find("dl", class_="dl-horizontal")
+                info = {}
+                if dl:
+                    for dt_tag in dl.find_all("dt"):
+                        key = dt_tag.get_text(strip=True).rstrip(":").lower()
+                        dd_tag = dt_tag.find_next_sibling("dd")
+                        if dd_tag:
+                            info[key] = dd_tag.get_text(strip=True)
+
+                date_text = info.get("date", "")
+                dt = datetime.strptime(date_text, "%A, %B %d, %Y")
+                end_dt = dt
 
                 if mode == "weekly" and dt > datetime.today() + timedelta(days=7):
                     continue
                 elif mode == "monthly" and dt > end_date:
                     continue
 
-                title = result.get("title", "").strip()
-                desc = result.get("description", "").strip()
+                time_str = info.get("time", "")
+                location = info.get("location", "Suffolk Public Library")
 
                 if is_likely_adult_event(title) or is_likely_adult_event(desc):
                     continue
 
-                start = result.get("start", "").strip()
-                end = result.get("end", "").strip()
-                if result.get("all_day", False):
-                    time_str = "All Day Event"
-                elif start and end:
-                    time_str = f"{start} – {end}"
-                elif start:
-                    time_str = start
-                else:
-                    time_str = ""
-
-                location = result.get("location", "Suffolk Public Library").strip()
-                url = result.get("url", "").strip()
                 ages = extract_ages(title + " " + desc)
 
                 events.append({
@@ -119,7 +137,7 @@ def scrape_spl_events(mode="all"):
                     "Categories": ""
                 })
             except Exception as e:
-                print(f"⚠️ Error parsing event: {e}")
+                print(f"⚠️ Error parsing event: {e}")            
 
         if len(results) < 48:
             break
