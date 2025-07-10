@@ -7,6 +7,7 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "Kids": "Audience - School Age, Audience - Free Event",
     "math": "List - STEM/STEAM",
     "science": "List - STEM/STEAM, Audience - Free Event",
+    "STEM": "List - STEM/STEAM",
     "lego": "List - STEM/STEAM, Audience - Free Event",
     "baby": "Audience - Infant, Audience - Parent & Me, Audience - Free Event",
     "toddler": "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events, Audience - Free Event",
@@ -18,7 +19,9 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "summer": "List - Summer - Summer Reading Kickoff Events, Audience - Free Event",
     "summer meals": "List – Food Distribution",
     "homeschool": "List – Homeschool",
-    "KINDERSTEM": "List - STEM/STEAM"
+    "KINDERSTEM": "List - STEM/STEAM",
+    "SPR": "Audience – Special Events", "List - STEM/STEAM",
+    "Build Bash": "List - STEM/STEAM"
 }
 
 LIBRARY_CONSTANTS = {
@@ -69,7 +72,7 @@ LIBRARY_CONSTANTS = {
             "Preschool (3-5)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Preschool Age",
             "Elementary School Age (5-9)": "Audience - Free Event, Event Location - Norfolk, Audience - School Age",
             "Tweens (9-13)": "Event Location - Norfolk, Audience - School Age, Audience - Free Event",
-            "Teens (12-17)": "Audience - Teens, Event Location - Norfolk, Audience - Free Event, Audience - School Age"
+            "Teens (12-17)": "Audience - Teens, Event Location - Norfolk, Audience - Free Event"
         },
         "name_suffix_map": {
             "Mary D. Pretlow Anchor Branch Library": "Pretlow Library",
