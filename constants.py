@@ -3,6 +3,7 @@
 TITLE_KEYWORD_TO_CATEGORY = {
     "storytime": "List - Storytimes, Audience - Family Event",
     "Story Time": "List - Storytimes, Audience - Family Event",
+    "Storytime": "List - Storytimes, Audience - Family Event",
     "Kids": "Audience - School Age, Audience - Free Event",
     "math": "List - STEM/STEAM",
     "science": "List - STEM/STEAM, Audience - Free Event",
@@ -14,7 +15,10 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "pride": "List - PRIDE Events, Audience - Free Event",
     "computers": "List - STEM/STEAM, Audience - Free Event",
     "yoga": "Category - Fitness Events, Audience - Free Event",
-    "summer": "List - Summer - Summer Reading Kickoff Events, Audience - Free Event"
+    "summer": "List - Summer - Summer Reading Kickoff Events, Audience - Free Event",
+    "summer meals": "List – Food Distribution",
+    "homeschool": "List – Homeschool",
+    "KINDERSTEM": "List - STEM/STEAM"
 }
 
 LIBRARY_CONSTANTS = {
