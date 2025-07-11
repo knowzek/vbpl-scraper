@@ -153,6 +153,9 @@ def export_events_to_csv(library="vbpl"):
     df["Ages"] = df["Ages"].fillna("").astype(str).str.strip()
     df = df[~df["Ages"].str.lower().isin(EXACT_EXCLUDE_AGES)]
 
+    df["Event Status"] = df["Event Status"].fillna("").astype(str)
+    df = df[~df["Event Status"].str.strip().str.lower().eq("cancelled")]
+
     # ✅ Add another short-circuit here
     if df.empty:
         print("🚫  No new events to export (after age filters).")
