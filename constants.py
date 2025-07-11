@@ -17,7 +17,6 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "pride": "List - PRIDE Events",
     "computers": "List - STEM/STEAM",
     "yoga": "Category - Fitness Events",
-    "summer": "List - Summer - Summer Reading Kickoff Events",
     "summer meals": "List – Food Distribution",
     "homeschool": "List – Homeschool",
     "KINDERSTEM": "List - STEM/STEAM",
@@ -25,7 +24,15 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "Build Bash": "List - STEM/STEAM",
     "Active": "List – Fitness Events",
     "Dance": "List – Fitness Events",
-    "Dancing": "List – Fitness Events"
+    "Dancing": "List – Fitness Events",
+    "neurodiverse": "Audience - Special Needs, List - Special Needs Events",
+    "neurodiversity": "Audience - Special Needs, List - Special Needs Events",
+    "asd": "Audience - Special Needs, List - Special Needs Events",
+    "sensory": "Audience - Special Needs, List - Special Needs Events",
+    "sensory-friendly": "Audience - Special Needs, List - Special Needs Events",
+    "LGBTQ+": "List - PRIDE Events",
+    "Rainbow Family": "List - PRIDE Events",
+    "Rainbow Families": "List - PRIDE Events"
 }
 
 LIBRARY_CONSTANTS = {
