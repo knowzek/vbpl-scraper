@@ -114,7 +114,8 @@ LIBRARY_CONSTANTS = {
             "2nd Floor Flex Room": "The Slover / Downtown Branch Library",
             "5th Floor Main": "The Slover / Downtown Branch Library",
             "2nd Floor Fish Bowl": "The Slover / Downtown Branch Library",
-            "Collaboration Room": "Richard A. Tucker Memorial Library"
+            "Collaboration Room": "Richard A. Tucker Memorial Library",
+            "Larchmont@Lambert": "Lambert’s Point Recreation Center"
         },
         "event_name_suffix": " (Norfolk)",
     },
