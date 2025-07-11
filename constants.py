@@ -21,7 +21,7 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "summer meals": "List – Food Distribution",
     "homeschool": "List – Homeschool",
     "KINDERSTEM": "List - STEM/STEAM",
-    "SPR": "Audience – Special Events", "List - STEM/STEAM",
+    "SPR": "Audience – Special Events, List - STEM/STEAM",
     "Build Bash": "List - STEM/STEAM",
     "Active": "List – Fitness Events",
     "Dance": "List – Fitness Events",
