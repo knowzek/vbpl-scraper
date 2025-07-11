@@ -90,7 +90,12 @@ LIBRARY_CONSTANTS = {
             "Downtown Branch at Slover": "Downtown Branch at Slover",
             "Park Place Branch Library": "Park Place Branch Library",
             "Little Creek Branch Library": "Little Creek Branch Library",
-            "Janaf Branch Library": "Janaf Branch Library"
+            "Janaf Branch Library": "Janaf Branch Library",
+            "2nd Floor Program Room": "Downtown Branch at Slover",
+            "2nd Floor Flex Room": "Downtown Branch at Slover",
+            "5th Floor Main": "Downtown Branch at Slover",
+            "2nd Floor Fish Bowl": "Downtown Branch at Slover",
+            "Collaboration Room": "Tucker Library"
         },
         "venue_names": {
             "Richard A. Tucker Memorial Library": "Richard A. Tucker Memorial Library",
@@ -108,7 +113,8 @@ LIBRARY_CONSTANTS = {
             "2nd Floor Program Room": "The Slover / Downtown Branch Library",
             "2nd Floor Flex Room": "The Slover / Downtown Branch Library",
             "5th Floor Main": "The Slover / Downtown Branch Library",
-            "2nd Floor Fish Bowl": "The Slover / Downtown Branch Library"
+            "2nd Floor Fish Bowl": "The Slover / Downtown Branch Library",
+            "Collaboration Room": "Richard A. Tucker Memorial Library"
         },
         "event_name_suffix": " (Norfolk)",
     },
