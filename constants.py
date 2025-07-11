@@ -104,7 +104,11 @@ LIBRARY_CONSTANTS = {
             "Downtown Branch at Slover": "The Slover / Downtown Branch Library",
             "Park Place Branch Library": "Park Place Branch Library",
             "Little Creek Branch Library": "Little Creek Branch, Norfolk Public Library",
-            "Janaf Branch Library": "Janaf Branch Library"
+            "Janaf Branch Library": "Janaf Branch Library",
+            "2nd Floor Program Room": "The Slover / Downtown Branch Library",
+            "2nd Floor Flex Room": "The Slover / Downtown Branch Library",
+            "5th Floor Main": "The Slover / Downtown Branch Library",
+            "2nd Floor Fish Bowl": "The Slover / Downtown Branch Library"
         },
         "event_name_suffix": " (Norfolk)",
     },
