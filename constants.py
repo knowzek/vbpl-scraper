@@ -1,9 +1,9 @@
 # constants.py
 
 TITLE_KEYWORD_TO_CATEGORY = {
-    "storytime": "List - Storytimes, Audience - Family Event",
-    "Story Time": "List - Storytimes, Audience - Family Event",
-    "Storytime": "List - Storytimes, Audience - Family Event",
+    "storytime": "List - Storytimes, Audience - Family Event, Audience - Toddler/Infant",
+    "Story Time": "List - Storytimes, Audience - Family Event, Audience - Toddler/Infant",
+    "Storytime": "List - Storytimes, Audience - Family Event, Audience - Toddler/Infant",
     "Kids": "Audience - School Age",
     "math": "List - STEM/STEAM",
     "science": "List - STEM/STEAM",
@@ -236,7 +236,7 @@ LIBRARY_CONSTANTS = {
             "Chuckatuck Library": "Chuckatuck Library"
         },
         "program_type_to_categories": {
-            "Early Childhood": "Audience - Family Event, Event Location - Suffolk, Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me",
+            "Early Childhood": "Audience - Family Event, Event Location - Suffolk, Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Audience - Toddler/Infant",
             "Elementary": "Audience - School Age, Audience - Free Event, Event Location - Suffolk",
             "Family": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk",
             "High School": "Audience - Teens, Audience - Free Event, Event Location - Suffolk",
