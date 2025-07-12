@@ -18,6 +18,7 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "computers": "List - STEM/STEAM",
     "yoga": "Category - Fitness Events",
     "summer meals": "List – Food Distribution",
+    "food distribution": "List – Food Distribution",
     "homeschool": "List – Homeschool",
     "KINDERSTEM": "List - STEM/STEAM",
     "SPR": "Audience – Special Events, List - STEM/STEAM",
@@ -30,6 +31,7 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "asd": "Audience - Special Needs, List - Special Needs Events",
     "sensory": "Audience - Special Needs, List - Special Needs Events",
     "sensory-friendly": "Audience - Special Needs, List - Special Needs Events",
+    "feelings": "Audience - Special Needs, List - Special Needs Events",
     "LGBTQ+": "List - PRIDE Events",
     "Rainbow Family": "List - PRIDE Events",
     "Rainbow Families": "List - PRIDE Events"
@@ -237,8 +239,8 @@ LIBRARY_CONSTANTS = {
             "Early Childhood": "Audience - Family Event, Event Location - Suffolk, Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me",
             "Elementary": "Audience - School Age, Audience - Free Event, Event Location - Suffolk",
             "Family": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk",
-            "High School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Suffolk",
-            "Middle School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Suffolk",
+            "High School": "Audience - Teens, Audience - Free Event, Event Location - Suffolk",
+            "Middle School": "Audience - Teens, Audience - Free Event, Event Location - Suffolk",
             "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk"
         },
         "event_name_suffix": " (Suffolk)",
