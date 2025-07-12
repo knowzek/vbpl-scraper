@@ -141,11 +141,23 @@ def scrape_spl_events(mode="all"):
                         continue
     
                     time_str = info.get("time", "")
-                    raw_location = info.get("location", "Suffolk Public Library")
-                    location_match = re.search(r"(Morgan Memorial Library|North Suffolk Library)", raw_location)
-                    location = location_match.group(1) if location_match else "Suffolk Public Library"
-                    venue = LIBRARY_CONSTANTS["spl"]["venue_names"].get(location, location)
-    
+                    raw_location = info.get("location", "").strip()
+                    venue_map = LIBRARY_CONSTANTS["spl"].get("venue_names", {})
+                    
+                    # Normalize for known venue mappings unless it's a mobile/SPL2GO event
+                    if "spl2go" in title.lower():
+                        location = raw_location  # Keep full location for mobile events
+                    else:
+                        location = None
+                        for key in venue_map:
+                            if key.lower() in raw_location.lower():
+                                location = venue_map[key]
+                                break
+                        if not location:
+                            location = raw_location  # Fallback if not matched
+                    
+                    venue = location  # Final value passed to the sheet
+
                     if audience_tags:
                         ages = ", ".join(sorted(set(audience_tags)))
                     else:
