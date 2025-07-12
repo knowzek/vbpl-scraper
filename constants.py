@@ -37,6 +37,12 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "Rainbow Families": "List - PRIDE Events"
 }
 
+UNWANTED_TITLE_KEYWORDS = [
+    "summer meals",
+    "Summer Meals",
+    "adult"
+]
+
 LIBRARY_CONSTANTS = {
     "vbpl": {
         "program_type_to_categories": {
