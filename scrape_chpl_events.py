@@ -2,6 +2,7 @@ import requests
 from datetime import datetime, timedelta
 import json
 from bs4 import BeautifulSoup
+from constants import UNWANTED_TITLE_KEYWORDS
 
 
 def scrape_chpl_events(mode="all"):
@@ -60,6 +61,10 @@ def scrape_chpl_events(mode="all"):
             ages = item.get("ages", "")
 
             title = item.get("title", "").strip()
+            # 🚫 Skip unwanted titles
+            if any(bad_word in title.lower() for bad_word in UNWANTED_TITLE_KEYWORDS):
+                print(f"⏭️ Skipping: Unwanted title match → {title}")
+                continue
             event_url = item.get("url", "").replace("\\/", "/")
             status = "Available"
             
