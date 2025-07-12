@@ -87,7 +87,9 @@ def scrape_spl_events(mode="all"):
                     # Extract category (Program Type)
                     category_tag = listing.select_one("span.s-lc-event-category-link a")
                     program_type = category_tag.get_text(strip=True) if category_tag else ""
-            
+                    # Extract audience tags from category list
+                    audience_tags = [tag.get_text(strip=True) for tag in listing.select("span.s-lc-event-audience-link a")]
+
                     # Filter out unwanted categories
                     if program_type in UNWANTED_PROGRAM_TYPES:
                         print(f"⏭️ Skipping: Unwanted category → {program_type}")
@@ -144,8 +146,11 @@ def scrape_spl_events(mode="all"):
                     location = location_match.group(1) if location_match else "Suffolk Public Library"
                     venue = LIBRARY_CONSTANTS["spl"]["venue_names"].get(location, location)
     
-                    ages = extract_ages(title + " " + desc)
-    
+                    if audience_tags:
+                        ages = ", ".join(sorted(set(audience_tags)))
+                    else:
+                        ages = extract_ages(title + " " + desc)
+
                     # Normalize title formatting for SPL — only add location if it's not already there
                     if location.lower() not in title.lower():
                         full_title = f"{title} at {location}"
