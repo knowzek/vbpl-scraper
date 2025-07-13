@@ -2,11 +2,11 @@ from datetime import datetime, timedelta, timezone
 import requests
 from ics import Calendar
 from bs4 import BeautifulSoup
-from constants import LIBRARY_CONSTANTS
 import re
 from zoneinfo import ZoneInfo
 eastern = ZoneInfo("America/New_York")
-from constants import UNWANTED_TITLE_KEYWORDS
+from constants import LIBRARY_CONSTANTS, UNWANTED_TITLE_KEYWORDS, TITLE_KEYWORD_TO_CATEGORY
+
 
 ICAL_URL = "https://calendar.nnpl.org/api/feeds/ics/nnlibrary"
 
@@ -171,11 +171,22 @@ def scrape_nnpl_events(mode="all"):
                 continue
 
             combined_text = f"{name} {description}".lower()
-            categories = ""
+
+            # Program type mapping from constants
+            program_categories = []
             for keyword, cat in program_type_to_categories.items():
                 if keyword.lower() in combined_text:
-                    categories = cat
-                    break
+                    program_categories.extend([c.strip() for c in cat.split(",")])
+            
+            # Title keyword tagging
+            keyword_tags = []
+            for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
+                if keyword in combined_text:
+                    keyword_tags.extend([c.strip() for c in cat.split(",")])
+            
+            # Combine and dedupe
+            all_categories = ", ".join(dict.fromkeys(program_categories + keyword_tags))
+
 
             if not location_name:
                 continue
@@ -217,7 +228,7 @@ def scrape_nnpl_events(mode="all"):
                 "Event Description": description,
                 "Series": "",
                 "Program Type": program_type,
-                "Categories": categories
+                "Categories": all_categories
             })
         except Exception as e:
             print(f"\u26A0\uFE0F Error parsing event: {e}")
