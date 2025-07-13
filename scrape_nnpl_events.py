@@ -6,6 +6,7 @@ from constants import LIBRARY_CONSTANTS
 import re
 from zoneinfo import ZoneInfo
 eastern = ZoneInfo("America/New_York")
+from constants import UNWANTED_TITLE_KEYWORDS
 
 ICAL_URL = "https://calendar.nnpl.org/api/feeds/ics/nnlibrary"
 
@@ -153,6 +154,10 @@ def scrape_nnpl_events(mode="all"):
 
             name = event.name.strip() if event.name else ""
             description = event.description.strip() if event.description else ""
+            if any(bad_word in name.lower() for bad_word in UNWANTED_TITLE_KEYWORDS):
+                print(f"⏭️ Skipping: Unwanted title match → {name}")
+                continue
+
     
             if is_likely_adult_event(name) or is_likely_adult_event(description):
                 print(f"⏭️ Skipping: Adult event → {name}")
@@ -163,9 +168,6 @@ def scrape_nnpl_events(mode="all"):
             location_name = raw_location.split(",")[0].strip()
             if not location_name:
                 print(f"⏭️ Skipping: Missing location → {name} / raw location: {repr(raw_location)}")
-                continue
-
-            if is_likely_adult_event(name) or is_likely_adult_event(description):
                 continue
 
             combined_text = f"{name} {description}".lower()
