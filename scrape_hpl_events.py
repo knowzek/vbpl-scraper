@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from constants import LIBRARY_CONSTANTS
 import re
 from constants import UNWANTED_TITLE_KEYWORDS
+from constants import TITLE_KEYWORD_TO_CATEGORY
 
 ICAL_URL = "https://www.hampton.gov/common/modules/iCalendar/iCalendar.aspx?catID=24&feed=calendar"
 
@@ -68,22 +69,30 @@ def scrape_hpl_events(mode="all"):
 
             name = event.name.strip() if event.name else ""
             description = event.description.strip() if event.description else ""
-            # 🚫 Skip unwanted titles like "Summer Meals"
+            # Skip unwanted titles like "Summer Meals"
             if any(bad_word in name.lower() for bad_word in UNWANTED_TITLE_KEYWORDS):
                 print(f"⏭️ Skipping: Unwanted title match → {name}")
                 continue
-
+            
             if is_likely_adult_event(name) or is_likely_adult_event(description):
                 continue
-
-            program_type = ""
-            categories = ""
+            
             combined_text = f"{name} {description}".lower()
+            
+            program_categories = []
+            program_type = ""
             for keyword, cat in program_type_to_categories.items():
-                if keyword in combined_text:
+                if re.search(rf"\b{re.escape(keyword.lower())}\b", combined_text):
                     program_type = keyword.capitalize()
-                    categories = cat
-                    break
+                    program_categories.extend([c.strip() for c in cat.split(",")])
+            
+            keyword_tags = []
+            for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
+                if re.search(rf"\b{re.escape(keyword.lower())}\b", combined_text):
+                    keyword_tags.extend([c.strip() for c in cat.split(",")])
+            
+            categories = ", ".join(dict.fromkeys(program_categories + keyword_tags))
+
 
             # Extract clean location
             # === LOCATION MAPPING ===
