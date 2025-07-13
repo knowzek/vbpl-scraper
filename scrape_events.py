@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import time
 import re
+from constants import UNWANTED_TITLE_KEYWORDS
+
 
 def filter_events_by_mode(events, mode):
     today = datetime.today()
@@ -62,6 +64,10 @@ def scrape_vbpl_events(cutoff_date=None):
                 link_tag = card.select_one("a.lc-event__link")
                 name = link_tag.get_text(strip=True)
                 link = base_url + link_tag["href"]
+                # 🚫 Skip unwanted titles
+                if any(bad_word in name.lower() for bad_word in UNWANTED_TITLE_KEYWORDS):
+                    print(f"⏭️ Skipping: Unwanted title match → {name}")
+                    continue
                 print(f"🔗 Processing: {name} ({link})")
 
                 # Extract event date from the card
