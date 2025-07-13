@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from time import sleep
 from bs4 import BeautifulSoup
 import re
+from constants import UNWANTED_TITLE_KEYWORDS
 
 def scrape_npl_events(mode="all"):
     print("🌐 Scraping Norfolk Public Library events via JSON feed...")
@@ -22,6 +23,11 @@ def scrape_npl_events(mode="all"):
 
         for result in results:
             try:
+                title = result.get("title", "").strip()
+                # 🚫 Skip unwanted titles
+                if any(bad_word in title.lower() for bad_word in UNWANTED_TITLE_KEYWORDS):
+                    print(f"⏭️ Skipping: Unwanted title match → {title}")
+                    continue
                 dt = datetime.strptime(result["startdt"], "%Y-%m-%d %H:%M:%S")
                 end_dt = datetime.strptime(result["enddt"], "%Y-%m-%d %H:%M:%S")
 
