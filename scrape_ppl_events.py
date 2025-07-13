@@ -122,10 +122,24 @@ def scrape_ppl_events(mode="all"):
             else:
                 continue  # skip malformed events
 
+            # Clean up raw location
             raw_location = BeautifulSoup(event.location or "", "html.parser").get_text().strip()
-            loc_parts = raw_location.split(" - ")
-            branch_guess = loc_parts[0].strip()
-            location = venue_map.get(branch_guess, branch_guess)
+            
+            # First, try a full match from the map
+            location = venue_map.get(raw_location)
+            
+            # If no exact match, try partial matching by searching keys
+            if not location:
+                normalized = raw_location.lower()
+                for key, mapped in venue_map.items():
+                    if key.lower() in normalized:
+                        location = mapped
+                        break
+            
+            # Fallback to raw if still not matched
+            if not location:
+                print(f"📌 Unmapped location: {repr(raw_location)}")
+                location = raw_location
 
             start_dt = event.begin.datetime.astimezone(eastern)
             end_dt = event.end.datetime.astimezone(eastern) if event.end else start_dt + timedelta(hours=1)
