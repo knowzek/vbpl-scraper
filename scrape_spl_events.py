@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import re
 from playwright.sync_api import sync_playwright
-from constants import LIBRARY_CONSTANTS, TITLE_KEYWORD_TO_CATEGORY
+from constants import LIBRARY_CONSTANTS, TITLE_KEYWORD_TO_CATEGORY, UNWANTED_TITLE_KEYWORDS
 
 BASE_URL = "https://suffolkpubliclibrary.libcal.com/calendar"
 UNWANTED_PROGRAM_TYPES = {
@@ -133,8 +133,8 @@ def scrape_spl_events(mode="all"):
                         continue
                     
                     # ✅ Skip "Closed for..." events
-                    if "closed for" in title.lower():
-                        print(f"⏭️ Skipping: Closed event → {title}")
+                    if any(bad_word in title.lower() for bad_word in UNWANTED_TITLE_KEYWORDS):
+                        print(f"⏭️ Skipping: Unwanted title match → {title}")
                         continue
                     
                     if is_likely_adult_event(title) or is_likely_adult_event(desc):
