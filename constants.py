@@ -35,7 +35,8 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "feelings": "Audience - Special Needs, List - Special Needs Events",
     "LGBTQ+": "List - PRIDE Events",
     "Rainbow Family": "List - PRIDE Events",
-    "Rainbow Families": "List - PRIDE Events"
+    "Rainbow Families": "List - PRIDE Events",
+    "theater": "Audience - Special Events, List - Summer - Performances"
 }
 
 UNWANTED_TITLE_KEYWORDS = [
