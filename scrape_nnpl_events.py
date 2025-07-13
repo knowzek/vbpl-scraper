@@ -181,7 +181,7 @@ def scrape_nnpl_events(mode="all"):
             # Title keyword tagging
             keyword_tags = []
             for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
-                if keyword in combined_text:
+                if re.search(rf"\b{re.escape(keyword)}\b", combined_text):
                     keyword_tags.extend([c.strip() for c in cat.split(",")])
             
             # Combine and dedupe
