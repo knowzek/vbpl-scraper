@@ -263,14 +263,17 @@ LIBRARY_CONSTANTS = {
             "Main Library": "Portsmouth Main Library",
             "Churchland Branch": "Churchland Branch Library",
             "Cradock Branch": "Cradock Branch Library",
-            "Manor Branch": "Manor Branch Library"
+            "Manor Branch": "Manor Branch Library",
+            "Coleman Meeting Room - Churchland Branch": "Churchland Branch Library",
+            "Coleman Meeting Room": "Churchland Branch Library"
         },
         "venue_names": {
             "Main Library": "Portsmouth Main Library",
-            "Churchland Branch": "Churchland Branch Library",
-            "Cradock Branch": "Cradock Branch Library",
-            "Churchland Branch Library > Rotunda": "Churchland Branch Library",
-            "Churchland Branch Library > Children's Programming Room": "Churchland Branch Library",
+            "Churchland Branch": "Churchland Library",
+            "Churchland Branch Library": "Churchland Library",
+            "Cradock Branch": "Cradock Branch, Portsmouth Library",
+            "Churchland Branch Library > Rotunda": "Churchland Library",
+            "Churchland Branch Library > Children's Programming Room": "Churchland Library",
             "Children's Event Room - Main": "Portsmouth Main Library",
             "Children's Event Room": "Portsmouth Main Library",
             "Manor Branch": "Manor Branch Library"
