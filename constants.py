@@ -14,6 +14,7 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "babies": "Audience - Infant, Audience - Parent & Me",
     "toddler": "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
     "preschool": "Audience - Preschool Age, Audience - Parent & Me",
+    "tiny tot": "Audience - Toddler/Infant, Audience - Parent & Me",
     "steam": "List - STEM/STEAM, Audience - Family Event",
     "pride": "List - PRIDE Events",
     "computers": "List - STEM/STEAM",
@@ -36,7 +37,8 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "LGBTQ+": "List - PRIDE Events",
     "Rainbow Family": "List - PRIDE Events",
     "Rainbow Families": "List - PRIDE Events",
-    "theater": "Audience - Special Events, List - Summer - Performances"
+    "theater": "Audience - Special Events",
+    "Magician": "Audience - Special Events"
 }
 
 UNWANTED_TITLE_KEYWORDS = [
@@ -321,8 +323,8 @@ LIBRARY_CONSTANTS = {
             "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Newport News",
             "Children": "Audience - Family Event, Audience - Free Event, Event Location - Newport News, Audience - School Age",
             "Kids": "Audience - Family Event, Audience - Free Event, Event Location - Newport News",
-            "Tweens": "Audience - School Age, Audience - Free Event, Event Location - Newport News",
-            "Teens": "Audience - Teens, Audience - School Age, Audience - Free Event, Event Location - Newport News",
+            "Tweens": "Audience - Free Event, Event Location - Newport News",
+            "Teens": "Audience - Teens, Audience - Free Event, Event Location - Newport News",
             "Young Adults": "Audience - Teens, Audience - Free Event, Event Location - Newport News",
             "Adults": "Audience - Free Event, Event Location - Newport News",
             "18+": "Audience - Free Event, Event Location - Newport News",
