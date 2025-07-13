@@ -38,7 +38,8 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "Rainbow Family": "List - PRIDE Events",
     "Rainbow Families": "List - PRIDE Events",
     "theater": "Audience - Special Events",
-    "Magician": "Audience - Special Events"
+    "Magician": "Audience - Special Events",
+    "juggler": "Audience - Special Events"
 }
 
 UNWANTED_TITLE_KEYWORDS = [
