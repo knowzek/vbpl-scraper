@@ -4,6 +4,7 @@ from ics import Calendar
 from bs4 import BeautifulSoup
 from constants import LIBRARY_CONSTANTS
 import re
+from constants import UNWANTED_TITLE_KEYWORDS
 
 ICAL_URL = "https://www.hampton.gov/common/modules/iCalendar/iCalendar.aspx?catID=24&feed=calendar"
 
@@ -67,6 +68,10 @@ def scrape_hpl_events(mode="all"):
 
             name = event.name.strip() if event.name else ""
             description = event.description.strip() if event.description else ""
+            # 🚫 Skip unwanted titles like "Summer Meals"
+            if any(bad_word in name.lower() for bad_word in UNWANTED_TITLE_KEYWORDS):
+                print(f"⏭️ Skipping: Unwanted title match → {name}")
+                continue
 
             if is_likely_adult_event(name) or is_likely_adult_event(description):
                 continue
