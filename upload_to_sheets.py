@@ -7,6 +7,7 @@ from config import get_library_config
 import json
 import re
 from constants import LIBRARY_CONSTANTS, TITLE_KEYWORD_TO_CATEGORY
+from constants import COMBINED_KEYWORD_TO_CATEGORY
 
 def _clean_link(url: str) -> str:
     cleaned = (
@@ -159,7 +160,6 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 combined = base + all_tags
                 categories = ", ".join(dict.fromkeys(combined))
 
-
                 categories = categories.replace("\u00A0", " ").replace("Â", "").strip()
                 # === Add extra categories based on title keywords (applies to ALL libraries)
                 title_text = event.get("Event Name", "").lower()
@@ -168,11 +168,18 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
                     if keyword in title_text:
                         title_based_tags.extend([c.strip() for c in cat.split(",")])
-                
+
+                # === Add categories for combined keyword matches
+                full_text = f"{event.get('Event Name', '')} {event.get('Event Description', '')}".lower()
+                for (kw1, kw2), cat in COMBINED_KEYWORD_TO_CATEGORY.items():
+                    if kw1 in full_text and kw2 in full_text:
+                        title_based_tags.extend([c.strip() for c in cat.split(",")])
+    
                 if title_based_tags:
-                    base = [c.strip() for c in categories.split(",") if c.strip()]
-                    combined = base + title_based_tags
-                    categories = ", ".join(dict.fromkeys(combined))  # dedupe while preserving order
+                    categories += ", " + ", ".join(title_based_tags)
+                
+                # Final deduplication
+                categories = ", ".join(dict.fromkeys([c.strip() for c in categories.split(",") if c.strip()]))
 
                 name_original = event.get("Event Name", "")
                 # Remove any "@ LibraryName" from event titles before suffixing
