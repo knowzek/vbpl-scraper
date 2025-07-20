@@ -13,7 +13,7 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "baby": "Audience - Infant, Audience - Parent & Me",
     "babies": "Audience - Infant, Audience - Parent & Me",
     "toddler": "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
-    "preschool": "Audience - Preschool Age, Audience - Parent & Me",
+    "preschool": "Audience - Preschool Age",
     "tiny tot": "Audience - Toddler/Infant, Audience - Parent & Me",
     "steam": "List - STEM/STEAM, Audience - Family Event",
     "pride": "List - PRIDE Events",
@@ -41,6 +41,16 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "Magician": "Audience - Special Events",
     "juggler": "Audience - Special Events"
 }
+
+COMBINED_KEYWORD_TO_CATEGORY = {
+    ("storytime", "toddler"): "List - Toddler Time Events, Audience - Family Event, Audience - Toddler/Infant, List - Storytimes",
+    ("storytime", "baby"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event",
+    ("storytime", "infant"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event",
+    ("story time", "toddler"): "List - Toddler Time Events, Audience - Family Event, Audience - Toddler/Infant, List - Storytimes",
+    ("story time", "baby"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event",
+    ("story time", "infant"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event"
+}
+
 
 UNWANTED_TITLE_KEYWORDS = [
     "summer meals",
