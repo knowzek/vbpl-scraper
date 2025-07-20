@@ -4,6 +4,7 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "storytime": "List - Storytimes",
     "Story Time": "List - Storytimes",
     "Storytime": "List - Storytimes",
+    "babies in bloom": "List - Storytimes",
     "Kids": "Audience - School Age",
     "math": "List - STEM/STEAM",
     "science": "List - STEM/STEAM",
