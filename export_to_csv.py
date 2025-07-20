@@ -233,8 +233,9 @@ def export_events_to_csv(library="vbpl"):
 
     def format_event_title(row):
         base = re.sub(r"\s+at\s+.*", "", row["Event Name"]).strip()
-        venue = row["Venue"].strip()
-        return f"{base} at {venue}{suffix}" if venue else base + suffix
+        loc_clean = re.sub(r"^Library Branch:", "", row["Location"]).strip()
+        suffix_name = name_suffix_map.get(loc_clean, loc_clean)
+        return f"{base} at {suffix_name}{suffix}" if suffix_name else base + suffix
 
     df["Event Name"] = df.apply(format_event_title, axis=1)
 
