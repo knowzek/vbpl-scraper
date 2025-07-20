@@ -1,6 +1,6 @@
 # constants.py
 
-TITLE_KEYWORD_TO_CATEGORY = {
+TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "storytime": "List - Storytimes",
     "Story Time": "List - Storytimes",
     "Storytime": "List - Storytimes",
@@ -62,13 +62,20 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "high school": "Audience – Teens"
 }
 
-COMBINED_KEYWORD_TO_CATEGORY = {
+TITLE_KEYWORD_TO_CATEGORY = {k.lower(): v for k, v in TITLE_KEYWORD_TO_CATEGORY_RAW.items()}
+
+COMBINED_KEYWORD_TO_CATEGORY_RAW = {
     ("storytime", "toddler"): "List - Toddler Time Events, Audience - Family Event, Audience - Toddler/Infant, List - Storytimes",
     ("storytime", "baby"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event",
     ("storytime", "infant"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event",
     ("story time", "toddler"): "List - Toddler Time Events, Audience - Family Event, Audience - Toddler/Infant, List - Storytimes",
     ("story time", "baby"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event",
     ("story time", "infant"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event"
+}
+
+COMBINED_KEYWORD_TO_CATEGORY = {
+    (kw1.lower(), kw2.lower()): cat
+    for (kw1, kw2), cat in COMBINED_KEYWORD_TO_CATEGORY_RAW.items()
 }
 
 UNWANTED_TITLE_KEYWORDS = [
