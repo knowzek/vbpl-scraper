@@ -219,8 +219,19 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 existing_row = existing_data.get(link, [""] * 16)
                 existing_core = normalize(existing_row)
 
-                status = "new"
-                site_sync_status = existing_row[15] if link in existing_data else "new"
+                # Flag if required fields are missing
+                missing_fields = []
+                if not event.get("Event Description", "").strip():
+                    missing_fields.append("description")
+                if not event.get("Location", "").strip():
+                    missing_fields.append("location")
+                
+                if missing_fields:
+                    site_sync_status = "REVIEW NEEDED - MISSING INFO"
+                    status = "review needed"
+                else:
+                    status = "new"
+                    site_sync_status = existing_row[15] if link in existing_data else "new"
 
                 if link in existing_data:
                     existing_vals = {
@@ -277,6 +288,14 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
         if update_requests:
             sheet.batch_update(update_requests)
+
+        # Export REVIEW NEEDED rows to CSV
+        review_rows = [r for r in new_rows if "REVIEW NEEDED" in r[-1]]
+        if review_rows:
+            review_df = pd.DataFrame(review_rows, columns=headers[:len(review_rows[0])])
+            review_path = f"Review Needed - Missing Info - {library}.csv"
+            review_df.to_csv(review_path, index=False)
+            print(f"📎 Exported {len(review_rows)} flagged rows to {review_path}")
 
         if new_rows:
             print("🔍 Full row to upload:", full_row)
