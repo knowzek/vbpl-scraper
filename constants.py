@@ -1,9 +1,9 @@
 # constants.py
 
 TITLE_KEYWORD_TO_CATEGORY = {
-    "storytime": "List - Storytimes, Audience - Family Event, Audience - Toddler/Infant, List - Toddler Time Events",
-    "Story Time": "List - Storytimes, Audience - Family Event, Audience - Toddler/Infant, List - Toddler Time Events",
-    "Storytime": "List - Storytimes, Audience - Family Event, Audience - Toddler/Infant, List - Toddler Time Events",
+    "storytime": "List - Storytimes",
+    "Story Time": "List - Storytimes",
+    "Storytime": "List - Storytimes",
     "Kids": "Audience - School Age",
     "math": "List - STEM/STEAM",
     "science": "List - STEM/STEAM",
@@ -15,14 +15,14 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "toddler": "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
     "preschool": "Audience - Preschool Age",
     "tiny tot": "Audience - Toddler/Infant, Audience - Parent & Me",
-    "steam": "List - STEM/STEAM, Audience - Family Event",
+    "steam": "List - STEM/STEAM",
     "pride": "List - PRIDE Events",
     "computers": "List - STEM/STEAM",
     "yoga": "Category - Fitness Events",
     "summer meals": "List - Food Distribution",
     "food distribution": "List - Food Distribution",
     "homeschool": "List - Homeschool",
-    "KINDERSTEM": "List - STEM/STEAM",
+    "KINDERSTEM": "List - STEM/STEAM, Audience - Preschool Age",
     "SPR": "Audience - Special Events, List - STEM/STEAM",
     "Build Bash": "List - STEM/STEAM",
     "Active": "List - Fitness Events",
@@ -33,13 +33,32 @@ TITLE_KEYWORD_TO_CATEGORY = {
     "asd": "Audience - Special Needs, List - Special Needs Events",
     "sensory": "Audience - Special Needs, List - Special Needs Events",
     "sensory-friendly": "Audience - Special Needs, List - Special Needs Events",
-    "feelings": "Audience - Special Needs, List - Special Needs Events",
     "LGBTQ+": "List - PRIDE Events",
+    "Trans": "List - PRIDE Events",
     "Rainbow Family": "List - PRIDE Events",
     "Rainbow Families": "List - PRIDE Events",
     "theater": "Audience - Special Events",
     "Magician": "Audience - Special Events",
-    "juggler": "Audience - Special Events"
+    "juggler": "Audience - Special Events",
+    "Mom": "Audience - Parent & Me",
+    "Mother": "Audience - Parent & Me",
+    "Father": "Audience - Parent & Me",
+    "caregiver": "Audience - Parent & Me",
+    "dad": "Audience - Parent & Me",
+    "weather": "Audience – Outdoor Event",
+    "train": "List – Events with Trains",
+    "Volunteer": "List – Youth Volunteer Opportunities",
+    "free": "Audience – Free Event",
+    "all ages": "Audience – Family Event",
+    "fireworks": "List – Fireworks",
+    "parade": "List – Parades",
+    "infant": "Audience - Infant",
+    "tween": "Audience – School Age",
+    "PNO": "List – Parents Night Out",
+    "Era": "List – Swiftie Events",
+    "Potter": "List – Wizard Events",
+    "Harry Potter": "List – Wizard Events",
+    "high school": "Audience – Teens"
 }
 
 COMBINED_KEYWORD_TO_CATEGORY = {
@@ -50,7 +69,6 @@ COMBINED_KEYWORD_TO_CATEGORY = {
     ("story time", "baby"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event",
     ("story time", "infant"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event"
 }
-
 
 UNWANTED_TITLE_KEYWORDS = [
     "summer meals",
