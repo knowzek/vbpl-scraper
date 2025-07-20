@@ -297,6 +297,13 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
             review_df.to_csv(review_path, index=False)
             print(f"📎 Exported {len(review_rows)} flagged rows to {review_path}")
 
+            send_notification_email_with_attachment(
+            review_path,
+            f"{library.upper()} — Review Needed: Missing Info",
+            config["email_recipient"]
+           )
+
+
         if new_rows:
             print("🔍 Full row to upload:", full_row)
             sheet.append_rows(new_rows, value_input_option="USER_ENTERED")
