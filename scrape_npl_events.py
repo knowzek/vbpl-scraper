@@ -136,7 +136,7 @@ def scrape_npl_events(mode="all"):
             except Exception as e:
                 print(f"⚠️ Error parsing event: {e}")
 
-        if len(results) < 48:
+        if not data.get("next_page"):
             break
 
         page += 1
