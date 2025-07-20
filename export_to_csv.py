@@ -14,6 +14,34 @@ from config import get_library_config
 from constants import LIBRARY_CONSTANTS
 from gspread.utils import rowcol_to_a1
 import unicodedata
+from email.mime.base import MIMEBase
+from email import encoders
+from email.mime.multipart import MIMEMultipart
+
+def send_notification_email_with_attachment(file_path, subject, recipient):
+    smtp_user = os.environ["SMTP_USERNAME"]
+    smtp_pass = os.environ["SMTP_PASSWORD"]
+
+    msg = MIMEMultipart()
+    msg["Subject"] = subject
+    msg["From"] = smtp_user
+    msg["To"] = recipient
+    msg.attach(MIMEText("Your new CSV export is attached."))
+
+    # Attach file
+    with open(file_path, "rb") as f:
+        part = MIMEBase("application", "octet-stream")
+        part.set_payload(f.read())
+        encoders.encode_base64(part)
+        part.add_header("Content-Disposition", f"attachment; filename={os.path.basename(file_path)}")
+        msg.attach(part)
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(smtp_user, smtp_pass)
+        server.send_message(msg)
+
+    print(f"📧 Email with attachment sent to {recipient}")
+
 
 def _ascii_normalize(val):
     if not isinstance(val, str):
@@ -261,8 +289,8 @@ def export_events_to_csv(library="vbpl"):
     export_df.to_csv(csv_path, index=False)
     print(f"✅ Exported {len(export_df)} events to CSV (from {original_row_count} original rows)")
 
-    file_url = upload_csv_to_drive(csv_path, creds, config["drive_folder_id"])
-    send_notification_email(file_url, config["email_subject"], config["email_recipient"])
+    send_notification_email_with_attachment(csv_path, config["email_subject"], config["email_recipient"])
+
     # ✅ Mark exported rows as "on site" in the sheet
     site_sync_col = df.columns.get_loc("Site Sync Status")
     values = sheet.get_all_values()
