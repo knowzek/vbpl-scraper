@@ -12,7 +12,16 @@ def scrape_npl_events(mode="all"):
     page = 1
     while True:
         print(f"🔄 Fetching page {page}...")
-        url = f"https://norfolk.libcal.com/ajax/calendar/list?c=-1&date=0000-00-00&perpage=48&page={page}&audience=&cats=&camps=&inc=0"
+        # Set the date param based on mode
+        if mode == "monthly":
+            date_param = datetime.today().strftime("%Y-%m-01")  # First of the month
+        elif mode == "weekly":
+            date_param = datetime.today().strftime("%Y-%m-%d")  # Today
+        else:
+            date_param = "0000-00-00"  # All (default fallback)
+        
+        url = f"https://norfolk.libcal.com/ajax/calendar/list?c=-1&date={date_param}&perpage=48&page={page}&audience=&cats=&camps=&inc=0"
+
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
@@ -136,7 +145,7 @@ def scrape_npl_events(mode="all"):
             except Exception as e:
                 print(f"⚠️ Error parsing event: {e}")
 
-        if not data.get("next_page"):
+        if len(results) < 48:
             break
 
         page += 1
