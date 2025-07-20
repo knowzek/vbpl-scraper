@@ -174,12 +174,23 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 for (kw1, kw2), cat in COMBINED_KEYWORD_TO_CATEGORY.items():
                     if kw1 in full_text and kw2 in full_text:
                         title_based_tags.extend([c.strip() for c in cat.split(",")])
-    
-                if title_based_tags:
-                    categories += ", " + ", ".join(title_based_tags)
                 
                 # Final deduplication
-                categories = ", ".join(dict.fromkeys([c.strip() for c in categories.split(",") if c.strip()]))
+                tag_list = [c.strip() for c in categories.split(",") if c.strip()]
+
+                # Add age-based categories
+                tag_list.extend(all_tags)
+                
+                # Add title-based categories
+                tag_list.extend(title_based_tags)
+                
+                # Add fallback if nothing matched
+                if not tag_list:
+                    fallback = event.get("Categories", "") or f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event"
+                    tag_list.extend([c.strip() for c in fallback.split(",")])
+                
+                # Final deduplication
+                categories = ", ".join(dict.fromkeys(tag_list))
 
                 name_original = event.get("Event Name", "")
                 # Remove any "@ LibraryName" from event titles before suffixing
