@@ -48,11 +48,8 @@ def scrape_spl_events(mode="all"):
         start_date = today
         end_date = today + timedelta(days=7)
     elif mode == "monthly":
-        start_date = datetime(today.year, today.month, 1)
-        if today.month == 12:
-            end_date = datetime(today.year + 1, 1, 1) - timedelta(days=1)
-        else:
-            end_date = datetime(today.year, today.month + 1, 1) - timedelta(days=1)
+        start_date = today
+        end_date = today + timedelta(days=30)
     else:
         start_date = today
         end_date = today + timedelta(days=90)
