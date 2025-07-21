@@ -14,7 +14,7 @@ def scrape_chpl_events(mode="all"):
     if mode == "weekly":
         days = 7
     elif mode == "monthly":
-        days = 31
+        days = 30
     else:
         days = 90  # Default fetch 90 days if no filter
 
@@ -49,8 +49,6 @@ def scrape_chpl_events(mode="all"):
             dt = datetime.strptime(item["event_start"], "%Y-%m-%d %H:%M:%S")
 
             if mode == "weekly" and dt > today + timedelta(days=7):
-                continue
-            elif mode == "monthly" and dt > today + timedelta(days=32):
                 continue
 
             # Time logic
