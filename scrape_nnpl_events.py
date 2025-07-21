@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import re
 from zoneinfo import ZoneInfo
 eastern = ZoneInfo("America/New_York")
-from constants import LIBRARY_CONSTANTS, UNWANTED_TITLE_KEYWORDS, TITLE_KEYWORD_TO_CATEGORY
+from constants import LIBRARY_COif mode == "monthly":NSTANTS, UNWANTED_TITLE_KEYWORDS, TITLE_KEYWORD_TO_CATEGORY
 
 
 ICAL_URL = "https://calendar.nnpl.org/api/feeds/ics/nnlibrary"
@@ -116,13 +116,8 @@ def scrape_nnpl_events(mode="all"):
         date_range_end = today + timedelta(days=7)
     
     elif mode == "monthly":
-        date_range_start = datetime(today.year, today.month, 1, tzinfo=timezone.utc)
-        if today.month == 12:
-            next_month = datetime(today.year + 1, 1, 1, tzinfo=timezone.utc)
-        else:
-            next_month = datetime(today.year, today.month + 1, 1, tzinfo=timezone.utc)
-        date_range_end = next_month - timedelta(seconds=1)
-    
+        date_range_start = today
+        date_range_end = today + timedelta(days=30)
     else:
         date_range_start = today
         date_range_end = today + timedelta(days=90)
