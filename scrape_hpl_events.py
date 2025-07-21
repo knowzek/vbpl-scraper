@@ -41,15 +41,7 @@ def scrape_hpl_events(mode="all"):
     if mode == "weekly":
         date_range_end = today + timedelta(days=7)
     elif mode == "monthly":
-        if today.month == 12:
-            next_month = datetime(today.year + 1, 1, 1, tzinfo=timezone.utc)
-        else:
-            next_month = datetime(today.year, today.month + 1, 1, tzinfo=timezone.utc)
-        if next_month.month == 12:
-            following_month = datetime(next_month.year + 1, 1, 1, tzinfo=timezone.utc)
-        else:
-            following_month = datetime(next_month.year, next_month.month + 1, 1, tzinfo=timezone.utc)
-        date_range_end = following_month - timedelta(days=1)
+        date_range_end = today + timedelta(days=30)
     else:
         date_range_end = today + timedelta(days=90)
 
