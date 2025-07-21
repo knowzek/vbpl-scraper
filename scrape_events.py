@@ -5,45 +5,21 @@ import time
 import re
 from constants import UNWANTED_TITLE_KEYWORDS
 
-
-def filter_events_by_mode(events, mode):
-    today = datetime.today()
-
-    if mode == "weekly":
-        end_date = today + timedelta(days=7)
-    elif mode == "monthly":
-        # move to the first day of next month
-        if today.month == 12:
-            next_month = datetime(today.year + 1, 1, 1)
-        else:
-            next_month = datetime(today.year, today.month + 1, 1)
-        
-        # calculate last day of next month
-        if next_month.month == 12:
-            following_month = datetime(next_month.year + 1, 1, 1)
-        else:
-            following_month = datetime(next_month.year, next_month.month + 1, 1)
-    
-        end_date = following_month - timedelta(days=1)
-    else:
-        return events  # no filtering
-
-    filtered = []
-    for event in events:
-        try:
-            edate = datetime.strptime(event["Event Date"], "%Y-%m-%d")
-            if today <= edate <= end_date:
-                filtered.append(event)
-        except:
-            continue
-    return filtered
-
-def scrape_vbpl_events(cutoff_date=None):
+def scrape_vbpl_events(mode="all"):
     base_url = "https://vbpl.librarymarket.com"
     headers = {"User-Agent": "Mozilla/5.0"}
     MAX_PAGES = 50
 
     events = []
+    today = datetime.today()
+
+    if mode == "weekly":
+        cutoff_date = today + timedelta(days=7)
+    elif mode == "monthly":
+        cutoff_date = today + timedelta(days=30)
+    else:
+        cutoff_date = None  # No cutoff
+
     page = 0
 
     while page < MAX_PAGES:
