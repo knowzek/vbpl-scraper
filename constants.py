@@ -8,6 +8,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Kids": "Audience - School Age",
     "math": "List - STEM/STEAM",
     "science": "List - STEM/STEAM",
+    "nature": "List - STEM/STEAM",
     "STEM": "List - STEM/STEAM",
     "lego": "List - STEM/STEAM",
     "chess": "List - STEM/STEAM",
