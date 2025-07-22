@@ -161,18 +161,21 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 categories = ", ".join(dict.fromkeys(combined))
 
                 categories = categories.replace("\u00A0", " ").replace("Â", "").strip()
-                # === Add extra categories based on title keywords (applies to ALL libraries)
+
+                # === Normalize title and description text
                 title_text = event.get("Event Name", "").lower()
+                full_text = f"{event.get('Event Name', '')} {event.get('Event Description', '')}".lower()
+                
                 title_based_tags = []
                 
+                # === Match single keywords (case-insensitive)
                 for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
-                    if keyword in title_text:
+                    if keyword.lower() in title_text:
                         title_based_tags.extend([c.strip() for c in cat.split(",")])
-
-                # === Add categories for combined keyword matches
-                full_text = f"{event.get('Event Name', '')} {event.get('Event Description', '')}".lower()
+                
+                # === Match combined keyword pairs (case-insensitive)
                 for (kw1, kw2), cat in COMBINED_KEYWORD_TO_CATEGORY.items():
-                    if kw1 in full_text and kw2 in full_text:
+                    if kw1.lower() in full_text and kw2.lower() in full_text:
                         title_based_tags.extend([c.strip() for c in cat.split(",")])
                 
                 # Final deduplication
