@@ -189,8 +189,28 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 
                 # Add fallback if nothing matched
                 if not tag_list:
-                    fallback = event.get("Categories", "") or f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event"
-                    tag_list.extend([c.strip() for c in fallback.split(",")])
+                    # Extract just the city name from known location formats
+                    raw_location = event.get("Location", "").strip()
+                    fallback_city = ""
+                
+                    if "Norfolk" in raw_location:
+                        fallback_city = "Norfolk"
+                    elif "Virginia Beach" in raw_location:
+                        fallback_city = "Virginia Beach"
+                    elif "Chesapeake" in raw_location:
+                        fallback_city = "Chesapeake"
+                    elif "Portsmouth" in raw_location:
+                        fallback_city = "Portsmouth"
+                    elif "Hampton" in raw_location:
+                        fallback_city = "Hampton"
+                    elif "Newport News" in raw_location:
+                        fallback_city = "Newport News"
+                    elif "Suffolk" in raw_location:
+                        fallback_city = "Suffolk"
+                
+                    fallback = f"Event Location - {fallback_city}, Audience - Free Event" if fallback_city else "Audience - Free Event"
+                    tag_list.append(fallback)
+
                 
                 # Final deduplication
                 categories = ", ".join(dict.fromkeys(tag_list))
