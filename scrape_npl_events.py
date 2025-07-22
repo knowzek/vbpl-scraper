@@ -39,7 +39,7 @@ def scrape_npl_events(mode="all"):
             for result in results:
                 try:
                     title = result.get("title", "").strip()
-                    if any(bad_word in title.lower() for bad_word in UNWANTED_TITLE_KEYWORDS):
+                    if any(bad_word.lower() in title.lower() for bad_word in UNWANTED_TITLE_KEYWORDS):
                         print(f"⏭️ Skipping: Unwanted title match → {title}")
                         continue
 
