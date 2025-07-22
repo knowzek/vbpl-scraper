@@ -20,7 +20,6 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "pride": "List - PRIDE Events",
     "computers": "List - STEM/STEAM",
     "yoga": "Category - Fitness Events",
-    "summer meals": "List - Food Distribution",
     "food distribution": "List - Food Distribution",
     "homeschool": "List - Homeschool",
     "KINDERSTEM": "List - STEM/STEAM, Audience - Preschool Age",
@@ -346,7 +345,7 @@ LIBRARY_CONSTANTS = {
         "program_type_to_categories": {
             "Storytime": "Audience - Family Event, List - Storytimes, Event Location - Newport News, Audience - Free Event",
             "ArtsandCrafts": "Audience - Family Event, Event Location - Newport News, Audience - Free Event",
-            "SummerReading": "Audience - Family Event, List - Summer - Summer Reading Kickoff Events, Event Location - Newport News, Audience - Free Event",
+            "SummerReading": "Audience - Family Event, Event Location - Newport News, Audience - Free Event",
             "Community": "Audience - Family Event, Event Location - Newport News, Audience - Free Event",
             "Teens": "Audience - Teens, Event Location - Newport News, Audience - Free Event",
             "Tweens": "Event Location - Newport News, Audience - Free Event",
