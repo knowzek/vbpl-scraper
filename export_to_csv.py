@@ -176,10 +176,12 @@ def export_events_to_csv(library="vbpl"):
     # Exclude any event where the only age tag is adult-related
     df["Ages"] = df["Ages"].fillna("").astype(str)
     # Custom exclusion: skip if Ages is exactly one of these problematic combinations
-    EXACT_EXCLUDE_AGES = {"adults 18+", "adults (18+), all ages"}
+    EXACT_EXCLUDE_AGES = {
+        "adult", "adults", "adults 18+", "18+", "adults (18+), all ages"
+    }
     
-    df["Ages"] = df["Ages"].fillna("").astype(str).str.strip()
-    df = df[~df["Ages"].str.lower().isin(EXACT_EXCLUDE_AGES)]
+    df["Ages"] = df["Ages"].fillna("").astype(str).str.strip().str.lower()
+    df = df[~df["Ages"].isin(EXACT_EXCLUDE_AGES)]
 
     df["Event Status"] = df["Event Status"].fillna("").astype(str)
     df = df[~df["Event Status"].str.strip().str.lower().eq("cancelled")]
