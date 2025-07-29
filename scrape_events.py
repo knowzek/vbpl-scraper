@@ -13,10 +13,9 @@ def scrape_vbpl_events(mode="all"):
     events = []
     today = datetime.today()
 
-    if mode == "weekly":
-        cutoff_date = today + timedelta(days=7)
-    elif mode == "monthly":
-        cutoff_date = today + timedelta(days=30)
+    if mode in ["weekly", "monthly"]:
+        days = 7 if mode == "weekly" else 30
+        cutoff_date = today + timedelta(days=days)
     else:
         cutoff_date = None  # No cutoff
 
