@@ -1,6 +1,5 @@
 # run_all_scrapers.py
 
-from main import *
 from scrape_npl_events import scrape_npl_events
 from scrape_chpl_events import scrape_chpl_events
 from scrape_hpl_events import scrape_hpl_events
@@ -37,7 +36,7 @@ def run_all_scrapers():
         print(f"\n🚀 Scraping {library.upper()}...")
         try:
             if library == "vbpl":
-                events = scrape_vbpl_events(cutoff_date=get_cutoff(MODE))
+                events = scrape_vbpl_events(mode=MODE)
             elif library == "npl":
                 events = scrape_npl_events(mode=MODE)
             elif library == "chpl":
