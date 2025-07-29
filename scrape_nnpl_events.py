@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import re
 from zoneinfo import ZoneInfo
 eastern = ZoneInfo("America/New_York")
-from constants import LIBRARY_COif mode == "monthly":NSTANTS, UNWANTED_TITLE_KEYWORDS, TITLE_KEYWORD_TO_CATEGORY
+from constants import LIBRARY_CONSTANTS, UNWANTED_TITLE_KEYWORDS, TITLE_KEYWORD_TO_CATEGORY
 
 
 ICAL_URL = "https://calendar.nnpl.org/api/feeds/ics/nnlibrary"
