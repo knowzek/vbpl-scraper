@@ -18,6 +18,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 from email.mime.multipart import MIMEMultipart
 
+
 def send_notification_email_with_attachment(file_path, subject, recipient):
     smtp_user = os.environ["SMTP_USERNAME"]
     smtp_pass = os.environ["SMTP_PASSWORD"]
@@ -58,7 +59,7 @@ def infer_location_from_title(title, name_suffix_map):
     for full, short in name_suffix_map.items():
         if short_name.lower() in short.lower():
             return full
-    return ""
+    return None if return_df else ""
 
 # === UTILITY FUNCTIONS ===
 def _format_time(raw: str) -> str:
@@ -109,7 +110,7 @@ def send_notification_email(file_url, subject, recipient):
 
     print(f"📬 Email sent to {recipient}")
 
-def export_events_to_csv(library="vbpl"):
+def export_events_to_csv(library="vbpl", return_df=False):
     config = get_library_config(library)
     constants = LIBRARY_CONSTANTS.get(library, {})
     name_suffix_map = constants.get("name_suffix_map", {})
@@ -171,7 +172,7 @@ def export_events_to_csv(library="vbpl"):
     
     if df.empty:
         print("🚫  No new events to export.")
-        return
+        return None if return_df else ""
 
     # Exclude any event where the only age tag is adult-related
     df["Ages"] = df["Ages"].fillna("").astype(str)
@@ -189,7 +190,7 @@ def export_events_to_csv(library="vbpl"):
     # ✅ Add another short-circuit here
     if df.empty:
         print("🚫  No new events to export (after age filters).")
-        return
+        return None if return_df else ""
     # 🔎 Debug: Check for non-string issues in Categories
     print("Categories type preview:")
     print(df["Categories"].apply(lambda x: f"{type(x)} - {x}" if pd.notnull(x) else "None").head(10))
@@ -322,14 +323,36 @@ def export_events_to_csv(library="vbpl"):
     if updates:
         sheet.batch_update([{"range": u["range"], "values": u["values"]} for u in updates])
 
+    if return_df:
+        return export_df
     return csv_path
 
 if __name__ == "__main__":
-    LIBRARIES = ["chpl"]
-    print("🧪 Running export_to_csv.py with LIBRARIES:", LIBRARIES)
+    LIBRARIES = ["chpl", "vbpl", "nnpl", "npl", "spl", "hpl", "ppl"]
+    print("🧪 Running unified CSV export for LIBRARIES:", LIBRARIES)
+
+    all_exports = []
+
     for lib in LIBRARIES:
-        print(f"\n📁 Exporting events for: {lib.upper()}")
+        print(f"\n📁 Collecting events from: {lib.upper()}")
         try:
-            export_events_to_csv(lib)
+            df = export_events_to_csv(lib, return_df=True)  # We'll modify the function to support this
+            if df is not None and not df.empty:
+                df["Library"] = lib.upper()  # Optional: tag which library it's from
+                all_exports.append(df)
         except Exception as e:
             print(f"❌ Failed to export for {lib}: {e}")
+
+    if all_exports:
+        master_df = pd.concat(all_exports, ignore_index=True)
+        csv_path = "combined_events_export.csv"
+        master_df.to_csv(csv_path, index=False)
+        print(f"✅ Wrote combined CSV with {len(master_df)} events")
+
+        # ✅ Send one email with attachment
+        subject = "Unified Events Export"
+        recipient = os.environ.get("EXPORT_RECIPIENT", "you@example.com")
+        send_notification_email_with_attachment(csv_path, subject, recipient)
+    else:
+        print("🚫 No events to export across all libraries.")
+
