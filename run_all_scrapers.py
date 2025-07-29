@@ -7,6 +7,7 @@ from scrape_hpl_events import scrape_hpl_events
 from scrape_nnpl_events import scrape_nnpl_events
 from scrape_spl_events import scrape_spl_events
 from scrape_ppl_events import scrape_ppl_events
+from scrape_events import scrape_vbpl_events
 from upload_to_sheets import upload_events_to_sheet
 from constants import LIBRARY_CONSTANTS
 
