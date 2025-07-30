@@ -75,7 +75,8 @@ def scrape_vbpr_events(mode="all"):
             print(f"❌ Error on page {page_number}: {e}")
             print("🪵 Raw response text:")
             print(res.text[:1000])
-            break
+            print(f"⚠️ Returning {len(events)} events scraped before error.")
+            return events  # <—— Prevent total loss
 
         items = data.get("body", {}).get("activity_items", [])
         if not items:
