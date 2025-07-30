@@ -1,4 +1,4 @@
-    
+
 import requests
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
@@ -36,6 +36,9 @@ def scrape_vbpr_events(mode="all"):
     else:
         cutoff = today + timedelta(days=90)
 
+    date_start = today.strftime("%Y-%m-%d")
+    date_end = cutoff.strftime("%Y-%m-%d")
+
     events = []
     page_number = 1
     seen = set()
@@ -53,7 +56,17 @@ def scrape_vbpr_events(mode="all"):
             "activity_select_param": 2,
             "viewMode": "list",
             "locale": "en-US",
-            "page_number": page_number
+            "page_number": page_number,
+            "search_text": "",
+            "date_start": date_start,
+            "date_end": date_end,
+            "activity_tag": "",
+            "activity_type": [],
+            "age_group": [],
+            "location": [],
+            "time": [],
+            "day": [],
+            "sort_field": "Relevance"
         }
 
         try:
@@ -62,6 +75,8 @@ def scrape_vbpr_events(mode="all"):
             data = res.json()
         except Exception as e:
             print(f"❌ Error on page {page_number}: {e}")
+            print("🪵 Raw response text:")
+            print(res.text[:1000])
             break
 
         items = data.get("body", {}).get("activity_items", [])
