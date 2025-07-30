@@ -47,16 +47,20 @@ def scrape_vbpr_events(mode="all"):
         search_button = page.query_selector("button.btn.btn-primary[type='submit']")
         if search_button:
             search_button.click()
-            page.wait_for_timeout(3000)
+            page.wait_for_timeout(8000)
         
         while True:
-            page.wait_for_timeout(5000)  # Just wait, no selector
+            page.wait_for_timeout(8000)  # Just wait, no selector
         
             if page.query_selector(".searchNoResults"):
                 print("⚠️ No results loaded. Exiting.")
                 break
 
             soup = BeautifulSoup(page.content(), "html.parser")
+            if not soup.select(".activityItem"):
+                print("🛑 No activity items found. Dumping debug HTML:")
+                print(page.content()[:1500])  # Print first 1500 characters
+
             cards = soup.select(".activityItem")
 
             if not cards:
@@ -146,7 +150,7 @@ def scrape_vbpr_events(mode="all"):
             next_button = page.query_selector("li.next:not(.disabled) a")
             if next_button:
                 next_button.click()
-                page.wait_for_timeout(2000)
+                page.wait_for_timeout(8000)
             else:
                 break
 
