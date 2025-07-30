@@ -154,13 +154,13 @@ def scrape_vbpr_events(mode="all"):
                     "Month": start_dt.strftime("%b"),
                     "Day": str(start_dt.day),
                     "Year": str(start_dt.year),
-                    "Event Date": start,
-                    "Event End Date": end,
                     "Event Description": desc,
                     "Series": "",
                     "Program Type": category,
-                    "Categories": categories
+                    "Categories": categories  # only include this if your shared logic expects it
                 })
+                if len(events[-1]) > 13:
+                    print("⚠️ WARNING: Too many columns in VBPR event row!", events[-1])
 
             except Exception as e:
                 print(f"⚠️ Error parsing item: {e}")
