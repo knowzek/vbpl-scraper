@@ -84,6 +84,16 @@ UNWANTED_TITLE_KEYWORDS = [
     "adult"
 ]
 
+"vbpr": {
+    "program_type_to_categories": {
+        "Fitness & Wellness": "Event Location - Virginia Beach, List - Fitness Events"
+    },
+    "name_suffix_map": {},  # optional for location inference
+    "venue_names": {},      # optional for Venue override
+    "event_name_suffix": " (Virginia Beach)"
+}
+
+
 LIBRARY_CONSTANTS = {
     "vbpl": {
         "program_type_to_categories": {
