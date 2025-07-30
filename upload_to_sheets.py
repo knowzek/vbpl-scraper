@@ -228,10 +228,20 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 loc_clean = re.sub(r"^Library Branch:", "", loc).strip()
                 display_loc = name_suffix_map.get(loc_clean, loc_clean)
                 
-                if name_cleaned.lower().endswith(display_loc.lower()):
-                    event_name = f"{name_cleaned}{suffix}"
+                # Normalize casing
+                base_name = name_cleaned.lower()
+                loc_lower = display_loc.lower()
+                suffix_lower = suffix.lower()
+                
+                # Avoid duplicate location suffix
+                if base_name.endswith(loc_lower) or suffix_lower in base_name:
+                    event_name = f"{name_cleaned}"
                 else:
-                    event_name = f"{name_cleaned} at {display_loc}{suffix}"
+                    event_name = f"{name_cleaned} at {display_loc}"
+                
+                # Append suffix only if not already present
+                if suffix and suffix not in event_name:
+                    event_name += suffix
 
                 if not categories:
                     categories = event.get("Categories", "") or f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event"
