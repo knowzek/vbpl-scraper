@@ -29,11 +29,11 @@ def scrape_vbpr_events(mode="all"):
 
     today = datetime.today()
     if mode == "weekly":
-        end_date = today + timedelta(days=7)
+        end_cutoff = today + timedelta(days=7)
     elif mode == "monthly":
-        end_date = today + timedelta(days=31)
+        end_cutoff = today + timedelta(days=31)
     else:
-        end_date = today + timedelta(days=90)
+        end_cutoff = today + timedelta(days=90)
 
     events = []
 
@@ -43,8 +43,19 @@ def scrape_vbpr_events(mode="all"):
         page = context.new_page()
         page.goto("https://anc.apm.activecommunities.com/vbparksrec/activity/search?activity_select_param=2&viewMode=list", timeout=60000)
 
+        # Explicitly click the "Search" button to trigger results
+        search_button = page.query_selector("button.btn.btn-primary[type='submit']")
+        if search_button:
+            search_button.click()
+            page.wait_for_timeout(3000)
+        
         while True:
-            page.wait_for_selector(".activityItem", timeout=10000)
+            page.wait_for_selector(".activityItem, .searchNoResults", timeout=15000)
+        
+            if page.query_selector(".searchNoResults"):
+                print("⚠️ No results loaded. Exiting.")
+                break
+
             soup = BeautifulSoup(page.content(), "html.parser")
             cards = soup.select(".activityItem")
 
@@ -81,9 +92,9 @@ def scrape_vbpr_events(mode="all"):
                         except Exception:
                             continue
 
-                    if start_date > end_date:
+                    if start_date > end_cutoff:
                         continue
-
+    
                     time_tag = card.select_one(".activityTimes")
                     time = time_tag.get_text(strip=True) if time_tag else ""
 
