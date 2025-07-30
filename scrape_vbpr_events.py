@@ -25,6 +25,10 @@ def extract_ages(text):
 
 def scrape_vbpr_events(mode="all"):
     print("🎯 Scraping VBPR events via ActiveNet JSON API...")
+    print(f"🧪 VBPR scrape starting with mode={mode}")
+    print(f"📆 Today is {today.strftime('%Y-%m-%d')}")
+    print(f"📆 Cutoff is {cutoff.strftime('%Y-%m-%d')}")
+
 
     today = datetime.today()
     if mode == "weekly":
