@@ -126,8 +126,13 @@ def scrape_vbpr_events(mode="all"):
 
                 categories = ", ".join(filter(None, [program_type_categories, keyword_category_str]))
 
+                # Avoid duplicate '(Virginia Beach)' in event title
+                final_name = name
+                if "virginia beach" not in name.lower():
+                    final_name = f"{name} (Virginia Beach)"
+                
                 events.append({
-                    "Event Name": f"{name} (Virginia Beach)",
+                    "Event Name": final_name,
                     "Event Link": link,
                     "Event Status": status,
                     "Time": time,
