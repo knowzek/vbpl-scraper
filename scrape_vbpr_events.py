@@ -50,7 +50,7 @@ def scrape_vbpr_events(mode="all"):
             page.wait_for_timeout(3000)
         
         while True:
-            page.wait_for_selector(".activityItem, .searchNoResults", timeout=15000)
+            page.wait_for_timeout(5000)  # Just wait, no selector
         
             if page.query_selector(".searchNoResults"):
                 print("⚠️ No results loaded. Exiting.")
