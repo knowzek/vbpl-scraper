@@ -24,19 +24,18 @@ def extract_ages(text):
     return ", ".join(sorted(matches))
 
 def scrape_vbpr_events(mode="all"):
-    print("🎯 Scraping VBPR events via ActiveNet JSON API...")
-    print(f"🧪 VBPR scrape starting with mode={mode}")
-    print(f"📆 Today is {today.strftime('%Y-%m-%d')}")
-    print(f"📆 Cutoff is {cutoff.strftime('%Y-%m-%d')}")
-
-
-    today = datetime.today()
+    today = datetime.today()  # 👈 Move this here first
     if mode == "weekly":
         cutoff = today + timedelta(days=7)
     elif mode == "monthly":
         cutoff = today + timedelta(days=31)
     else:
         cutoff = today + timedelta(days=90)
+
+    print("🎯 Scraping VBPR events via ActiveNet JSON API...")
+    print(f"🧪 VBPR scrape starting with mode={mode}")
+    print(f"📆 Today is {today.strftime('%Y-%m-%d')}")
+    print(f"📆 Cutoff is {cutoff.strftime('%Y-%m-%d')}")
 
     date_start = today.strftime("%Y-%m-%d")
     date_end = cutoff.strftime("%Y-%m-%d")
