@@ -137,7 +137,7 @@ LIBRARY_CONSTANTS = {
     "npl": {
         "age_to_categories": {
             "Family": "Audience - Free Event, Event Location - Norfolk, Audience - Family Event",
-            "All Ages": "Audience - Free Event, Event Location - Norfolk",
+            "All Ages": "Audience - Free Event, Event Location - Norfolk, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me, Audience - Family Event", 
             "Babies (0-2)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events",
             "Toddlers (2-3)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events",
             "Preschool (3-5)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Preschool Age",
