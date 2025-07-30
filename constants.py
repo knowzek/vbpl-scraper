@@ -50,7 +50,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "train": "List – Events with Trains",
     "Volunteer": "List – Youth Volunteer Opportunities",
     "free": "Audience – Free Event",
-    "all ages": "Audience – Family Event",
+    "all ages": "Audience – Family Event, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me, Audience - Family Event",
     "fireworks": "List – Fireworks",
     "parade": "List – Parades",
     "infant": "Audience - Toddler/Infant",
@@ -193,7 +193,7 @@ LIBRARY_CONSTANTS = {
             "Middle School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Chesapeake",
             "High School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Chesapeake",
             "Families": "Audience - Family Event, Audience - Free Event, Event Location - Chesapeake",
-            "All Ages": "Audience - Free Event, Event Location - Chesapeake",
+            "All Ages": "Audience - Free Event, Event Location - Chesapeake, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me, Audience - Family Event",
             "Adult": "Audience - Free Event, Event Location - Chesapeake"
         },
         "name_suffix_map": {
@@ -299,7 +299,7 @@ LIBRARY_CONSTANTS = {
             "Family": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk",
             "High School": "Audience - Teens, Audience - Free Event, Event Location - Suffolk",
             "Middle School": "Audience - Teens, Audience - Free Event, Event Location - Suffolk",
-            "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk"
+            "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me"
         },
         "event_name_suffix": " (Suffolk)",
         "age_to_categories": {}
@@ -331,7 +331,7 @@ LIBRARY_CONSTANTS = {
             "School Age": "Audience - School Age, Audience - Free Event, Event Location - Portsmouth",
             "Tweens": "Audience - School Age, Audience - Free Event, Event Location - Portsmouth",
             "Teens": "Audience - Teens, Audience - Free Event, Event Location - Portsmouth",
-            "All Ages": "Audience - Free Event, Event Location - Portsmouth"
+            "All Ages": "Audience - Free Event, Event Location - Portsmouth, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me, Audience - Family Event"
         },
         "program_type_to_categories": {
             # leave blank for now unless you want to map specific phrases like "STEAM", "craft", etc.
@@ -382,7 +382,7 @@ LIBRARY_CONSTANTS = {
             "21+": "Audience - Free Event, Event Location - Newport News",
             "Seniors": "Audience - Seniors, Audience - Free Event, Event Location - Newport News",
             "School Age": "Audience - Family Event, Audience - Free Event, Event Location - Newport News, Audience - School Age",
-            "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Newport News",
+            "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Newport News, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me",
             "Infant": "Audience - Toddler/Infant, Audience - Free Event, Event Location - Newport News",
             "Family": "Audience - Family Event, Audience - Free Event, Event Location - Newport News"
         }
