@@ -92,7 +92,7 @@ LIBRARY_CONSTANTS = {
         "name_suffix_map": {},  # optional for location inference
         "venue_names": {},      # optional for Venue override
         "event_name_suffix": " (Virginia Beach)"
-    }
+    },
     "vbpl": {
         "program_type_to_categories": {
             "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event, List - Storytimes",
