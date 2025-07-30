@@ -110,9 +110,12 @@ def scrape_vbpr_events(mode="all"):
                 start_dt = datetime.strptime(start, "%Y-%m-%d")
                 if start_dt > cutoff:
                     continue
-
-                # Filter out adult-only events
+                    
+                print(f"🧪 Evaluating: {name}")
+                print(f"   Fee: {fee_display}, Start: {start}, End: {end}")
+                
                 if is_likely_adult_event(min_age, desc):
+                    print("⏭️ Skipping due to adult filter")
                     continue
 
                 # 🧠 NEW: Skip events that are not free AND are multi-day
@@ -120,7 +123,9 @@ def scrape_vbpr_events(mode="all"):
                 is_free = any(phrase in cost_text for phrase in ["free", "$0", "no additional fee"])
                 is_single_day = start == end
 
-                if not (is_free or is_single_day):
+                # 🧠 Skip if the event is both: not free AND multi-day
+                if not is_free and not is_single_day:
+                    print("⏭️ Skipping due to cost/duration filter")
                     continue
 
                 ages = extract_ages(age_text + " " + desc + " " + name)
@@ -133,6 +138,7 @@ def scrape_vbpr_events(mode="all"):
                     program_type_categories = "Event Location - Virginia Beach, List - Fitness Events"
 
                 categories = ", ".join(filter(None, [program_type_categories, keyword_category_str]))
+                print(f"✅ Keeping: {name}")
 
                 events.append({
                     "Event Name": f"{name} (Virginia Beach)",
