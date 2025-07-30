@@ -90,7 +90,10 @@ LIBRARY_CONSTANTS = {
             "Fitness & Wellness": "Event Location - Virginia Beach, List - Fitness Events"
         },
         "name_suffix_map": {},  # optional for location inference
-        "venue_names": {},      # optional for Venue override
+        "venue_names": {
+            "Kingston Elem School": "Kingston Elementary School",
+            "Fairfield Elem School": "Fairfield Elementary School"
+        },     
         "event_name_suffix": " (Virginia Beach)"
     },
     "vbpl": {
