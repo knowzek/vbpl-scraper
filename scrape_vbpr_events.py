@@ -43,7 +43,7 @@ def scrape_vbpr_events(mode="all"):
 
     while True:
         print(f"📄 Fetching page {page_number}...")
-        url = "https://anc.apm.activecommunities.com/vbparksrec/rest/activities/list"
+        url = "https://anc.apm.activecommunities.com/vbparksrec/activity/search?days_of_week=0000000&activity_select_param=0&viewMode=list"
         headers = {
             "Content-Type": "application/json",
             "X-Requested-With": "XMLHttpRequest",
@@ -87,7 +87,11 @@ def scrape_vbpr_events(mode="all"):
                 name = item.get("name", "").strip()
                 if not name or name in seen:
                     continue
-                seen.add(name)
+                event_id = item.get("detail_url", "")
+                if not event_id or event_id in seen:
+                    continue
+                seen.add(event_id)
+
 
                 desc_html = item.get("desc", "")
                 desc_html = desc_html.replace("<br>", "\n").replace("<br/>", "\n").replace("</p>", "\n")
@@ -155,6 +159,7 @@ def scrape_vbpr_events(mode="all"):
 
                 categories = ", ".join(filter(None, [program_type_categories, keyword_category_str]))
                 print(f"✅ Keeping: {name}")
+                print(f"🆗 Final Event: {name} → {start} {fee_display} {link}")
 
                 events.append({
                     "Event Name": f"{name} (Virginia Beach)",
