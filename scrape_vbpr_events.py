@@ -45,6 +45,9 @@ def scrape_vbpr_events(mode="all"):
         url = f"https://anc.apm.activecommunities.com/vbparksrec/rest/activities/list?locale=en-US&page_number={page}"
         response = requests.get(url, timeout=30)
         response.raise_for_status()
+        if page == 1:
+            print("🧪 Raw response from page 1:")
+            print(response.text[:1000])  # just the first 1000 chars
 
         data = response.json()
         items = data.get("body", {}).get("activity_items", [])
