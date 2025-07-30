@@ -35,19 +35,14 @@ def scrape_vbpr_events(mode="all"):
         cutoff = today + timedelta(days=90)
 
     events = []
-    base_url = "https://anc.apm.activecommunities.com/vbparksrec/rest/activities/search"
-    headers = {"Content-Type": "application/json"}
-    total_pages = 36  # from inspection
+    total_pages = 36  # or adjust based on future data
 
     for page in range(1, total_pages + 1):
         print(f"🔄 Fetching page {page}...")
-        payload = {
-            "activity_select_param": 2,
-            "viewMode": "list",
-            "page_number": page,
-            "locale": "en-US"
-        }
-        response = requests.post(base_url, json=payload, headers=headers)
+        url = f"https://anc.apm.activecommunities.com/vbparksrec/rest/activities/list?locale=en-US&page_number={page}"
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+
         data = response.json()
         items = data.get("body", {}).get("activity_items", [])
 
