@@ -96,21 +96,26 @@ def scrape_vbpr_events(mode="all"):
                 status = item.get("urgent_message", {}).get("status_description", "Available")
                 start = item.get("date_range_start", "")
                 end = item.get("date_range_end", "")
-                time = item.get("time_range_landing_page", "") or item.get("time_range", "")
-                site = item.get("site", "").strip()
-                raw_link = item.get("detail_url", "") or ""
-                link = raw_link if raw_link.startswith("http") else "https://anc.apm.activecommunities.com" + raw_link
-
-                category = item.get("category", "").strip()
-                age_text = item.get("age_description", "") or ""
-                min_age = item.get("age_min_year", 0)
-
+                cost_text = (item.get("fees_display", "") or "").lower()
+                
+                # Skip malformed dates
                 if not start:
                     continue
-
+                
+                # Parse and skip events outside range
                 start_dt = datetime.strptime(start, "%Y-%m-%d")
                 if start_dt > cutoff:
                     continue
+                
+                # 1. Only allow free/low-cost events
+                is_free = any(kw in cost_text for kw in ["free", "$0", "no additional fee", "0.00", "0"])
+                if not is_free:
+                    continue
+                
+                # 2. Only allow single-day events
+                if start != end:
+                    continue
+
 
                 if is_likely_adult_event(min_age, desc):
                     continue
