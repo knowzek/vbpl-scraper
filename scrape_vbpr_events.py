@@ -90,7 +90,9 @@ def scrape_vbpr_events(mode="all"):
                 seen.add(name)
 
                 desc_html = item.get("desc", "")
+                desc_html = desc_html.replace("<br>", "\n").replace("<br/>", "\n").replace("</p>", "\n")
                 desc = BeautifulSoup(desc_html, "html.parser").get_text().strip()
+
                 status = item.get("urgent_message", {}).get("status_description", "Available")
                 start = item.get("date_range_start", "")
                 end = item.get("date_range_end", "")
@@ -138,7 +140,11 @@ def scrape_vbpr_events(mode="all"):
                     print("⏭️ Skipping due to cost/duration filter")
                     continue
 
-                ages = extract_ages(age_text + " " + desc + " " + name)
+                if age_text.strip():
+                    ages = age_text.strip()
+                else:
+                    ages = extract_ages(age_text + " " + desc + " " + name)
+
                 title_lower = name.lower()
                 keyword_tags = [tag for keyword, tag in TITLE_KEYWORD_TO_CATEGORY.items() if keyword in title_lower]
                 keyword_category_str = ", ".join(keyword_tags)
