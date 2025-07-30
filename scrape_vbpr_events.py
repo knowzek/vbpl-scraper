@@ -98,7 +98,9 @@ def scrape_vbpr_events(mode="all"):
                 end = item.get("date_range_end", "")
                 time = item.get("time_range_landing_page", "") or item.get("time_range", "")
                 site = item.get("site", "").strip()
-                link = "https://anc.apm.activecommunities.com" + (item.get("detail_url", "") or "")
+                raw_link = item.get("detail_url", "") or ""
+                link = raw_link if raw_link.startswith("http") else "https://anc.apm.activecommunities.com" + raw_link
+
                 category = item.get("category", "").strip()
                 age_text = item.get("age_description", "") or ""
                 min_age = item.get("age_min_year", 0)
