@@ -37,6 +37,9 @@ def scrape_vbpr_events(mode="all"):
     events = []
     total_pages = 36  # or adjust based on future data
 
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    }
     for page in range(1, total_pages + 1):
         print(f"🔄 Fetching page {page}...")
         url = f"https://anc.apm.activecommunities.com/vbparksrec/rest/activities/list?locale=en-US&page_number={page}"
