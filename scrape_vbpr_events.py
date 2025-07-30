@@ -123,7 +123,8 @@ def scrape_vbpr_events(mode="all"):
 
                 # 🧠 NEW: Skip events that are not free AND are multi-day
                 cost_text = fee_display.lower()
-                is_free = any(phrase in cost_text for phrase in ["free", "$0", "no additional fee"])
+                is_free = any(phrase in cost_text for phrase in ["free", "$0", "no additional fee", "view fee details"])
+
                 is_single_day = not end or start == end
 
                 # 🧠 Skip if the event is both: not free AND multi-day
