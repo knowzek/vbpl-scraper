@@ -57,6 +57,10 @@ if __name__ == "__main__":
     elif library == "ppl":
         from scrape_ppl_events import scrape_ppl_events
         events = scrape_ppl_events(mode=mode)
+
+    elif library == "vbpr":
+        from scrape_vbpr_events import scrape_vbpr_events
+        events = scrape_vbpr_events(mode=mode)
     
     else:
         raise ValueError(f"Unknown library: {library}")
