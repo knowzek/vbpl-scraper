@@ -96,8 +96,14 @@ def scrape_vbpr_events(mode="all"):
                 status = item.get("urgent_message", {}).get("status_description", "Available")
                 start = item.get("date_range_start", "")
                 end = item.get("date_range_end", "")
-                cost_text = (item.get("fees_display", "") or "").lower()
+                # ...after pulling `start`, `end`, and `fee_display` from item
+                cost_text = (item.get("fee_display", "") or "").lower()
+                is_free = any(phrase in cost_text for phrase in ["free", "$0", "no additional fee"])
+                is_single_day = start == end
                 
+                if not (is_free or is_single_day):
+                    continue  # 🚫 Skip events that don’t meet criteria
+
                 # Skip malformed dates
                 if not start:
                     continue
