@@ -4,11 +4,9 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from constants import TITLE_KEYWORD_TO_CATEGORY
 
-def is_likely_adult_event(min_age, desc):
-    if min_age and min_age >= 18:
-        return True
-    text = (desc or "").lower()
-    return any(kw in text for kw in ["adults", "adult", "18+", "21+"])
+def is_likely_adult_event(min_age, max_age):
+    return min_age == 18 and (max_age == 0 or max_age >= 18)
+
 
 def extract_ages(text):
     text = text.lower()
@@ -102,21 +100,24 @@ def scrape_vbpr_events(mode="all"):
                 category = item.get("category", "").strip()
                 age_text = item.get("age_description", "") or ""
                 min_age = item.get("age_min_year", 0)
+                max_age = item.get("age_max_year", 0)
                 fee_display = item.get("fee_display", "") or ""
 
                 if not start:
                     continue
 
                 start_dt = datetime.strptime(start, "%Y-%m-%d")
-                if start_dt > cutoff:
+                if start_dt < today or start_dt > cutoff:
+                    print(f"📆 Skipping: {name} → {start_dt.strftime('%Y-%m-%d')} is outside range {today.strftime('%Y-%m-%d')} to {cutoff.strftime('%Y-%m-%d')}")
                     continue
-                    
+                
                 print(f"🧪 Evaluating: {name}")
                 print(f"   Fee: {fee_display}, Start: {start}, End: {end}")
                 
-                if is_likely_adult_event(min_age, desc):
-                    print("⏭️ Skipping due to adult filter")
+                if is_likely_adult_event(min_age, max_age):
+                    print(f"⏭️ Skipping due to adult-only age range: {min_age}-{max_age}")
                     continue
+
 
                 # 🧠 NEW: Skip events that are not free AND are multi-day
                 cost_text = fee_display.lower()
