@@ -96,34 +96,31 @@ def scrape_vbpr_events(mode="all"):
                 status = item.get("urgent_message", {}).get("status_description", "Available")
                 start = item.get("date_range_start", "")
                 end = item.get("date_range_end", "")
-                # ...after pulling `start`, `end`, and `fee_display` from item
-                cost_text = (item.get("fee_display", "") or "").lower()
-                is_free = any(phrase in cost_text for phrase in ["free", "$0", "no additional fee"])
-                is_single_day = start == end
-                
-                if not (is_free or is_single_day):
-                    continue  # 🚫 Skip events that don’t meet criteria
+                time = item.get("time_range_landing_page", "") or item.get("time_range", "")
+                site = item.get("site", "").strip()
+                link = "https://anc.apm.activecommunities.com" + (item.get("detail_url", "") or "")
+                category = item.get("category", "").strip()
+                age_text = item.get("age_description", "") or ""
+                min_age = item.get("age_min_year", 0)
+                fee_display = item.get("fee_display", "") or ""
 
-                # Skip malformed dates
                 if not start:
                     continue
-                
-                # Parse and skip events outside range
+
                 start_dt = datetime.strptime(start, "%Y-%m-%d")
                 if start_dt > cutoff:
                     continue
-                
-                # 1. Only allow free/low-cost events
-                is_free = any(kw in cost_text for kw in ["free", "$0", "no additional fee", "0.00", "0"])
-                if not is_free:
-                    continue
-                
-                # 2. Only allow single-day events
-                if start != end:
-                    continue
 
-
+                # Filter out adult-only events
                 if is_likely_adult_event(min_age, desc):
+                    continue
+
+                # 🧠 NEW: Skip events that are not free AND are multi-day
+                cost_text = fee_display.lower()
+                is_free = any(phrase in cost_text for phrase in ["free", "$0", "no additional fee"])
+                is_single_day = start == end
+
+                if not (is_free or is_single_day):
                     continue
 
                 ages = extract_ages(age_text + " " + desc + " " + name)
@@ -137,13 +134,8 @@ def scrape_vbpr_events(mode="all"):
 
                 categories = ", ".join(filter(None, [program_type_categories, keyword_category_str]))
 
-                # Avoid duplicate '(Virginia Beach)' in event title
-                final_name = name
-                if "virginia beach" not in name.lower():
-                    final_name = f"{name} (Virginia Beach)"
-                
                 events.append({
-                    "Event Name": final_name,
+                    "Event Name": f"{name} (Virginia Beach)",
                     "Event Link": link,
                     "Event Status": status,
                     "Time": time,
