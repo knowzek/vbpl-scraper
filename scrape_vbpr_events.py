@@ -101,7 +101,9 @@ def scrape_vbpr_events(mode="all"):
                 age_text = item.get("age_description", "") or ""
                 min_age = item.get("age_min_year", 0)
                 max_age = item.get("age_max_year", 0)
-                fee_display = item.get("fee_display", "") or ""
+                fee_data = item.get("fee", {})
+                fee_display = fee_data.get("label", "").strip()
+
 
                 if not start:
                     continue
@@ -122,7 +124,7 @@ def scrape_vbpr_events(mode="all"):
                 # 🧠 NEW: Skip events that are not free AND are multi-day
                 cost_text = fee_display.lower()
                 is_free = any(phrase in cost_text for phrase in ["free", "$0", "no additional fee"])
-                is_single_day = start == end
+                is_single_day = not end or start == end
 
                 # 🧠 Skip if the event is both: not free AND multi-day
                 if not is_free and not is_single_day:
