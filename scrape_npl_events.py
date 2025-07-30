@@ -39,7 +39,8 @@ def scrape_npl_events(mode="all"):
             for result in results:
                 try:
                     title = result.get("title", "").strip()
-                    if any(bad_word.lower() in title.lower() for bad_word in UNWANTED_TITLE_KEYWORDS):
+                    title_lc = re.sub(r"[^\w\s]", "", title.lower())  # Remove punctuation
+                    if any(kw in title_lc for kw in UNWANTED_TITLE_KEYWORDS):
                         print(f"⏭️ Skipping: Unwanted title match → {title}")
                         continue
 
