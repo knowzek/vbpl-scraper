@@ -174,6 +174,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 # === Match single keywords (case-insensitive)
                 for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
                     if keyword.lower() in title_text:
+                        if keyword.lower() == "homeschool":
+                            print(f"✅ Matched keyword 'homeschool' in → {event.get('Event Name')}")
                         title_based_tags.extend([c.strip() for c in cat.split(",")])
                 
                 # === Match combined keyword pairs (case-insensitive)
@@ -216,6 +218,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 
                 # Final deduplication
+                print(f"🧾 Final categories for {event.get('Event Name')}: {tag_list}")
+
                 categories = ", ".join(dict.fromkeys(tag_list))
 
                 name_original = event.get("Event Name", "")
