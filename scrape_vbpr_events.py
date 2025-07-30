@@ -1,15 +1,16 @@
 
-import requests
+from playwright.sync_api import sync_playwright
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import re
 from constants import TITLE_KEYWORD_TO_CATEGORY
 
-def is_likely_adult_event(min_age):
-    return min_age >= 18
+def is_likely_adult_event(text):
+    text = text.lower()
+    return any(kw in text for kw in ["adults", "adult", "18+", "21+"])
 
-def extract_ages(age_description):
-    text = age_description.lower()
+def extract_ages(text):
+    text = text.lower()
     matches = set()
     if any(kw in text for kw in ["infants", "babies", "baby", "0-2"]):
         matches.add("Infant")
@@ -24,100 +25,121 @@ def extract_ages(age_description):
     return ", ".join(sorted(matches))
 
 def scrape_vbpr_events(mode="all"):
-    print("🎯 Scraping Virginia Beach Parks & Rec events...")
+    print("🎯 Scraping VBPR events via Playwright...")
 
     today = datetime.today()
     if mode == "weekly":
-        cutoff = today + timedelta(days=7)
+        end_date = today + timedelta(days=7)
     elif mode == "monthly":
-        cutoff = today + timedelta(days=31)
+        end_date = today + timedelta(days=31)
     else:
-        cutoff = today + timedelta(days=90)
+        end_date = today + timedelta(days=90)
 
     events = []
-    total_pages = 36  # or adjust based on future data
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-        "Referer": "https://anc.apm.activecommunities.com/vbparksrec/activity/search?activity_select_param=2&viewMode=list",
-        "Accept": "application/json, text/plain, */*",
-        "Origin": "https://anc.apm.activecommunities.com"
-    }
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context()
+        page = context.new_page()
+        page.goto("https://anc.apm.activecommunities.com/vbparksrec/activity/search?activity_select_param=2&viewMode=list", timeout=60000)
 
-    for page in range(1, total_pages + 1):
-        print(f"🔄 Fetching page {page}...")
-        url = f"https://anc.apm.activecommunities.com/vbparksrec/rest/activities/list?locale=en-US&page_number={page}"
-        response = requests.get(url, timeout=30)
-        response.raise_for_status()
-        if page == 1:
-            print("🧪 Raw response from page 1:")
-            print(response.text[:1000])  # just the first 1000 chars
+        while True:
+            page.wait_for_selector(".activityItem", timeout=10000)
+            soup = BeautifulSoup(page.content(), "html.parser")
+            cards = soup.select(".activityItem")
 
-        data = response.json()
-        items = data.get("body", {}).get("activity_items", [])
+            if not cards:
+                break
 
-        for item in items:
-            try:
-                name = item.get("name", "").strip()
-                desc_html = item.get("desc", "")
-                desc = BeautifulSoup(desc_html, "html.parser").get_text().strip()
+            for card in cards:
+                try:
+                    title_tag = card.select_one(".activityTitle")
+                    name = title_tag.get_text(strip=True) if title_tag else "Untitled Event"
 
-                link = item.get("detail_url", "")
-                status = item.get("urgent_message", {}).get("status_description", "Available")
-                start_date = item.get("date_range_start", "")
-                end_date = item.get("date_range_end", "")
-                site = item.get("site", "").strip()
-                time = item.get("time_range_landing_page", "") or item.get("time_range", "")
-                category = item.get("category", "").strip()
-                age_desc = item.get("age_description", "")
-                min_age = item.get("age_min_year", 0)
+                    if is_likely_adult_event(name):
+                        continue
 
-                if not start_date:
-                    continue
+                    detail_link_tag = card.select_one("a.activityTitleLink")
+                    link = "https://anc.apm.activecommunities.com" + detail_link_tag["href"] if detail_link_tag else ""
 
-                start_dt = datetime.strptime(start_date, "%Y-%m-%d")
-                if start_dt > cutoff:
-                    continue
+                    date_range = card.select_one(".activityDates")
+                    date_text = date_range.get_text(strip=True) if date_range else ""
+                    start_date = None
+                    end_date_str = ""
 
-                if is_likely_adult_event(min_age):
-                    continue
+                    if " to " in date_text:
+                        try:
+                            parts = date_text.split(" to ")
+                            start_date = datetime.strptime(parts[0], "%B %d, %Y")
+                            end_date_str = datetime.strptime(parts[1], "%B %d, %Y").strftime("%Y-%m-%d")
+                        except Exception:
+                            continue
+                    else:
+                        try:
+                            start_date = datetime.strptime(date_text, "%B %d, %Y")
+                            end_date_str = start_date.strftime("%Y-%m-%d")
+                        except Exception:
+                            continue
 
-                ages = extract_ages(age_desc or "")
-                month = start_dt.strftime("%b")
-                day = str(start_dt.day)
-                year = str(start_dt.year)
+                    if start_date > end_date:
+                        continue
 
-                # Build categories from title + program type
-                title_lower = name.lower()
-                keyword_tags = [tag for keyword, tag in TITLE_KEYWORD_TO_CATEGORY.items() if keyword in title_lower]
-                keyword_category_str = ", ".join(keyword_tags)
+                    time_tag = card.select_one(".activityTimes")
+                    time = time_tag.get_text(strip=True) if time_tag else ""
 
-                program_type_categories = ""
-                if category == "Fitness & Wellness":
-                    program_type_categories = "Event Location - Virginia Beach, List - Fitness Events"
+                    site_tag = card.select_one(".activityLocation")
+                    site = site_tag.get_text(strip=True) if site_tag else ""
 
-                categories = ", ".join(filter(None, [program_type_categories, keyword_category_str]))
+                    desc_tag = card.select_one(".activityDesc")
+                    desc = desc_tag.get_text(strip=True) if desc_tag else ""
 
-                events.append({
-                    "Event Name": f"{name} (Virginia Beach)",
-                    "Event Link": link,
-                    "Event Status": status,
-                    "Time": time,
-                    "Ages": ages,
-                    "Location": site,
-                    "Month": month,
-                    "Day": day,
-                    "Year": year,
-                    "Event Date": start_date,
-                    "Event End Date": end_date,
-                    "Event Description": desc,
-                    "Series": "",
-                    "Program Type": category,
-                    "Categories": categories
-                })
+                    category_tag = card.select_one(".activityCategory")
+                    category = category_tag.get_text(strip=True) if category_tag else ""
 
-            except Exception as e:
-                print(f"⚠️ Error processing item: {e}")
+                    ages = extract_ages(name + " " + desc)
 
-    print(f"✅ Scraped {len(events)} events from VBPR.")
+                    month = start_date.strftime("%b")
+                    day = str(start_date.day)
+                    year = str(start_date.year)
+
+                    title_lower = name.lower()
+                    keyword_tags = [tag for keyword, tag in TITLE_KEYWORD_TO_CATEGORY.items() if keyword in title_lower]
+                    keyword_category_str = ", ".join(keyword_tags)
+
+                    program_type_categories = ""
+                    if category == "Fitness & Wellness":
+                        program_type_categories = "Event Location - Virginia Beach, List - Fitness Events"
+
+                    categories = ", ".join(filter(None, [program_type_categories, keyword_category_str]))
+
+                    events.append({
+                        "Event Name": f"{name} (Virginia Beach)",
+                        "Event Link": link,
+                        "Event Status": "Available",
+                        "Time": time,
+                        "Ages": ages,
+                        "Location": site,
+                        "Month": month,
+                        "Day": day,
+                        "Year": year,
+                        "Event Date": start_date.strftime("%Y-%m-%d"),
+                        "Event End Date": end_date_str,
+                        "Event Description": desc,
+                        "Series": "",
+                        "Program Type": category,
+                        "Categories": categories
+                    })
+                except Exception as e:
+                    print(f"⚠️ Error parsing card: {e}")
+
+            next_button = page.query_selector("li.next:not(.disabled) a")
+            if next_button:
+                next_button.click()
+                page.wait_for_timeout(2000)
+            else:
+                break
+
+        browser.close()
+
+    print(f"✅ Scraped {len(events)} VBPR events.")
     return events
