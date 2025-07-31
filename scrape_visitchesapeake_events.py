@@ -41,54 +41,54 @@ def scrape_visitchesapeake_events(mode="all"):
     skip = 0
     limit = 100
 
-    while True:
-        payload = {
-            "filter": {
-                "categories.catId": {"$in": ["1016"]},
-                "date_range": {
-                    "start": {"$date": start_date},
-                    "end": {"$date": end_date}
-                }
-            },
-            "options": {
-                "skip": skip,
-                "limit": limit,
-                "sort": {"date": 1},
-                "fields": {
-                    "title": 1,
-                    "typeName": 1,
-                    "categories": 1,
-                    "startDate": 1,
-                    "endDate": 1,
-                    "description": 1,
-                    "location": 1,
-                    "address1": 1,
-                    "linkUrl": 1,
-                    "url": 1
-                },
-                "count": True
-            }
-        }
-                try:
-                    headers = {
-                        "User-Agent": "Mozilla/5.0",
-                        "Accept": "application/json",
-                        "X-Requested-With": "XMLHttpRequest"
+        while True:
+            payload = {
+                "filter": {
+                    "categories.catId": {"$in": ["1016"]},
+                    "date_range": {
+                        "start": {"$date": start_date},
+                        "end": {"$date": end_date}
                     }
-        
-                    res = requests.get(
-                        url,
-                        params={"json": json.dumps(payload)},
-                        headers=headers,
-                        timeout=30
-                    )
-                    res.raise_for_status()
-                    data = res.json()
-                    docs = data.get("docs", [])
-                except Exception as e:
-                    print(f"❌ Error fetching page {skip//limit + 1}: {e}")
-                    break
-
+                },
+                "options": {
+                    "skip": skip,
+                    "limit": limit,
+                    "sort": {"date": 1},
+                    "fields": {
+                        "title": 1,
+                        "typeName": 1,
+                        "categories": 1,
+                        "startDate": 1,
+                        "endDate": 1,
+                        "description": 1,
+                        "location": 1,
+                        "address1": 1,
+                        "linkUrl": 1,
+                        "url": 1
+                    },
+                    "count": True
+                }
+            }
+    
+            try:
+                headers = {
+                    "User-Agent": "Mozilla/5.0",
+                    "Accept": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+    
+                res = requests.get(
+                    url,
+                    params={"json": json.dumps(payload)},
+                    headers=headers,
+                    timeout=30
+                )
+                res.raise_for_status()
+                data = res.json()
+                docs = data.get("docs", [])
+            except Exception as e:
+                print(f"❌ Error fetching page {skip//limit + 1}: {e}")
+                break
 
         if not docs:
             break
