@@ -24,7 +24,11 @@ def extract_ages(text):
     return ", ".join(sorted(matches))
 
 def scrape_vbpr_events(mode="all"):
-    today = datetime.today()  # 👈 Move this here first
+    from datetime import datetime
+    import pytz
+    
+    today = datetime.now(pytz.timezone("US/Eastern")).replace(hour=0, minute=0, second=0, microsecond=0)
+
     if mode == "weekly":
         cutoff = today + timedelta(days=7)
     elif mode == "monthly":
