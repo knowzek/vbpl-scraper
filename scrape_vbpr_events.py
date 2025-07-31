@@ -46,7 +46,7 @@ def scrape_vbpr_events(mode="all"):
 
     while True:
         print(f"📄 Fetching page {page_number}...")
-        url = "https://anc.apm.activecommunities.com/vbparksrec/activity/search?days_of_week=0000000&activity_select_param=0&viewMode=list"
+        url = "https://anc.apm.activecommunities.com/vbparksrec/rest/activities/list"
         headers = {
             "Content-Type": "application/json",
             "X-Requested-With": "XMLHttpRequest",
