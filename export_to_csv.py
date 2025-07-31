@@ -18,7 +18,6 @@ from email.mime.base import MIMEBase
 from email import encoders
 from email.mime.multipart import MIMEMultipart
 
-
 def send_notification_email_with_attachment(file_path, subject, recipient):
     smtp_user = os.environ["SMTP_USERNAME"]
     smtp_pass = os.environ["SMTP_PASSWORD"]
