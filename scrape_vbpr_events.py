@@ -159,15 +159,32 @@ def scrape_vbpr_events(mode="all"):
                 else:
                     ages = extract_ages(age_text + " " + desc + " " + name)
 
-                title_lower = name.lower()
-                keyword_tags = [tag for keyword, tag in TITLE_KEYWORD_TO_CATEGORY.items() if keyword in title_lower]
-                keyword_category_str = ", ".join(keyword_tags)
+                # 👇 Search both title and description for keyword matches
+                text_to_match = (name + " " + desc).lower()
+                
+                keyword_tags = []
+                for keyword, tag_string in TITLE_KEYWORD_TO_CATEGORY.items():
+                    if keyword.lower() in text_to_match:
+                        tags = [t.strip() for t in tag_string.split(",")]
+                        keyword_tags.extend(tags)
+                
+                if keyword_tags:
+                    print(f"🧠 Matched keywords in '{name}': {keyword_tags}")
+                
+                keyword_category_str = ", ".join(sorted(set(keyword_tags)))
 
                 program_type_categories = ""
                 if category == "Fitness & Wellness":
                     program_type_categories = "Event Location - Virginia Beach, List - Fitness Events"
 
-                categories = ", ".join(filter(None, [program_type_categories, keyword_category_str, age_based_categories]))
+                free_event_tag = "Audience - Free Event" if is_free else ""
+                categories = ", ".join(filter(None, [
+                    program_type_categories,
+                    keyword_category_str,
+                    age_based_categories,
+                    free_event_tag
+                ]))
+
                 print(f"✅ Keeping: {name}")
                 print(f"🆗 Final Event: {name} → {start} {fee_display} {link}")
 
