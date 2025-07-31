@@ -54,7 +54,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "infant": "Audience - Toddler/Infant",
     "tween": "Audience – School Age",
     "PNO": "List – Parents Night Out",
-    "Era": "List – Swiftie Events",
+    "taylor swift": "List – Swiftie Events",
     "Potter": "List – Wizard Events",
     "Harry Potter": "List – Wizard Events",
     "outdoor": "Audience – Outdoor Event",
