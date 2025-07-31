@@ -79,6 +79,8 @@ COMBINED_KEYWORD_TO_CATEGORY = {
 UNWANTED_TITLE_KEYWORDS = [
     "summer meals",
     "Summer Meals",
+    "cpr",
+    "first aid",
     "adult"
 ]
 
