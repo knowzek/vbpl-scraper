@@ -57,7 +57,8 @@ def scrape_visitchesapeake_events(mode="all"):
                 if not actions:
                     continue
 
-                data_raw = actions.get_attribute("data-gtm-vars-collected")
+                data_raw = actions.get_attribute("data-gtm-vars")
+
                 if not data_raw:
                     continue
 
