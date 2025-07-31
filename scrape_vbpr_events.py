@@ -191,7 +191,7 @@ def scrape_vbpr_events(mode="all"):
                 print(f"⚠️ Error parsing item: {e}")
         # End of your for-loop processing all items on the current page...
         
-        MAX_PAGES = 500
+        MAX_PAGES = 1000
         if page_number > MAX_PAGES:
             print("🛑 Max page limit reached.")
             break
