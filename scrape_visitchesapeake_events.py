@@ -1,9 +1,8 @@
 from playwright.sync_api import sync_playwright
 from datetime import datetime, timedelta
-from bs4 import BeautifulSoup
-from constants import TITLE_KEYWORD_TO_CATEGORY, UNWANTED_TITLE_KEYWORDS
-from config import map_age_to_categories
 import re
+import json
+from constants import TITLE_KEYWORD_TO_CATEGORY, UNWANTED_TITLE_KEYWORDS
 
 def extract_ages(text):
     text = text.lower()
@@ -20,9 +19,8 @@ def extract_ages(text):
         matches.add("All Ages")
     return ", ".join(sorted(matches))
 
-
 def scrape_visitchesapeake_events(mode="all"):
-    print("🌾 Scraping Visit Chesapeake events via Playwright...")
+    print("\U0001f33e Scraping Visit Chesapeake events via Playwright...")
 
     today = datetime.now()
     if mode == "weekly":
@@ -39,72 +37,77 @@ def scrape_visitchesapeake_events(mode="all"):
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto("https://www.visitchesapeake.com/events", timeout=60000)
-        print("📜 Scrolling page to load all events...")
 
+        print("\U0001f4dc Scrolling page to load all events...")
         prev_height = 0
         while True:
-            page.evaluate("window.scrollBy(0, document.body.scrollHeight)")
+            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
             page.wait_for_timeout(1000)
             curr_height = page.evaluate("document.body.scrollHeight")
             if curr_height == prev_height:
                 break
             prev_height = curr_height
 
-        content = page.content()
-        soup = BeautifulSoup(content, "html.parser")
-        cards = soup.select("li.event_listing")
-
+        cards = page.query_selector_all("li.event_listing")
         for card in cards:
             try:
-                title_elem = card.select_one(".title a")
-                name = title_elem.get_text(strip=True)
-                link = "https://www.visitchesapeake.com" + title_elem.get("href", "")
-                if name in seen:
+                # skip if data attributes not present
+                actions = card.query_selector("div.actions")
+                if not actions:
+                    continue
+
+                data_raw = actions.get_attribute("data-gtm-vars-collected")
+                if not data_raw:
+                    continue
+
+                data_json = json.loads(data_raw)
+                category = data_json.get("tClient_ga4", {}).get("itemCategory", "")
+                if category != "Family Fun":
+                    continue
+
+                name = data_json.get("tClient_ga4", {}).get("itemName", "").strip()
+                if not name or name in seen:
                     continue
                 seen.add(name)
 
-                # Skip if marked as recurring
-                if "Recurring" in name or "recurring" in name:
-                    print(f"⏭️ Skipping recurring series: {name}")
-                    continue
+                link = data_json.get("tClient_ga4", {}).get("interactionUrl")
+                if not link:
+                    link_el = card.query_selector("a.web")
+                    link = link_el.get_attribute("href") if link_el else ""
 
-                date_elem = card.select_one(".date")
-                if not date_elem:
+                raw_date = card.query_selector("div.date")
+                if not raw_date:
                     continue
-                raw_date = date_elem.get_text(strip=True)
+                date_text = raw_date.inner_text().strip()
                 try:
-                    start_dt = datetime.strptime(raw_date, "%B %d, %Y")
+                    start_dt = datetime.strptime(date_text, "%B %d, %Y")
                 except:
-                    print(f"⚠️ Skipping invalid date: {raw_date}")
                     continue
 
                 if start_dt < today or start_dt > cutoff:
                     continue
 
-                desc_elem = card.select_one(".description")
-                desc_html = desc_elem.decode_contents() if desc_elem else ""
-                desc = BeautifulSoup(desc_html, "html.parser").get_text(" ", strip=True)
+                desc_el = card.query_selector("div.description")
+                desc = desc_el.inner_text().strip() if desc_el else ""
+                location_el = card.query_selector("div.location")
+                location = location_el.inner_text().strip() if location_el else ""
 
-                location_elem = card.select_one(".location")
-                location = location_elem.get_text(strip=True) if location_elem else "Chesapeake"
-
-                full_text = f"{name} {desc}".lower()
-                if any(kw in full_text for kw in UNWANTED_TITLE_KEYWORDS):
+                text_to_match = f"{name} {desc}".lower()
+                if any(kw in text_to_match for kw in UNWANTED_TITLE_KEYWORDS):
                     continue
+
+                ages = extract_ages(text_to_match)
 
                 keyword_tags = []
                 for keyword, tag_string in TITLE_KEYWORD_TO_CATEGORY.items():
-                    if keyword.lower() in full_text:
+                    if keyword.lower() in text_to_match:
                         keyword_tags.extend(tag_string.split(","))
                 keyword_category_str = ", ".join(sorted(set(keyword_tags)))
-                ages = extract_ages(full_text)
-                age_tags = map_age_to_categories(0, 0)  # Default fallback, customize if needed
 
                 categories = ", ".join(filter(None, [
                     "Event Location - Chesapeake",
                     "Audience - Free Event",
-                    keyword_category_str,
-                    ages
+                    keyword_category_str
                 ]))
 
                 events.append({
@@ -119,12 +122,11 @@ def scrape_visitchesapeake_events(mode="all"):
                     "Year": str(start_dt.year),
                     "Event Description": desc,
                     "Series": "",
-                    "Program Type": "Family Fun",
+                    "Program Type": category,
                     "Categories": categories
                 })
-
             except Exception as e:
-                print(f"⚠️ Error parsing card: {e}")
+                print(f"⚠️ Error processing card: {e}")
 
         browser.close()
 
