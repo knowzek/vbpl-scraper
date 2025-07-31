@@ -133,7 +133,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 ages_raw = event.get("Ages", "")
                 age_tags = []
-                nums = [int(n) for n in re.findall(r"\d+", ages_raw)]
+                nums = [int(n) for n in re.findall(r"\d+", ages_raw) if int(n) > 0]
 
                 if nums:
                     min_age, max_age = min(nums), max(nums)
