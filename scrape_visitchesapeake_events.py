@@ -51,7 +51,10 @@ def scrape_visitchesapeake_events(mode="all"):
         # 🔍 Dump the full rendered page content for debugging
         print("📄 Dumping final page content...")
         print(page.content()[:1500])  # Only print first 1500 characters to avoid overload
+        page.wait_for_selector("div.shared-item[data-type='event'] div.actions", timeout=10000)
         cards = page.query_selector_all("div.shared-item[data-type='event']")
+        print(f"🔍 Found {len(cards)} event cards after ensuring content is loaded")
+
         print(f"🔍 Found {len(cards)} event cards")
         for card in cards:
             try:
