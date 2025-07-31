@@ -77,6 +77,15 @@ def scrape_visitchesapeake_events(mode="all"):
             if curr_height == prev_height:
                 break
             prev_height = curr_height
+        # Optional pause to ensure JS hydration finishes
+        page.wait_for_timeout(2000)
+        
+        # ✅ Dump full hydrated HTML to file (AFTER scrolling completes)
+        html = page.content()
+        with open("/opt/render/project/src/chesapeake_debug.html", "w", encoding="utf-8") as f:
+            f.write(html)
+        print("📝 Dumped full HTML to chesapeake_debug.html")
+
         
         # Wait for JS to hydrate internal content like .actions
         try:
