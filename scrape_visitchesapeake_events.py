@@ -2,6 +2,8 @@ import requests
 from datetime import datetime, timedelta
 from constants import TITLE_KEYWORD_TO_CATEGORY, UNWANTED_TITLE_KEYWORDS
 import re
+import json
+
 
 def extract_ages(text):
     text = text.lower()
@@ -67,15 +69,26 @@ def scrape_visitchesapeake_events(mode="all"):
                 "count": True
             }
         }
+                try:
+                    headers = {
+                        "User-Agent": "Mozilla/5.0",
+                        "Accept": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+        
+                    res = requests.get(
+                        url,
+                        params={"json": json.dumps(payload)},
+                        headers=headers,
+                        timeout=30
+                    )
+                    res.raise_for_status()
+                    data = res.json()
+                    docs = data.get("docs", [])
+                except Exception as e:
+                    print(f"❌ Error fetching page {skip//limit + 1}: {e}")
+                    break
 
-        try:
-            res = requests.get(url, params={"json": str(payload)}, timeout=30)
-            res.raise_for_status()
-            data = res.json()
-            docs = data.get("docs", [])
-        except Exception as e:
-            print(f"❌ Error fetching page {skip//limit + 1}: {e}")
-            break
 
         if not docs:
             break
