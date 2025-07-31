@@ -45,7 +45,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "caregiver": "Audience - Parent & Me",
     "dad": "Audience - Parent & Me",
     "weather": "Audience – Outdoor Event",
-    "train": "List – Events with Trains",
+    "trains": "List – Events with Trains",
     "Volunteer": "List – Youth Volunteer Opportunities",
     "free": "Audience – Free Event",
     "all ages": "Audience – Family Event, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me, Audience - Family Event",
