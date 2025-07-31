@@ -49,14 +49,36 @@ def scrape_visitchesapeake_events(mode="all"):
             prev_height = curr_height
 
         # 🔍 Dump the full rendered page content for debugging
-        print("📄 Dumping final page content...")
-        print(page.content()[:1500])  # Only print first 1500 characters to avoid overload
-        page.wait_for_selector("div.shared-item[data-type='event'] div.actions", timeout=10000)
+        # Wait for base event cards to appear
+        page.wait_for_selector("div.shared-item[data-type='event']", timeout=10000)
+        
+        # Scroll the page fully to trigger hydration
+        print("📜 Scrolling page to load all events...")
+        prev_height = 0
+        while True:
+            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            page.wait_for_timeout(1000)
+            curr_height = page.evaluate("document.body.scrollHeight")
+            if curr_height == prev_height:
+                break
+            prev_height = curr_height
+        
+        # Wait for JS to hydrate internal content like .actions
+        try:
+            page.wait_for_selector("div.shared-item div.actions", timeout=8000)
+        except:
+            print("⚠️ Timeout: .actions divs never appeared.")
+        
+        # Re-select hydrated cards
         cards = page.query_selector_all("div.shared-item[data-type='event']")
-        print(f"🔍 Found {len(cards)} event cards after ensuring content is loaded")
+        print(f"🔍 Found {len(cards)} hydrated event cards")
+
 
         print(f"🔍 Found {len(cards)} event cards")
         for card in cards:
+            print("🔍 Inspecting card HTML snippet:")
+            print(card.inner_html()[:600])
+
             try:
                 # skip if data attributes not present
                 actions = card.query_selector("div.actions")
