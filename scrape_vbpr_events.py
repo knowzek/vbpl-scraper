@@ -132,13 +132,12 @@ def scrape_vbpr_events(mode="all"):
                     continue
 
                 start_dt = datetime.strptime(start, "%Y-%m-%d")
-                if today <= start_dt <= cutoff:
-                    in_range_found = True
-
                 if start_dt < today or start_dt > cutoff:
                     print(f"📆 Skipping: {name} → {start_dt.strftime('%Y-%m-%d')} is outside range {today.strftime('%Y-%m-%d')} to {cutoff.strftime('%Y-%m-%d')}")
                     continue
-                
+                else:
+                    in_range_found = True
+
                 print(f"🧪 Evaluating: {name}")
                 print(f"   Fee: {fee_display}, Start: {start}, End: {end}")
                 
