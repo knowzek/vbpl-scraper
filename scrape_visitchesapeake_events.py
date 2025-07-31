@@ -52,6 +52,14 @@ def scrape_visitchesapeake_events(mode="all"):
             if curr_height == prev_height:
                 break
             prev_height = curr_height
+            
+        # ✅ Ensure hydration of all dynamically loaded cards
+        print("⏳ Waiting for hydrated titles to appear...")
+        try:
+            page.wait_for_selector("div.shared-item.item div.contents h2 a", timeout=10000)
+            print("✅ Hydrated event titles are now present.")
+        except:
+            print("⚠️ Timeout waiting for hydrated event titles.")
 
         # 🔍 Dump the full rendered page content for debugging
         # Wait for base event cards to appear
@@ -65,27 +73,6 @@ def scrape_visitchesapeake_events(mode="all"):
         except:
             print("❌ Failed to find event cards — page may not have loaded properly.")
             return []
-
-        
-        # Scroll the page fully to trigger hydration
-        print("📜 Scrolling page to load all events...")
-        prev_height = 0
-        while True:
-            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            page.wait_for_timeout(1000)
-            curr_height = page.evaluate("document.body.scrollHeight")
-            if curr_height == prev_height:
-                break
-            prev_height = curr_height
-        # Optional pause to ensure JS hydration finishes
-        page.wait_for_timeout(2000)
-        
-        # ✅ Dump full hydrated HTML to file (AFTER scrolling completes)
-        html = page.content()
-        with open("/opt/render/project/src/chesapeake_debug.html", "w", encoding="utf-8") as f:
-            f.write(html)
-        print("📝 Dumped full HTML to chesapeake_debug.html")
-
         
         # Wait for JS to hydrate internal content like .actions
         try:
