@@ -6,7 +6,7 @@ from config import map_age_to_categories
 from constants import UNWANTED_TITLE_KEYWORDS
 
 def is_likely_adult_event(min_age, max_age):
-    return min_age == 18 and (max_age == 0 or max_age >= 18)
+    return min_age >= 18 and (max_age == 0 or max_age >= 18)
 
 
 def extract_ages(text):
