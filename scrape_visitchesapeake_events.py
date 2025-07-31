@@ -32,8 +32,9 @@ def scrape_visitchesapeake_events(mode="all"):
     else:
         cutoff = today + timedelta(days=90)
 
-    start_date = today.isoformat()
-    end_date = cutoff.isoformat()
+    start_date = today.strftime("%Y-%m-%d")
+    end_date = cutoff.strftime("%Y-%m-%d")
+
     url = "https://www.visitchesapeake.com/includes/rest_v2/plugins_events_events_by_date/find/"
 
     events = []
