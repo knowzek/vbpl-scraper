@@ -94,7 +94,9 @@ def scrape_visitchesapeake_events(mode="all"):
             print(card.inner_html()[:600])
         
             try:
-                title_el = card.query_selector("h2 a")
+                print("🔍 Inspecting full card HTML:")
+                print(card.inner_html())
+                title_el = card.query_selector("h2 > a")
         
                 if not title_el:
                     print("⚠️ Skipping card — no title found")
