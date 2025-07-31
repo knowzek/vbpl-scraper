@@ -74,7 +74,23 @@ def scrape_visitchesapeake_events(mode="all"):
         cards = page.query_selector_all("div.shared-item[data-type='event']")
         print(f"🔍 Found {len(cards)} hydrated event cards")
 
+        # Get ld+json event data block
+        try:
+            json_block = page.query_selector("script#eventSchema")
+            raw_json = json_block.inner_text()
+            schema_events = json.loads(raw_json)
+            event_meta = {
+                ev["url"]: {
+                    "desc": ev.get("description", "").strip(),
+                    "start": ev.get("startDate"),
+                    "end": ev.get("endDate")
+                }
+                for ev in schema_events
+            }
 
+        except Exception as e:
+            print(f"⚠️ Failed to parse eventSchema JSON: {e}")
+            url_to_description = {}
         print(f"🔍 Found {len(cards)} event cards")
         for card in cards:
             print("🔍 Inspecting card HTML snippet:")
@@ -94,6 +110,18 @@ def scrape_visitchesapeake_events(mode="all"):
                 link = title_el.get_attribute("href")
                 if link:
                     link = "https://www.visitchesapeake.com" + link
+                meta = event_meta.get(link)
+                if not meta:
+                    continue
+                
+                desc = meta.get("desc", "See event link for details")
+                start_date_str = meta.get("start")
+                end_date_str = meta.get("end")
+                
+                if start_date_str and end_date_str and start_date_str != end_date_str:
+                    print(f"🔁 Skipping series event: {name}")
+                    continue
+
                 
                 date_el = card.query_selector("p.dates")
                 if not date_el:
@@ -111,8 +139,7 @@ def scrape_visitchesapeake_events(mode="all"):
                 
                 location_el = card.query_selector("p.address")
                 location = location_el.inner_text().strip() if location_el else ""
-                
-                desc = ""  # no clear desc available
+
 
                 text_to_match = name.lower()
 
