@@ -82,54 +82,39 @@ def scrape_visitchesapeake_events(mode="all"):
 
             try:
                 # skip if data attributes not present
-                actions = card.query_selector("div.contents > div.actions")
-
-                if not actions:
-                    print("⚠️ No .actions div found in card")
+                title_el = card.query_selector("div.contents h2 a")
+                if not title_el:
                     continue
-
-                data_raw = actions.get_attribute("data-gtm-vars") or actions.get_attribute("data-gtm-vars-collected")
-                if not data_raw:
-                    print("⚠️ No data-gtm-vars attribute found")
-                    continue
-
-                data_json = json.loads(data_raw)
-                category = data_json.get("tClient_ga4", {}).get("itemCategory", "")
-                if category != "Family Fun":
-                    continue
-
-                name = data_json.get("tClient_ga4", {}).get("itemName", "").strip()
+                
+                name = title_el.inner_text().strip()
                 if not name or name in seen:
                     continue
                 seen.add(name)
-
-                link = data_json.get("tClient_ga4", {}).get("interactionUrl")
-                if not link:
-                    link_el = card.query_selector("a.web")
-                    link = link_el.get_attribute("href") if link_el else ""
-
-                raw_date = card.query_selector("div.date")
-                if not raw_date:
+                
+                link = title_el.get_attribute("href")
+                if link:
+                    link = "https://www.visitchesapeake.com" + link
+                
+                date_el = card.query_selector("p.dates")
+                if not date_el:
                     continue
-                date_text = raw_date.inner_text().strip()
+                date_text = date_el.inner_text().strip()
                 try:
                     start_dt = datetime.strptime(date_text, "%B %d, %Y")
                 except:
                     continue
-
+                
                 if start_dt < today or start_dt > cutoff:
-                    continue
+                    print(f"🧾 Passing event → {name} on {start_dt.strftime('%Y-%m-%d')}")
 
-                desc_el = card.query_selector("div.contents > p.dates")
-                desc = desc_el.inner_text().strip() if desc_el else ""
+                    continue
                 
                 location_el = card.query_selector("p.address")
                 location = location_el.inner_text().strip() if location_el else ""
+                
+                desc = ""  # no clear desc available
 
-
-                text_to_match = f"{name} {desc}".lower()
-                if any(kw in text_to_match for kw in UNWANTED_TITLE_KEYWORDS):
-                    continue
+                text_to_match = name.lower()
 
                 ages = extract_ages(text_to_match)
 
@@ -137,6 +122,7 @@ def scrape_visitchesapeake_events(mode="all"):
                 for keyword, tag_string in TITLE_KEYWORD_TO_CATEGORY.items():
                     if keyword.lower() in text_to_match:
                         keyword_tags.extend(tag_string.split(","))
+
                 keyword_category_str = ", ".join(sorted(set(keyword_tags)))
 
                 categories = ", ".join(filter(None, [
@@ -157,9 +143,10 @@ def scrape_visitchesapeake_events(mode="all"):
                     "Year": str(start_dt.year),
                     "Event Description": desc,
                     "Series": "",
-                    "Program Type": category,
+                    "Program Type": "Family Fun",
                     "Categories": categories
                 })
+
             except Exception as e:
                 print(f"⚠️ Error processing card: {e}")
 
