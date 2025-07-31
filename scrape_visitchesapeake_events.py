@@ -48,7 +48,8 @@ def scrape_visitchesapeake_events(mode="all"):
                 break
             prev_height = curr_height
 
-        cards = page.query_selector_all("li.event_listing")
+        cards = page.query_selector_all("div.shared-item[data-type='event']")
+
         for card in cards:
             try:
                 # skip if data attributes not present
@@ -87,10 +88,12 @@ def scrape_visitchesapeake_events(mode="all"):
                 if start_dt < today or start_dt > cutoff:
                     continue
 
-                desc_el = card.query_selector("div.description")
+                desc_el = card.query_selector("div.contents > p.dates")
                 desc = desc_el.inner_text().strip() if desc_el else ""
-                location_el = card.query_selector("div.location")
+                
+                location_el = card.query_selector("p.address")
                 location = location_el.inner_text().strip() if location_el else ""
+
 
                 text_to_match = f"{name} {desc}".lower()
                 if any(kw in text_to_match for kw in UNWANTED_TITLE_KEYWORDS):
