@@ -102,31 +102,29 @@ def scrape_visitchesapeake_events(mode="all"):
                     continue
                 link = "https://www.visitchesapeake.com" + link
                 
-                # Visit event detail page
+                # ✅ Grab date from listing card
+                date_el = card.query_selector("p.dates")
+                if not date_el:
+                    continue
+                date_text = date_el.inner_text().strip()
+                
+                # Skip obvious recurring/series events
+                if "–" in date_text or "to" in date_text.lower():
+                    print(f"🔁 Skipping possible series: {name}")
+                    continue
+                
+                try:
+                    start_dt = datetime.strptime(date_text, "%B %d, %Y")
+                except Exception as e:
+                    print(f"⚠️ Date parse failed for {name}: {e}")
+                    continue
+                
+                # ✅ Now open detail page just for description
                 detail_page = browser.new_page()
                 try:
                     detail_page.goto(link, timeout=15000)
-                
-                    date_el = card.query_selector("p.dates")
-                    if not date_el:
-                        continue
-                    date_text = date_el.inner_text().strip()
-
-                
-                    if "–" in date_text or "to" in date_text.lower():
-                        print(f"🔁 Skipping possible series: {name}")
-                        continue
-                
-                    try:
-                        start_dt = datetime.strptime(date_text.split(",")[0].strip(), "%B %d")
-                        start_dt = start_dt.replace(year=today.year)
-                    except Exception as e:
-                        print(f"⚠️ Date parse failed for {name}: {e}")
-                        continue
-                
                     desc_el = detail_page.query_selector("div.description")
                     desc = desc_el.inner_text().strip() if desc_el else "See event link for details"
-                
                 finally:
                     detail_page.close()
 
