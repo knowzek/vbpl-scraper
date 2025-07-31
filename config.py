@@ -97,3 +97,16 @@ def get_library_config(library):
     
     else:
         raise ValueError(f"Unsupported library code: {library}")
+
+
+def map_age_to_categories(min_age, max_age):
+    from constants import AGE_RANGE_TO_CATEGORY
+    matches = []
+    for min_ref, max_ref, category in AGE_RANGE_TO_CATEGORY:
+        if (
+            (min_age >= min_ref and min_age <= max_ref)
+            or (max_age >= min_ref and max_age <= max_ref)
+            or (min_age <= min_ref and max_age >= max_ref)  # fully contains the range
+        ):
+            matches.append(category)
+    return ", ".join(matches)
