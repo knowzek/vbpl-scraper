@@ -1,9 +1,9 @@
-import requests
+from playwright.sync_api import sync_playwright
 from datetime import datetime, timedelta
+from bs4 import BeautifulSoup
 from constants import TITLE_KEYWORD_TO_CATEGORY, UNWANTED_TITLE_KEYWORDS
+from config import map_age_to_categories
 import re
-import json
-
 
 def extract_ages(text):
     text = text.lower()
@@ -22,7 +22,7 @@ def extract_ages(text):
 
 
 def scrape_visitchesapeake_events(mode="all"):
-    print("🌾 Scraping Visit Chesapeake events via JSON endpoint...")
+    print("🌾 Scraping Visit Chesapeake events via Playwright...")
 
     today = datetime.now()
     if mode == "weekly":
@@ -32,112 +32,79 @@ def scrape_visitchesapeake_events(mode="all"):
     else:
         cutoff = today + timedelta(days=90)
 
-    start_date = today.strftime("%Y-%m-%d")
-    end_date = cutoff.strftime("%Y-%m-%d")
-
-    url = "https://www.visitchesapeake.com/includes/rest_v2/plugins_events_events_by_date/find/"
-
     events = []
     seen = set()
-    skip = 0
-    limit = 100
 
-    while True:
-        payload = {
-            "filter": {
-                "categories.catId": {"$in": ["1016"]},
-                "date_range": {
-                    "start": {"$date": start_date},
-                    "end": {"$date": end_date}
-                }
-            },
-            "options": {
-                "skip": skip,
-                "limit": limit,
-                "sort": {"date": 1},
-                "fields": {
-                    "title": 1,
-                    "typeName": 1,
-                    "categories": 1,
-                    "startDate": 1,
-                    "endDate": 1,
-                    "description": 1,
-                    "location": 1,
-                    "address1": 1,
-                    "linkUrl": 1,
-                    "url": 1
-                },
-                "count": True
-            }
-        }
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto("https://www.visitchesapeake.com/events/?categoryid=1016", timeout=60000)
+        print("📜 Scrolling page to load all events...")
 
-        try:
-            headers = {
-                "User-Agent": "Mozilla/5.0",
-                "Accept": "application/json",
-                "X-Requested-With": "XMLHttpRequest"
-            }
+        prev_height = 0
+        while True:
+            page.evaluate("window.scrollBy(0, document.body.scrollHeight)")
+            page.wait_for_timeout(1000)
+            curr_height = page.evaluate("document.body.scrollHeight")
+            if curr_height == prev_height:
+                break
+            prev_height = curr_height
 
-            res = requests.get(
-                url,
-                params={
-                    "json": json.dumps(payload),
-                    "token": "95f6c62e498c262164e2775881c8c2c1"
-                },
-                headers=headers,
-                timeout=30
-            )
-            res.raise_for_status()
-            data = res.json()
-            docs = data.get("docs", [])
+        content = page.content()
+        soup = BeautifulSoup(content, "html.parser")
+        cards = soup.select("li.event_listing")
 
-        except Exception as e:
-            print(f"❌ Error fetching page {skip//limit + 1}: {e}")
-            break
-
-        if not docs:
-            break
-
-        for item in docs:
+        for card in cards:
             try:
-                if item.get("typeName") != "One-Time Event":
-                    continue
-                if "title" not in item:
-                    continue
-
-                name = item["title"].strip()
+                title_elem = card.select_one(".title a")
+                name = title_elem.get_text(strip=True)
+                link = "https://www.visitchesapeake.com" + title_elem.get("href", "")
                 if name in seen:
                     continue
                 seen.add(name)
 
-                desc = item.get("description", "").strip()
-                text_to_match = f"{name} {desc}".lower()
-                if any(kw in text_to_match for kw in UNWANTED_TITLE_KEYWORDS):
+                # Skip if marked as recurring
+                if "Recurring" in name or "recurring" in name:
+                    print(f"⏭️ Skipping recurring series: {name}")
                     continue
 
-                start_raw = item.get("startDate", "")
+                date_elem = card.select_one(".date")
+                if not date_elem:
+                    continue
+                raw_date = date_elem.get_text(strip=True)
                 try:
-                    start_dt = datetime.strptime(start_raw[:10], "%Y-%m-%d")
+                    start_dt = datetime.strptime(raw_date, "%B %d, %Y")
                 except:
+                    print(f"⚠️ Skipping invalid date: {raw_date}")
                     continue
 
                 if start_dt < today or start_dt > cutoff:
                     continue
 
-                link = item.get("linkUrl") or ("https://www.visitchesapeake.com" + item.get("url", ""))
-                location = item.get("location") or item.get("address1", "")
-                ages = extract_ages(name + " " + desc)
+                desc_elem = card.select_one(".description")
+                desc_html = desc_elem.decode_contents() if desc_elem else ""
+                desc = BeautifulSoup(desc_html, "html.parser").get_text(" ", strip=True)
+
+                location_elem = card.select_one(".location")
+                location = location_elem.get_text(strip=True) if location_elem else "Chesapeake"
+
+                full_text = f"{name} {desc}".lower()
+                if any(kw in full_text for kw in UNWANTED_TITLE_KEYWORDS):
+                    continue
 
                 keyword_tags = []
                 for keyword, tag_string in TITLE_KEYWORD_TO_CATEGORY.items():
-                    if keyword.lower() in text_to_match:
+                    if keyword.lower() in full_text:
                         keyword_tags.extend(tag_string.split(","))
                 keyword_category_str = ", ".join(sorted(set(keyword_tags)))
+                ages = extract_ages(full_text)
+                age_tags = map_age_to_categories(0, 0)  # Default fallback, customize if needed
 
                 categories = ", ".join(filter(None, [
                     "Event Location - Chesapeake",
                     "Audience - Free Event",
-                    keyword_category_str
+                    keyword_category_str,
+                    ages
                 ]))
 
                 events.append({
@@ -155,12 +122,11 @@ def scrape_visitchesapeake_events(mode="all"):
                     "Program Type": "Family Fun",
                     "Categories": categories
                 })
-            except Exception as e:
-                print(f"⚠️ Error processing item: {e}")
 
-        skip += len(docs)
-        if len(docs) < limit:
-            break
+            except Exception as e:
+                print(f"⚠️ Error parsing card: {e}")
+
+        browser.close()
 
     print(f"✅ Scraped {len(events)} Visit Chesapeake events.")
     return events
