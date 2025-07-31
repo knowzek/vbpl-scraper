@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime, timedelta
 from constants import TITLE_KEYWORD_TO_CATEGORY, UNWANTED_TITLE_KEYWORDS
-from bs4 import BeautifulSoup
+import re
 
 def extract_ages(text):
     text = text.lower()
@@ -20,7 +20,7 @@ def extract_ages(text):
 
 
 def scrape_visitchesapeake_events(mode="all"):
-    print("🌾 Scraping Visit Chesapeake events...")
+    print("🌾 Scraping Visit Chesapeake events via JSON endpoint...")
 
     today = datetime.now()
     if mode == "weekly":
@@ -30,100 +30,118 @@ def scrape_visitchesapeake_events(mode="all"):
     else:
         cutoff = today + timedelta(days=90)
 
-    base_url = "https://www.visitchesapeake.com/events/"
-    api_url = "https://www.visitchesapeake.com/includes/functions_ajax.cfm"
-
-    start_date = today.strftime("%m/%d/%Y")
-    end_date = cutoff.strftime("%m/%d/%Y")
-
-    params = {
-        "skip": 0,
-        "categoryid": 1016,
-        "startDate": start_date,
-        "endDate": end_date,
-        "sort": "date"
-    }
-
-    headers = {
-        "X-Requested-With": "XMLHttpRequest",
-        "User-Agent": "Mozilla/5.0"
-    }
+    start_date = today.isoformat()
+    end_date = cutoff.isoformat()
+    url = "https://www.visitchesapeake.com/includes/rest_v2/plugins_events_events_by_date/find/"
 
     events = []
     seen = set()
+    skip = 0
+    limit = 100
 
     while True:
+        payload = {
+            "filter": {
+                "categories.catId": {"$in": ["1016"]},
+                "date_range": {
+                    "start": {"$date": start_date},
+                    "end": {"$date": end_date}
+                }
+            },
+            "options": {
+                "skip": skip,
+                "limit": limit,
+                "sort": {"date": 1},
+                "fields": {
+                    "title": 1,
+                    "typeName": 1,
+                    "categories": 1,
+                    "startDate": 1,
+                    "endDate": 1,
+                    "description": 1,
+                    "location": 1,
+                    "address1": 1,
+                    "linkUrl": 1,
+                    "url": 1
+                },
+                "count": True
+            }
+        }
+
         try:
-            res = requests.get("https://www.visitchesapeake.com/includes/functions_ajax.cfm", params=params, headers=headers, timeout=30)
+            res = requests.get(url, params={"json": str(payload)}, timeout=30)
             res.raise_for_status()
-            json_data = res.json()
+            data = res.json()
+            docs = data.get("docs", [])
+        except Exception as e:
+            print(f"❌ Error fetching page {skip//limit + 1}: {e}")
+            break
 
-            docs = json_data.get("docs", [])
-            if not docs:
-                break
+        if not docs:
+            break
 
-            for item in docs:
+        for item in docs:
+            try:
                 if item.get("typeName") != "One-Time Event":
                     continue
-                categories = [c.get("catName", "") for c in item.get("categories", [])]
-                if "Family Fun" not in categories:
+                if "title" not in item:
                     continue
 
-                name = item.get("title", "").strip()
+                name = item["title"].strip()
                 if name in seen:
                     continue
                 seen.add(name)
 
-                desc = item.get("teaser", "").strip()
-                full_desc = item.get("description", "") or ""
-                description = desc or full_desc
-
-                if any(kw.lower() in (name + " " + description).lower() for kw in UNWANTED_TITLE_KEYWORDS):
+                desc = item.get("description", "").strip()
+                text_to_match = f"{name} {desc}".lower()
+                if any(kw in text_to_match for kw in UNWANTED_TITLE_KEYWORDS):
                     continue
 
-                start = item.get("startDate")
-                end = item.get("endDate") or start
-                time_str = ""  # Optional — can infer if needed
-                location = item.get("location", item.get("address1", "")).strip()
-                event_link = item.get("absoluteUrl", "").strip()
-                ages = extract_ages(name + " " + description)
-
+                start_raw = item.get("startDate", "")
                 try:
-                    start_dt = datetime.strptime(start[:10], "%Y-%m-%d")
+                    start_dt = datetime.strptime(start_raw[:10], "%Y-%m-%d")
                 except:
                     continue
 
-                if start_dt > cutoff:
+                if start_dt < today or start_dt > cutoff:
                     continue
 
+                link = item.get("linkUrl") or ("https://www.visitchesapeake.com" + item.get("url", ""))
+                location = item.get("location") or item.get("address1", "")
+                ages = extract_ages(name + " " + desc)
+
                 keyword_tags = []
-                text_to_match = (name + " " + description).lower()
                 for keyword, tag_string in TITLE_KEYWORD_TO_CATEGORY.items():
                     if keyword.lower() in text_to_match:
-                        keyword_tags.extend(tag_string.split(", "))
+                        keyword_tags.extend(tag_string.split(","))
+                keyword_category_str = ", ".join(sorted(set(keyword_tags)))
 
-                categories = ", ".join(sorted(set(["Event Location - Chesapeake", "Audience - Free Event"] + keyword_tags)))
+                categories = ", ".join(filter(None, [
+                    "Event Location - Chesapeake",
+                    "Audience - Free Event",
+                    keyword_category_str
+                ]))
 
                 events.append({
                     "Event Name": f"{name} (Chesapeake)",
-                    "Event Link": event_link,
+                    "Event Link": link,
                     "Event Status": "Available",
-                    "Time": time_str,
+                    "Time": "",
                     "Ages": ages,
                     "Location": location,
                     "Month": start_dt.strftime("%b"),
                     "Day": str(start_dt.day),
                     "Year": str(start_dt.year),
-                    "Event Description": description,
+                    "Event Description": desc,
                     "Series": "",
                     "Program Type": "Family Fun",
                     "Categories": categories
                 })
+            except Exception as e:
+                print(f"⚠️ Error processing item: {e}")
 
-            params["skip"] += len(docs)
-
-        except Exception as e:
-            print(f"❌ Error: {e}")
+        skip += len(docs)
+        if len(docs) < limit:
             break
 
     print(f"✅ Scraped {len(events)} Visit Chesapeake events.")
