@@ -179,6 +179,11 @@ def scrape_vbpr_events(mode="all"):
 
                 free_event_tag = "Audience - Free Event" if is_free else ""
                 base_location_tag = "Event Location - Virginia Beach"
+                print(f"📍 base_location_tag: {base_location_tag}")
+                print(f"🎟️ free_event_tag: {free_event_tag}")
+                print(f"🏷️ keyword_category_str: {keyword_category_str}")
+                print(f"👶 age_based_categories: {age_based_categories}")
+
                 categories = ", ".join(filter(None, [
                     base_location_tag,
                     program_type_categories,
