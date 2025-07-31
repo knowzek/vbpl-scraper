@@ -24,18 +24,15 @@ def extract_ages(text):
     return ", ".join(sorted(matches))
 
 def scrape_vbpr_events(mode="all"):
-    today = datetime.today()  # 👈 Move this here first
+    print("🎯 Scraping VBPR events via ActiveNet JSON API...")
+
+    today = datetime.today()
     if mode == "weekly":
         cutoff = today + timedelta(days=7)
     elif mode == "monthly":
         cutoff = today + timedelta(days=31)
     else:
         cutoff = today + timedelta(days=90)
-
-    print("🎯 Scraping VBPR events via ActiveNet JSON API...")
-    print(f"🧪 VBPR scrape starting with mode={mode}")
-    print(f"📆 Today is {today.strftime('%Y-%m-%d')}")
-    print(f"📆 Cutoff is {cutoff.strftime('%Y-%m-%d')}")
 
     date_start = today.strftime("%Y-%m-%d")
     date_end = cutoff.strftime("%Y-%m-%d")
@@ -46,7 +43,7 @@ def scrape_vbpr_events(mode="all"):
 
     while True:
         print(f"📄 Fetching page {page_number}...")
-        url = "https://anc.apm.activecommunities.com/vbparksrec/activity/search?days_of_week=0000000&activity_select_param=0&viewMode=list"
+        url = "https://anc.apm.activecommunities.com/vbparksrec/rest/activities/list"
         headers = {
             "Content-Type": "application/json",
             "X-Requested-With": "XMLHttpRequest",
@@ -78,8 +75,7 @@ def scrape_vbpr_events(mode="all"):
             print(f"❌ Error on page {page_number}: {e}")
             print("🪵 Raw response text:")
             print(res.text[:1000])
-            print(f"⚠️ Returning {len(events)} events scraped before error.")
-            return events  # <—— Prevent total loss
+            break
 
         items = data.get("body", {}).get("activity_items", [])
         if not items:
@@ -91,16 +87,10 @@ def scrape_vbpr_events(mode="all"):
                 name = item.get("name", "").strip()
                 if not name or name in seen:
                     continue
-                event_id = item.get("detail_url", "")
-                if not event_id or event_id in seen:
-                    continue
-                seen.add(event_id)
-
+                seen.add(name)
 
                 desc_html = item.get("desc", "")
-                desc_html = desc_html.replace("<br>", "\n").replace("<br/>", "\n").replace("</p>", "\n")
                 desc = BeautifulSoup(desc_html, "html.parser").get_text().strip()
-
                 status = item.get("urgent_message", {}).get("status_description", "Available")
                 start = item.get("date_range_start", "")
                 end = item.get("date_range_end", "")
@@ -148,11 +138,7 @@ def scrape_vbpr_events(mode="all"):
                     print("⏭️ Skipping due to cost/duration filter")
                     continue
 
-                if age_text.strip():
-                    ages = age_text.strip()
-                else:
-                    ages = extract_ages(age_text + " " + desc + " " + name)
-
+                ages = extract_ages(age_text + " " + desc + " " + name)
                 title_lower = name.lower()
                 keyword_tags = [tag for keyword, tag in TITLE_KEYWORD_TO_CATEGORY.items() if keyword in title_lower]
                 keyword_category_str = ", ".join(keyword_tags)
@@ -163,7 +149,6 @@ def scrape_vbpr_events(mode="all"):
 
                 categories = ", ".join(filter(None, [program_type_categories, keyword_category_str]))
                 print(f"✅ Keeping: {name}")
-                print(f"🆗 Final Event: {name} → {start} {fee_display} {link}")
 
                 events.append({
                     "Event Name": f"{name} (Virginia Beach)",
