@@ -77,12 +77,13 @@ def scrape_visitchesapeake_events(mode="all"):
                 "X-Requested-With": "XMLHttpRequest"
             }
 
-            res = requests.get(
+            res = requests.post(
                 url,
-                params={"json": json.dumps(payload)},
                 headers=headers,
+                json=payload,
                 timeout=30
             )
+
             res.raise_for_status()
             data = res.json()
             docs = data.get("docs", [])
