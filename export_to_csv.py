@@ -328,7 +328,7 @@ def export_events_to_csv(library="vbpl", return_df=False):
     return csv_path
 
 if __name__ == "__main__":
-    LIBRARIES = ["chpl", "vbpl", "nnpl", "npl", "spl", "hpl", "ppl"]
+    LIBRARIES = ["vbpr"]
     print("🧪 Running unified CSV export for LIBRARIES:", LIBRARIES)
 
     all_exports = []
