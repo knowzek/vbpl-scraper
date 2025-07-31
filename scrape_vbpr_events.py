@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from constants import TITLE_KEYWORD_TO_CATEGORY
 from config import map_age_to_categories
+from constants import UNWANTED_TITLE_KEYWORDS
 
 def is_likely_adult_event(min_age, max_age):
     return min_age == 18 and (max_age == 0 or max_age >= 18)
@@ -111,6 +112,12 @@ def scrape_vbpr_events(mode="all"):
                 desc_html = desc_html.replace("<br>", "\n").replace("<br/>", "\n").replace("</p>", "\n")
                 desc = BeautifulSoup(desc_html, "html.parser").get_text().strip()
 
+                # 👇 Skip events based on unwanted keywords
+                text_to_match = (name + " " + desc).lower()
+                if any(bad_kw.lower() in text_to_match for bad_kw in UNWANTED_TITLE_KEYWORDS):
+                    print(f"⏭️ Skipping unwanted keyword match: {name}")
+                    continue
+                    
                 status = item.get("urgent_message", {}).get("status_description", "Available")
                 start = item.get("date_range_start", "")
                 end = item.get("date_range_end", "")
