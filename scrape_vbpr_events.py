@@ -91,7 +91,7 @@ def scrape_vbpr_events(mode="all"):
             break
         
         items = body.get("activity_items", [])
-
+        print(f"📦 Page {page_number} contains {len(items)} items")
         if not items:
             print("🚫 No more items.")
             break
