@@ -38,7 +38,7 @@ def scrape_visitchesapeake_events(mode="all"):
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
-        page.goto("https://www.visitchesapeake.com/events/?categoryid=1016", timeout=60000)
+        page.goto("https://www.visitchesapeake.com/events", timeout=60000)
         print("📜 Scrolling page to load all events...")
 
         prev_height = 0
