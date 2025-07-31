@@ -55,8 +55,16 @@ def scrape_visitchesapeake_events(mode="all"):
 
         # 🔍 Dump the full rendered page content for debugging
         # Wait for base event cards to appear
+        # Wait for base load
         page.wait_for_load_state("load")
-        page.wait_for_selector("div.shared-item[data-type='event']", timeout=10000)
+        
+        # Safer: wait until event cards are present in DOM (but not necessarily visible)
+        try:
+            page.wait_for_selector("div.shared-item[data-type='event']", timeout=10000, state="attached")
+            print("✅ Found event cards in DOM.")
+        except:
+            print("❌ Failed to find event cards — page may not have loaded properly.")
+            return []
 
         
         # Scroll the page fully to trigger hydration
