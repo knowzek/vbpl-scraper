@@ -48,18 +48,22 @@ def scrape_visitchesapeake_events(mode="all"):
                 break
             prev_height = curr_height
 
+        # 🔍 Dump the full rendered page content for debugging
+        print("📄 Dumping final page content...")
+        print(page.content()[:1500])  # Only print first 1500 characters to avoid overload
         cards = page.query_selector_all("div.shared-item[data-type='event']")
-
+        print(f"🔍 Found {len(cards)} event cards")
         for card in cards:
             try:
                 # skip if data attributes not present
                 actions = card.query_selector("div.actions")
                 if not actions:
+                    print("⚠️ No .actions div found in card")
                     continue
 
-                data_raw = actions.get_attribute("data-gtm-vars")
-
+                data_raw = actions.get_attribute("data-gtm-vars") or actions.get_attribute("data-gtm-vars-collected")
                 if not data_raw:
+                    print("⚠️ No data-gtm-vars attribute found")
                     continue
 
                 data_json = json.loads(data_raw)
