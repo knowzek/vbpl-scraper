@@ -54,7 +54,7 @@ def scrape_visitchesapeake_events(mode="all"):
 
     while True:
         try:
-            res = requests.get(base_url, params=params, headers=headers, timeout=30)
+            res = requests.get("https://www.visitchesapeake.com/includes/functions_ajax.cfm", params=params, headers=headers, timeout=30)
             res.raise_for_status()
             json_data = res.json()
 
