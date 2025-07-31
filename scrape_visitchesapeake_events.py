@@ -50,7 +50,8 @@ def scrape_visitchesapeake_events(mode="all"):
 
         # 🔍 Dump the full rendered page content for debugging
         # Wait for base event cards to appear
-        page.wait_for_selector("div.shared-item[data-type='event']", timeout=10000)
+        page.wait_for_load_state("networkidle")
+
         
         # Scroll the page fully to trigger hydration
         print("📜 Scrolling page to load all events...")
@@ -81,7 +82,8 @@ def scrape_visitchesapeake_events(mode="all"):
 
             try:
                 # skip if data attributes not present
-                actions = card.query_selector("div.actions")
+                actions = card.query_selector("div.contents > div.actions")
+
                 if not actions:
                     print("⚠️ No .actions div found in card")
                     continue
