@@ -113,9 +113,13 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                             matched_tags.extend([c.strip() for c in cat.split(",")])
                     categories = ", ".join(dict.fromkeys(matched_tags))  # remove duplicates, preserve order
                 
+                elif library == "vbpr":
+                    # For VBPR, use the categories provided by the scraper
+                    categories = event.get("Categories", "").strip()
                 else:
-                    # Default case for vbpl, npl, chpl, etc.
+                    # Default fallback for all other libraries
                     categories = program_type_to_categories.get(program_type, "")
+
 
                 if library == "chpl" and age_to_categories:
                     audience_keys = [a.strip() for a in event.get("Ages", "").split(",") if a.strip()]
