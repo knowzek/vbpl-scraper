@@ -113,7 +113,13 @@ def get_library_config(library):
 
 def map_age_to_categories(min_age, max_age):
     from constants import AGE_RANGE_TO_CATEGORY
+
     matches = []
+
+    # Treat open-ended ranges like "6+" as including up to age 17
+    if max_age == 0:
+        max_age = 17
+
     for min_ref, max_ref, category in AGE_RANGE_TO_CATEGORY:
         if (
             (min_age >= min_ref and min_age <= max_ref)
@@ -121,4 +127,5 @@ def map_age_to_categories(min_age, max_age):
             or (min_age <= min_ref and max_age >= max_ref)  # fully contains the range
         ):
             matches.append(category)
+
     return ", ".join(matches)
