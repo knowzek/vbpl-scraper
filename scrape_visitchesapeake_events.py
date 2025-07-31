@@ -81,90 +81,90 @@ def scrape_visitchesapeake_events(mode="all"):
 
         print(f"🔍 Found {len(cards)} event cards")
         for card in cards:
-        print("🔍 Inspecting card HTML snippet:")
-        print(card.inner_html()[:600])
-    
-        try:
-            title_el = card.query_selector("h2 a")
-    
-            if not title_el:
-                print("⚠️ Skipping card — no title found")
-                print(card.inner_html()[:500])
-                continue
-    
-            name = title_el.inner_text().strip()
-            if not name or name in seen:
-                continue
-            seen.add(name)
-            name = sentence_case(name)
-    
-            link = title_el.get_attribute("href")
-            if not link:
-                continue
-            link = "https://www.visitchesapeake.com" + link
-    
-            date_el = card.query_selector("p.dates")
-            if not date_el:
-                print(f"⚠️ Skipping {name}: no date element")
-                continue
-            date_text = date_el.inner_text().strip()
-    
-            if "–" in date_text or "to" in date_text.lower():
-                print(f"🔁 Skipping possible series: {name}")
-                continue
-    
+            print("🔍 Inspecting card HTML snippet:")
+            print(card.inner_html()[:600])
+        
             try:
-                start_dt = datetime.strptime(date_text, "%B %d, %Y")
+                title_el = card.query_selector("h2 a")
+        
+                if not title_el:
+                    print("⚠️ Skipping card — no title found")
+                    print(card.inner_html()[:500])
+                    continue
+        
+                name = title_el.inner_text().strip()
+                if not name or name in seen:
+                    continue
+                seen.add(name)
+                name = sentence_case(name)
+        
+                link = title_el.get_attribute("href")
+                if not link:
+                    continue
+                link = "https://www.visitchesapeake.com" + link
+        
+                date_el = card.query_selector("p.dates")
+                if not date_el:
+                    print(f"⚠️ Skipping {name}: no date element")
+                    continue
+                date_text = date_el.inner_text().strip()
+        
+                if "–" in date_text or "to" in date_text.lower():
+                    print(f"🔁 Skipping possible series: {name}")
+                    continue
+        
+                try:
+                    start_dt = datetime.strptime(date_text, "%B %d, %Y")
+                except Exception as e:
+                    print(f"⚠️ Date parse failed for {name}: {e}")
+                    continue
+        
+                detail_page = browser.new_page()
+                try:
+                    detail_page.goto(link, timeout=30000)
+                    desc_el = detail_page.query_selector("div.description")
+                    desc = desc_el.inner_text().strip() if desc_el else "See event link for details"
+                finally:
+                    detail_page.close()
+        
+                location_el = card.query_selector("p.address")
+                location = location_el.inner_text().strip() if location_el else ""
+        
+                text_to_match = f"{name} {desc}".lower()
+                ages = extract_ages(text_to_match)
+        
+                keyword_tags = []
+                for keyword, tag_string in TITLE_KEYWORD_TO_CATEGORY.items():
+                    if re.search(rf"\b{re.escape(keyword.lower())}\b", text_to_match):
+                        keyword_tags.extend(tag_string.split(","))
+        
+                keyword_category_str = ", ".join(sorted(set(keyword_tags)))
+                categories = ", ".join(filter(None, [
+                    "Event Location - Chesapeake",
+                    "Audience - Free Event",
+                    "Audience - Family Event",
+                    keyword_category_str
+                ]))
+        
+                events.append({
+                    "Event Name": name,
+                    "Event Link": link,
+                    "Event Status": "Available",
+                    "Time": "",
+                    "Ages": ages,
+                    "Location": location,
+                    "Month": start_dt.strftime("%b"),
+                    "Day": str(start_dt.day),
+                    "Year": str(start_dt.year),
+                    "Event Description": desc,
+                    "Series": "",
+                    "Program Type": "Family Fun",
+                    "Categories": categories
+                })
+        
             except Exception as e:
-                print(f"⚠️ Date parse failed for {name}: {e}")
-                continue
+                print(f"⚠️ Error processing card: {e}")
     
-            detail_page = browser.new_page()
-            try:
-                detail_page.goto(link, timeout=30000)
-                desc_el = detail_page.query_selector("div.description")
-                desc = desc_el.inner_text().strip() if desc_el else "See event link for details"
-            finally:
-                detail_page.close()
-    
-            location_el = card.query_selector("p.address")
-            location = location_el.inner_text().strip() if location_el else ""
-    
-            text_to_match = f"{name} {desc}".lower()
-            ages = extract_ages(text_to_match)
-    
-            keyword_tags = []
-            for keyword, tag_string in TITLE_KEYWORD_TO_CATEGORY.items():
-                if re.search(rf"\b{re.escape(keyword.lower())}\b", text_to_match):
-                    keyword_tags.extend(tag_string.split(","))
-    
-            keyword_category_str = ", ".join(sorted(set(keyword_tags)))
-            categories = ", ".join(filter(None, [
-                "Event Location - Chesapeake",
-                "Audience - Free Event",
-                "Audience - Family Event",
-                keyword_category_str
-            ]))
-    
-            events.append({
-                "Event Name": name,
-                "Event Link": link,
-                "Event Status": "Available",
-                "Time": "",
-                "Ages": ages,
-                "Location": location,
-                "Month": start_dt.strftime("%b"),
-                "Day": str(start_dt.day),
-                "Year": str(start_dt.year),
-                "Event Description": desc,
-                "Series": "",
-                "Program Type": "Family Fun",
-                "Categories": categories
-            })
-    
-        except Exception as e:
-            print(f"⚠️ Error processing card: {e}")
-
 
         browser.close()
 
