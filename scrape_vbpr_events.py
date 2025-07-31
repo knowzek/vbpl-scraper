@@ -243,7 +243,7 @@ def scrape_vbpr_events(mode="all"):
                 print(f"🆗 Final Event: {name} → {start} {fee_display} {link}")
 
                 events.append({
-                    "Event Name": f"{name} (Virginia Beach)",
+                    "Event Name": name,
                     "Event Link": link,
                     "Event Status": status,
                     "Time": time,
