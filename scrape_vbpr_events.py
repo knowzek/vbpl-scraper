@@ -2,6 +2,7 @@ import requests
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from constants import TITLE_KEYWORD_TO_CATEGORY
+from config import map_age_to_categories
 
 def is_likely_adult_event(min_age, max_age):
     return min_age == 18 and (max_age == 0 or max_age >= 18)
@@ -123,6 +124,7 @@ def scrape_vbpr_events(mode="all"):
                 age_text = item.get("age_description", "") or ""
                 min_age = item.get("age_min_year", 0)
                 max_age = item.get("age_max_year", 0)
+                age_based_categories = map_age_to_categories(min_age, max_age)
                 fee_data = item.get("fee", {})
                 fee_display = fee_data.get("label", "").strip()
 
@@ -165,7 +167,7 @@ def scrape_vbpr_events(mode="all"):
                 if category == "Fitness & Wellness":
                     program_type_categories = "Event Location - Virginia Beach, List - Fitness Events"
 
-                categories = ", ".join(filter(None, [program_type_categories, keyword_category_str]))
+                categories = ", ".join(filter(None, [program_type_categories, keyword_category_str, age_based_categories]))
                 print(f"✅ Keeping: {name}")
                 print(f"🆗 Final Event: {name} → {start} {fee_display} {link}")
 
