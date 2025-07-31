@@ -180,10 +180,15 @@ def scrape_vbpr_events(mode="all"):
                 print(f"🎟️ {name} → Fee Label: '{fee_display}' → Is Free? {is_free}")    
                 if age_text.strip():
                     ages = age_text.strip()
-                    extracted_age_tags = []  # prevent fuzzy tag addition later
-                else:
+                    extracted_age_tags = []
+                elif not age_based_categories:
+                    # Only fallback to fuzzy tags if no structured match found
                     ages = extract_ages(age_text + " " + desc + " " + name)
                     extracted_age_tags = ages.split(", ")
+                else:
+                    ages = ""
+                    extracted_age_tags = []
+
 
 
                 # 👇 Search both title and description for keyword matches
