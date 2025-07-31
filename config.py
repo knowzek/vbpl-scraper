@@ -93,6 +93,18 @@ def get_library_config(library):
             "email_recipient": "knowzek@gmail.com",
             "email_subject": "New VBPR CSV export ready"
         }
+
+    elif library == "visitchesapeake":
+        return {
+            "spreadsheet_name": "VisitChesapeake Events",
+            "worksheet_name": "VisitChesapeake Events",
+            "log_worksheet_name": "VisitChesapeake Log",
+            "organizer_name": "Chesapeake Parks, Recreation, and Tourism",
+            "event_name_suffix": " (Chesapeake)",
+            "drive_folder_id": "1K2IrUB20XIeHm6gvl-dlZDb3NoD7Jlur",  # or use a new one
+            "email_recipient": "knowzek@gmail.com",
+            "email_subject": "New VisitChesapeake CSV export ready"
+        }
     
     
     else:
