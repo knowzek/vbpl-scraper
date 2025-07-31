@@ -104,6 +104,13 @@ LIBRARY_CONSTANTS = {
         },     
         "event_name_suffix": " (Virginia Beach)"
     },
+
+    "visitchesapeake": {
+        "name_suffix_map": {},
+        "venue_names": {},
+        "event_name_suffix": " (Chesapeake)"
+    },
+
     "vbpl": {
         "program_type_to_categories": {
             "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event, List - Storytimes",
