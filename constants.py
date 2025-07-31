@@ -57,6 +57,8 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Era": "List – Swiftie Events",
     "Potter": "List – Wizard Events",
     "Harry Potter": "List – Wizard Events",
+    "outdoor": "Audience – Outdoor Event",
+    "outdoors": "Audience – Outdoor Event",
     "high school": "Audience – Teens"
 }
 
