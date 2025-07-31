@@ -107,11 +107,11 @@ def scrape_visitchesapeake_events(mode="all"):
                 try:
                     detail_page.goto(link, timeout=15000)
                 
-                    date_el = detail_page.query_selector("div.date")
+                    date_el = card.query_selector("p.dates")
                     if not date_el:
-                        print(f"⚠️ Could not find date for {name}")
                         continue
                     date_text = date_el.inner_text().strip()
+
                 
                     if "–" in date_text or "to" in date_text.lower():
                         print(f"🔁 Skipping possible series: {name}")
