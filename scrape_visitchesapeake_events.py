@@ -83,7 +83,11 @@ def scrape_visitchesapeake_events(mode="all"):
             page.wait_for_selector("div.shared-item div.actions", timeout=8000)
         except:
             print("⚠️ Timeout: .actions divs never appeared.")
-        
+
+        # ✅ Dump full HTML for debugging
+        html = page.content()
+        with open("chesapeake_debug.html", "w", encoding="utf-8") as f:
+            f.write(html)
         # Re-select hydrated cards
         cards = page.query_selector_all("div.shared-item[data-type='event']")
         print(f"🔍 Found {len(cards)} hydrated event cards")
@@ -96,23 +100,24 @@ def scrape_visitchesapeake_events(mode="all"):
             try:
                 print("🔍 Inspecting full card HTML:")
                 print(card.inner_html())
-                title_el = card.query_selector("h2 > a")
-        
+                # Extract title from <h2>
+                title_el = card.query_selector("h2")
                 if not title_el:
                     print("⚠️ Skipping card — no title found")
-                    print(card.inner_html()[:500])
                     continue
-        
                 name = title_el.inner_text().strip()
                 if not name or name in seen:
                     continue
                 seen.add(name)
                 name = sentence_case(name)
-        
-                link = title_el.get_attribute("href")
-                if not link:
+                
+                # ✅ FIX: Get href from the card (the outer <a>)
+                link = card.get_attribute("href")
+                if not link or not link.startswith("/event/"):
+                    print(f"⚠️ Skipping {name}: missing or invalid href")
                     continue
                 link = "https://www.visitchesapeake.com" + link
+
         
                 date_el = card.query_selector("p.dates")
                 if not date_el:
