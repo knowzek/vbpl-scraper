@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from constants import TITLE_KEYWORD_TO_CATEGORY
 from config import map_age_to_categories
 from constants import UNWANTED_TITLE_KEYWORDS
+import re
 
 def is_likely_adult_event(min_age, max_age):
     return min_age >= 18 and (max_age == 0 or max_age >= 18)
@@ -179,15 +180,21 @@ def scrape_vbpr_events(mode="all"):
                 print(f"🎟️ {name} → Fee Label: '{fee_display}' → Is Free? {is_free}")    
                 if age_text.strip():
                     ages = age_text.strip()
+                    extracted_age_tags = []  # prevent fuzzy tag addition later
                 else:
                     ages = extract_ages(age_text + " " + desc + " " + name)
+                    extracted_age_tags = ages.split(", ")
+
 
                 # 👇 Search both title and description for keyword matches
                 text_to_match = (name + " " + desc).lower()
                 
                 keyword_tags = []
                 for keyword, tag_string in TITLE_KEYWORD_TO_CATEGORY.items():
-                    if keyword.lower() in text_to_match:
+                
+                    pattern = r"\b" + re.escape(keyword.lower()) + r"\b"
+                    if re.search(pattern, text_to_match):
+
                         tags = [t.strip() for t in tag_string.split(",")]
                         keyword_tags.extend(tags)
                 
