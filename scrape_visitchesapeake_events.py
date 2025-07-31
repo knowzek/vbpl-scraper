@@ -194,4 +194,12 @@ def scrape_visitchesapeake_events(mode="all"):
         browser.close()
 
     print(f"✅ Scraped {len(events)} Visit Chesapeake events.")
+    from export_to_csv import send_notification_email_with_attachment
+
+    send_notification_email_with_attachment(
+        file_path="/opt/render/project/src/chesapeake_debug.html",
+        subject="Chesapeake Debug HTML",
+        recipient="knowzek@gmail.com"  # ⬅️ Replace this with your actual email
+    )
+
     return events
