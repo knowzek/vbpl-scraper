@@ -11,6 +11,9 @@ from constants import COMBINED_KEYWORD_TO_CATEGORY
 import pandas as pd
 from export_to_csv import send_notification_email_with_attachment
 
+def has_audience_tag(tags):
+    return any("Audience -" in tag for tag in tags)
+
 
 def _clean_link(url: str) -> str:
     cleaned = (
@@ -158,9 +161,10 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                         if tags:
                             all_tags.extend([t.strip() for t in tags.split(",")])
                 
-                # Add fuzzy age tags
-                if age_tags:
+                # Only add fuzzy age tags if structured audience tags aren't already present
+                if age_tags and not has_audience_tag(all_tags):
                     all_tags.extend(age_tags)
+
                 
                 # Combine with existing program_type-based categories
                 base = [c.strip() for c in categories.split(",") if c.strip()]
