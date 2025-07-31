@@ -146,8 +146,28 @@ def scrape_vbpr_events(mode="all"):
                 link = item.get("detail_url", "").strip()
                 category = item.get("category", "").strip()
                 age_text = item.get("age_description", "") or ""
-                min_age = item.get("age_min_year", 0)
-                max_age = item.get("age_max_year", 0)
+                # Attempt to extract numeric min/max age from age_text
+                min_age, max_age = 0, 0
+                age_text_clean = age_text.lower()
+                
+                # Pattern: "at least 6 yrs but less than 12 yrs"
+                match = re.search(r'at least (\d+)[^\d]+less than (\d+)', age_text_clean)
+                if match:
+                    min_age = int(match.group(1))
+                    max_age = int(match.group(2)) - 1  # treat "less than" as exclusive
+                else:
+                    # Pattern: "6 yrs +"
+                    match = re.search(r'(\d+)\s*yrs?\s*\+', age_text_clean)
+                    if match:
+                        min_age = int(match.group(1))
+                        max_age = 0  # open-ended
+                    else:
+                        # Pattern: "ages 5-12" or "5 to 12"
+                        match = re.search(r'(\d+)[^\d]+(\d+)', age_text_clean)
+                        if match:
+                            min_age = int(match.group(1))
+                            max_age = int(match.group(2))
+
                 age_based_categories = map_age_to_categories(min_age, max_age)
                 fee_data = item.get("fee", {})
                 fee_display = fee_data.get("label", "").strip()
@@ -180,16 +200,8 @@ def scrape_vbpr_events(mode="all"):
                 print(f"🎟️ {name} → Fee Label: '{fee_display}' → Is Free? {is_free}")    
                 if age_text.strip():
                     ages = age_text.strip()
-                    extracted_age_tags = []
-                elif not age_based_categories:
-                    # Only fallback to fuzzy tags if no structured match found
-                    ages = extract_ages(age_text + " " + desc + " " + name)
-                    extracted_age_tags = ages.split(", ")
                 else:
                     ages = ""
-                    extracted_age_tags = []
-
-
 
                 # 👇 Search both title and description for keyword matches
                 text_to_match = (name + " " + desc).lower()
