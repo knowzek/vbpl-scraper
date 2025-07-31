@@ -79,26 +79,6 @@ def scrape_visitchesapeake_events(mode="all"):
         cards = page.query_selector_all("div.shared-item[data-type='event']")
         print(f"🔍 Found {len(cards)} hydrated event cards")
 
-        # Get ld+json event data block
-        try:
-            json_block = page.query_selector("script#eventSchema")
-            raw_json = json_block.inner_text()
-            schema_events = json.loads(raw_json)
-            event_meta = {}
-            for ev in schema_events:
-                url = ev.get("url", "")
-                if url.startswith("/"):
-                    url = "https://www.visitchesapeake.com" + url
-                event_meta[url] = {
-                    "desc": ev.get("description", "").strip(),
-                    "start": ev.get("startDate"),
-                    "end": ev.get("endDate")
-                }
-
-
-        except Exception as e:
-            print(f"⚠️ Failed to parse eventSchema JSON: {e}")
-            url_to_description = {}
         print(f"🔍 Found {len(cards)} event cards")
         for card in cards:
             print("🔍 Inspecting card HTML snippet:")
@@ -118,40 +98,38 @@ def scrape_visitchesapeake_events(mode="all"):
 
                 
                 link = title_el.get_attribute("href")
-                if link:
-                    link = "https://www.visitchesapeake.com" + link
-                meta = event_meta.get(link)
-                if not meta:
+                if not link:
                     continue
+                link = "https://www.visitchesapeake.com" + link
                 
-                desc = meta.get("desc", "See event link for details")
-                start_date_str = meta.get("start")
-                end_date_str = meta.get("end")
-                
-                if start_date_str and end_date_str and start_date_str != end_date_str:
-                    try:
-                        start_dt_obj = datetime.strptime(start_date_str, "%Y-%m-%d")
-                        end_dt_obj = datetime.strptime(end_date_str, "%Y-%m-%d")
-                        duration = (end_dt_obj - start_dt_obj).days
-                        if duration > 1:
-                            print(f"🔁 Skipping multi-day series event: {name} ({duration} days)")
-                            continue
-                    except Exception as e:
-                        print(f"⚠️ Date parse error for {name}: {e}")
-
-                date_el = card.query_selector("p.dates")
-                if not date_el:
-                    continue
-                date_text = date_el.inner_text().strip()
+                # Visit event detail page
+                detail_page = browser.new_page()
                 try:
-                    start_dt = datetime.strptime(date_text, "%B %d, %Y")
-                except:
-                    continue
+                    detail_page.goto(link, timeout=15000)
                 
-                if start_dt < today or start_dt > cutoff:
-                    print(f"🧾 Passing event → {name} on {start_dt.strftime('%Y-%m-%d')}")
+                    date_el = detail_page.query_selector("div.date")
+                    if not date_el:
+                        print(f"⚠️ Could not find date for {name}")
+                        continue
+                    date_text = date_el.inner_text().strip()
+                
+                    if "–" in date_text or "to" in date_text.lower():
+                        print(f"🔁 Skipping possible series: {name}")
+                        continue
+                
+                    try:
+                        start_dt = datetime.strptime(date_text.split(",")[0].strip(), "%B %d")
+                        start_dt = start_dt.replace(year=today.year)
+                    except Exception as e:
+                        print(f"⚠️ Date parse failed for {name}: {e}")
+                        continue
+                
+                    desc_el = detail_page.query_selector("div.description")
+                    desc = desc_el.inner_text().strip() if desc_el else "See event link for details"
+                
+                finally:
+                    detail_page.close()
 
-                    continue
                 
                 location_el = card.query_selector("p.address")
                 location = location_el.inner_text().strip() if location_el else ""
