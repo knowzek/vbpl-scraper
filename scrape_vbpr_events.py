@@ -81,12 +81,19 @@ def scrape_vbpr_events(mode="all"):
             print(f"⚠️ Returning {len(events)} events scraped before error.")
             return events  # <—— Prevent total loss
 
-        items = data.get("body", {}).get("activity_items", [])
+        body = data.get("body")
+        if not isinstance(body, dict):
+            print(f"⚠️ Unexpected body format on page {page_number}: {type(body)}")
+            break
+        
+        items = body.get("activity_items", [])
+
         if not items:
             print("🚫 No more items.")
             break
-
+        in_range_found = False  # Track whether any events on this page are in range
         for item in items:
+            
             try:
                 name = item.get("name", "").strip()
                 if not name or name in seen:
@@ -125,6 +132,9 @@ def scrape_vbpr_events(mode="all"):
                     continue
 
                 start_dt = datetime.strptime(start, "%Y-%m-%d")
+                if today <= start_dt <= cutoff:
+                    in_range_found = True
+
                 if start_dt < today or start_dt > cutoff:
                     print(f"📆 Skipping: {name} → {start_dt.strftime('%Y-%m-%d')} is outside range {today.strftime('%Y-%m-%d')} to {cutoff.strftime('%Y-%m-%d')}")
                     continue
@@ -181,6 +191,16 @@ def scrape_vbpr_events(mode="all"):
 
             except Exception as e:
                 print(f"⚠️ Error parsing item: {e}")
+        # End of your for-loop processing all items on the current page...
+
+        if not in_range_found:
+            print("🛑 No in-range events found on this page — stopping pagination.")
+            break
+        
+        MAX_PAGES = 100
+        if page_number > MAX_PAGES:
+            print("🛑 Max page limit reached.")
+            break
 
         page_number += 1
 
