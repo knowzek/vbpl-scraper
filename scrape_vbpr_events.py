@@ -94,12 +94,6 @@ def scrape_vbpr_events(mode="all"):
                 status = item.get("urgent_message", {}).get("status_description", "Available")
                 start = item.get("date_range_start", "")
                 end = item.get("date_range_end", "")
-                
-                # 🧹 Filter out recurring/multi-day events
-                if end and start != end:
-                    print(f"⏭️ Skipping recurring/multi-day event: {name} ({start} to {end})")
-                    continue
-
                 time = item.get("time_range_landing_page", "") or item.get("time_range", "")
                 site = item.get("site", "").strip()
                 link = item.get("detail_url", "").strip()
@@ -129,7 +123,7 @@ def scrape_vbpr_events(mode="all"):
 
                 # 🧠 NEW: Skip events that are not free AND are multi-day
                 cost_text = fee_display.lower()
-                is_free = any(phrase in cost_text for phrase in ["free", "$0", "no additional fee"])
+                is_free = any(phrase in cost_text for phrase in ["free", "$0", "no additional fee", "view fee details"])
 
                 is_single_day = not end or start == end
 
