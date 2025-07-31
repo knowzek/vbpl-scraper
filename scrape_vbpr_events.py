@@ -113,10 +113,9 @@ def scrape_vbpr_events(mode="all"):
                 end = item.get("date_range_end", "")
                 
                 # 🧹 Filter out recurring/multi-day events
-                if end and end.strip() != "" and start != end:
+                if end.strip() and start != end:
                     print(f"⏭️ Skipping recurring/multi-day event: {name} ({start} to {end})")
                     continue
-
 
                 time = item.get("time_range_landing_page", "") or item.get("time_range", "")
                 site = item.get("site", "").strip()
