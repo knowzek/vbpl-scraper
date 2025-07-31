@@ -77,16 +77,19 @@ def scrape_visitchesapeake_events(mode="all"):
                 "X-Requested-With": "XMLHttpRequest"
             }
 
-            res = requests.post(
+            res = requests.get(
                 url,
+                params={
+                    "json": json.dumps(payload),
+                    "token": "95f6c62e498c262164e2775881c8c2c1"
+                },
                 headers=headers,
-                json=payload,
                 timeout=30
             )
-
             res.raise_for_status()
             data = res.json()
             docs = data.get("docs", [])
+
         except Exception as e:
             print(f"❌ Error fetching page {skip//limit + 1}: {e}")
             break
