@@ -109,7 +109,9 @@ LIBRARY_CONSTANTS = {
 
     "visitchesapeake": {
         "name_suffix_map": {},
-        "venue_names": {},
+        "venue_names": {
+            "Elizabeth River Park near Osprey Shelter": "Elizabeth River Boat Landing and Park",
+        },
         "event_name_suffix": " (Chesapeake)"
     },
 
