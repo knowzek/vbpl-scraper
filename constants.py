@@ -5,7 +5,6 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Story Time": "List - Storytimes",
     "Storytime": "List - Storytimes",
     "babies in bloom": "List - Storytimes",
-    "Kids": "Audience - School Age",
     "math": "List - STEM/STEAM",
     "science": "List - STEM/STEAM",
     "nature": "List - STEM/STEAM",
@@ -83,6 +82,14 @@ UNWANTED_TITLE_KEYWORDS = [
     "Summer Meals",
     "adult"
 ]
+
+AGE_RANGE_TO_CATEGORY = [
+    (0, 2, "Audience - Parent & Me, Audience - Toddler/Infant"),
+    (3, 4, "Audience - Preschool Age"),
+    (5, 12, "Audience - School Age"),
+    (13, 17, "Audience - Teens"),
+]
+
 
 LIBRARY_CONSTANTS = {
     "vbpr": {
