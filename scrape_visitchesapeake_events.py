@@ -4,6 +4,11 @@ import re
 import json
 from constants import TITLE_KEYWORD_TO_CATEGORY, UNWANTED_TITLE_KEYWORDS
 
+def sentence_case(title):
+    cleaned = title.strip().lower()
+    return re.sub(r'(^\w)|(?<=[\.\!\?]\s)(\w)', lambda m: m.group().upper(), cleaned)
+
+
 def extract_ages(text):
     text = text.lower()
     matches = set()
@@ -79,14 +84,17 @@ def scrape_visitchesapeake_events(mode="all"):
             json_block = page.query_selector("script#eventSchema")
             raw_json = json_block.inner_text()
             schema_events = json.loads(raw_json)
-            event_meta = {
-                ev["url"]: {
+            event_meta = {}
+            for ev in schema_events:
+                url = ev.get("url", "")
+                if url.startswith("/"):
+                    url = "https://www.visitchesapeake.com" + url
+                event_meta[url] = {
                     "desc": ev.get("description", "").strip(),
                     "start": ev.get("startDate"),
                     "end": ev.get("endDate")
                 }
-                for ev in schema_events
-            }
+
 
         except Exception as e:
             print(f"⚠️ Failed to parse eventSchema JSON: {e}")
@@ -106,6 +114,8 @@ def scrape_visitchesapeake_events(mode="all"):
                 if not name or name in seen:
                     continue
                 seen.add(name)
+                name = sentence_case(name)
+
                 
                 link = title_el.get_attribute("href")
                 if link:
@@ -147,38 +157,46 @@ def scrape_visitchesapeake_events(mode="all"):
                 location = location_el.inner_text().strip() if location_el else ""
 
 
-                text_to_match = name.lower()
+                text_to_match = f"{name} {desc}".lower()
 
                 ages = extract_ages(text_to_match)
 
                 keyword_tags = []
                 for keyword, tag_string in TITLE_KEYWORD_TO_CATEGORY.items():
-                    if keyword.lower() in text_to_match:
+                    if re.search(rf"\b{re.escape(keyword.lower())}\b", text_to_match):
                         keyword_tags.extend(tag_string.split(","))
+
 
                 keyword_category_str = ", ".join(sorted(set(keyword_tags)))
 
                 categories = ", ".join(filter(None, [
                     "Event Location - Chesapeake",
                     "Audience - Free Event",
+                    "Audience - Family Event",
                     keyword_category_str
                 ]))
 
-                events.append({
-                    "Event Name": f"{name} (Chesapeake)",
-                    "Event Link": link,
-                    "Event Status": "Available",
-                    "Time": "",
-                    "Ages": ages,
-                    "Location": location,
-                    "Month": start_dt.strftime("%b"),
-                    "Day": str(start_dt.day),
-                    "Year": str(start_dt.year),
-                    "Event Description": desc,
-                    "Series": "",
-                    "Program Type": "Family Fun",
-                    "Categories": categories
-                })
+                events.append([
+                    "Event Name": name,
+                    link,
+                    "Available",
+                    "",
+                    ages,
+                    location,
+                    start_dt.strftime("%b"),
+                    str(start_dt.day),
+                    str(start_dt.year),
+                    desc,
+                    "",
+                    "Family Fun",
+                    ", ".join(filter(None, [
+                        "Event Location - Chesapeake",
+                        "Audience - Free Event",
+                        "Audience - Family Event",  # 🔸 New default age category
+                        keyword_category_str
+                    ]))
+                ])
+
 
             except Exception as e:
                 print(f"⚠️ Error processing card: {e}")
