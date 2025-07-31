@@ -176,27 +176,21 @@ def scrape_visitchesapeake_events(mode="all"):
                     keyword_category_str
                 ]))
 
-                events.append([
+                events.append({
                     "Event Name": name,
-                    link,
-                    "Available",
-                    "",
-                    ages,
-                    location,
-                    start_dt.strftime("%b"),
-                    str(start_dt.day),
-                    str(start_dt.year),
-                    desc,
-                    "",
-                    "Family Fun",
-                    ", ".join(filter(None, [
-                        "Event Location - Chesapeake",
-                        "Audience - Free Event",
-                        "Audience - Family Event",  # 🔸 New default age category
-                        keyword_category_str
-                    ]))
-                ])
-
+                    "Event Link": link,
+                    "Event Status": "Available",
+                    "Time": "",
+                    "Ages": ages,
+                    "Location": location,
+                    "Month": start_dt.strftime("%b"),
+                    "Day": str(start_dt.day),
+                    "Year": str(start_dt.year),
+                    "Event Description": desc,
+                    "Series": "",
+                    "Program Type": "Family Fun",
+                    "Categories": categories
+                })
 
             except Exception as e:
                 print(f"⚠️ Error processing card: {e}")
