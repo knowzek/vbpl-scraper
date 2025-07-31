@@ -47,6 +47,8 @@ def scrape_vbpr_events(mode="all"):
     events = []
     page_number = 1
     seen = set()
+    empty_pages = 0
+    MAX_EMPTY_PAGES = 15
 
     while True:
         print(f"📄 Fetching page {page_number}...")
@@ -92,9 +94,20 @@ def scrape_vbpr_events(mode="all"):
         
         items = body.get("activity_items", [])
         print(f"📦 Page {page_number} contains {len(items)} items")
+
         if not items:
-            print("🚫 No more items.")
-            break
+            empty_pages += 1
+            print(f"🚫 Page {page_number} had no items (empty_pages={empty_pages})")
+            if empty_pages >= MAX_EMPTY_PAGES:
+                print("🛑 Max empty page threshold reached.")
+                break
+
+            else:
+                page_number += 1
+                continue  # ✅ Skip processing the empty page
+        else:
+            empty_pages = 0
+
         in_range_found = False  # Track whether any events on this page are in range
         for item in items:
             
