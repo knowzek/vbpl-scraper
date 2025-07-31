@@ -55,7 +55,8 @@ def scrape_visitchesapeake_events(mode="all"):
 
         # 🔍 Dump the full rendered page content for debugging
         # Wait for base event cards to appear
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
+        page.wait_for_selector("div.shared-item[data-type='event']", timeout=10000)
 
         
         # Scroll the page fully to trigger hydration
