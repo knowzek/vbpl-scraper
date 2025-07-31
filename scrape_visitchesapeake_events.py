@@ -119,8 +119,16 @@ def scrape_visitchesapeake_events(mode="all"):
                 end_date_str = meta.get("end")
                 
                 if start_date_str and end_date_str and start_date_str != end_date_str:
-                    print(f"🔁 Skipping series event: {name}")
-                    continue
+                try:
+                    start_dt_obj = datetime.strptime(start_date_str, "%Y-%m-%d")
+                    end_dt_obj = datetime.strptime(end_date_str, "%Y-%m-%d")
+                    duration = (end_dt_obj - start_dt_obj).days
+                    if duration > 1:
+                        print(f"🔁 Skipping multi-day series event: {name} ({duration} days)")
+                        continue
+                except Exception as e:
+                    print(f"⚠️ Date parse error for {name}: {e}")
+
 
                 
                 date_el = card.query_selector("p.dates")
