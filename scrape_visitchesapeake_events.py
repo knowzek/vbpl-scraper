@@ -108,7 +108,12 @@ def scrape_visitchesapeake_events(mode="all"):
                 name = sentence_case(name)
                 
                 # ✅ FIX: Get href from the card (the outer <a>)
-                link = card.get_attribute("href")
+                link_el = card.query_selector("h2 a")
+                if not link_el:
+                    print(f"⚠️ Skipping {name}: link element not found")
+                    continue
+                link = link_el.get_attribute("href")
+
                 if not link or not link.startswith("/event/"):
                     print(f"⚠️ Skipping {name}: missing or invalid href")
                     continue
