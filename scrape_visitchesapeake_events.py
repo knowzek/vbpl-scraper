@@ -78,20 +78,23 @@ def scrape_visitchesapeake_events(mode="all"):
 
         for card in cards:
             try:
-                title_el = card.query_selector("h2")
-                if not title_el:
-                    print("⚠️ Skipping card — no title found")
+                card_html = card.inner_html()
+
+                # Extract title via regex
+                title_match = re.search(r'<h2>\s*<a[^>]*>(.*?)</a>', card_html, re.IGNORECASE | re.DOTALL)
+                link_match = re.search(r'<h2>\s*<a\s+href="(/event/[^"]+)"', card_html, re.IGNORECASE)
+                
+                if not title_match or not link_match:
+                    print("⚠️ Skipping card — no valid title or link found")
                     continue
-                name = title_el.inner_text().strip()
-                if not name or name in seen:
+                
+                name = sentence_case(re.sub(r'<.*?>', '', title_match.group(1)).strip())
+                link = "https://www.visitchesapeake.com" + link_match.group(1)
+                
+                if name in seen:
                     continue
                 seen.add(name)
-                name = sentence_case(name)
 
-                link_el = card.query_selector("h2 a")
-                if not link_el:
-                    print(f"⚠️ Skipping {name}: link element not found")
-                    continue
                 link = link_el.get_attribute("href")
 
                 if not link or not link.startswith("/event/"):
