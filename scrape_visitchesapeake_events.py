@@ -1,4 +1,4 @@
-from playwright.sync_api import sync_playwright
+    from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import re
@@ -19,7 +19,9 @@ def scrape_visitchesapeake_events(mode="monthly"):
         page.goto(base_url, timeout=60000)
 
         # Wait for events to render
+        print("📄 Page loaded. Waiting for event cards to render...")
         page.wait_for_selector("div.shared-item.item[data-type='event']", timeout=60000)
+        print("✅ Event cards found. Parsing HTML...")
 
         html = page.content()
         soup = BeautifulSoup(html, "html.parser")
@@ -39,6 +41,8 @@ def scrape_visitchesapeake_events(mode="monthly"):
                 if name in seen:
                     continue
                 seen.add(name)
+                print("🔍 Parsing event card...")
+                print(f"📌 Event: {name}")
 
                 href = title_el.get("href", "")
                 link = "https://www.visitchesapeake.com" + href if href.startswith("/") else href
@@ -59,7 +63,7 @@ def scrape_visitchesapeake_events(mode="monthly"):
 
                 location_el = card.select_one("p.address")
                 location = location_el.get_text(strip=True) if location_el else ""
-
+                print(f"🗓️ Date: {start_dt.strftime('%Y-%m-%d')} | Location: {location}")
                 events.append({
                     "Event Name": name,
                     "Event Link": link,
@@ -75,6 +79,7 @@ def scrape_visitchesapeake_events(mode="monthly"):
                     "Program Type": "Family Fun",
                     "Categories": "Event Location - Chesapeake, Audience - Free Event, Audience - Family Event"
                 })
+                print(f"✅ Added event: {name}")
             except Exception as e:
                 print(f"⚠️ Error parsing event: {e}")
 
