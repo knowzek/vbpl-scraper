@@ -95,8 +95,6 @@ def scrape_visitchesapeake_events(mode="all"):
                     continue
                 seen.add(name)
 
-                link = link_el.get_attribute("href")
-
                 if not link or not link.startswith("/event/"):
                     print(f"⚠️ Skipping {name}: missing or invalid href")
                     continue
