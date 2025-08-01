@@ -17,10 +17,14 @@ def scrape_visitchesapeake_events(mode="monthly"):
         browser = p.chromium.launch(headless=True)  # use headless=False for debugging
         page = browser.new_page()
         page.goto(base_url, timeout=60000)
+        page.screenshot(path="render_debug.png", full_page=True)
+        print("📸 Screenshot saved — check render_debug.png")
 
         # Wait for events to render
         print("📄 Page loaded. Waiting for event cards to render...")
-        page.wait_for_selector("div.shared-item.item[data-type='event']", timeout=60000)
+        page.wait_for_selector("div.shared-item.item[data-type='event']", timeout=60000, state="detached")  # clears out old ones first
+        page.wait_for_selector("div.shared-item.item[data-type='event']", timeout=60000, state="attached")
+
         print("✅ Event cards found. Parsing HTML...")
 
         html = page.content()
