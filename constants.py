@@ -62,6 +62,26 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "high school": "Audience – Teens"
 }
 
+TITLE_KEYWORD_TO_AGE_CATEGORIES_PPL = {
+    "storytime": "Audience - Preschool Age, Audience - School Age, Audience - Family Event, Audience - Free Event",
+    "story time": "Audience - Preschool Age, Audience - School Age, Audience - Family Event, Audience - Free Event",
+    "lego": "Audience - School Age, Audience - Free Event",
+    "steam": "Audience - School Age, Audience - Free Event",
+    "stem": "Audience - School Age, Audience - Free Event",
+    "craft": "Audience - Family Event, Audience - Free Event",
+    "game": "Audience - School Age, Audience - Free Event",
+    "movie": "Audience - Family Event, Audience - Free Event",
+    "music": "Audience - Family Event, Audience - Free Event",
+    "dance": "Audience - Family Event, Audience - Free Event",
+    "sensory": "Audience - Toddler/Infant, Audience - Family Event",
+    "kids": "Audience - School Age",
+    "toddlers": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Parent & Me, Audience - Free Event",
+    "toddler": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Parent & Me, Audience - Free Event",
+    "preschool": "Audience - Preschool Age, Audience - Free Event",
+    "baby": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Free Event",
+}
+
+
 TITLE_KEYWORD_TO_CATEGORY = {k.lower(): v for k, v in TITLE_KEYWORD_TO_CATEGORY_RAW.items()}
 
 COMBINED_KEYWORD_TO_CATEGORY_RAW = {
