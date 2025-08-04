@@ -168,9 +168,15 @@ def scrape_ppl_events(mode="all"):
                     age_tags.extend([c.strip() for c in cat.split(",")])
 
             # Clean and deduplicate tags
+            # Clean and deduplicate tags
             all_tags = [c.strip() for c in base_cats + age_tags if c.strip()]
-            categories = ", ".join(dict.fromkeys(all_tags))
             
+            # ✅ Always include these base tags
+            all_tags.extend(["Audience - Free Event", "Event Location - Portsmouth"])
+            
+            # Deduplicate
+            categories = ", ".join(dict.fromkeys(all_tags))
+
             # Fallback if still empty
             if not categories:
                 categories = DEFAULT_CATEGORIES
