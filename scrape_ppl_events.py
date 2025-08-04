@@ -145,6 +145,13 @@ def scrape_ppl_events(mode="all"):
             time_str = f"{start_time} - {end_time}" if end_time else start_time
 
             ages = extract_ages(name + " " + description)
+            # Optional: fallback to keyword-based age guess if age is missing
+            if not ages:
+                for keyword, cat in TITLE_KEYWORD_TO_AGE_CATEGORIES_PPL.items():
+                    if keyword in combined_text:
+                        age_tags.extend([c.strip() for c in cat.split(",")])
+                        break  # Optional: break after first match
+
 
             # Title-based category tagging
             base_cats = []
