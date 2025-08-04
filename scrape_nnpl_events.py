@@ -45,9 +45,9 @@ def extract_ages(text):
     matches = set()
 
     # === Keyword-Based Detection ===
-    if any(kw in text for kw in ["infants", "babies", "baby", "0-2"]):
+    if any(kw in text for kw in ["infants", "babies", "baby", "0-2", "toddlers", "toddler", "age 2", "aged 2", "ages 2", "2-year-olds"]):
         matches.add("Infant")
-    if any(kw in text for kw in ["preschool", "toddlers", "age 2", "aged 2", "ages 2", "2-year-olds"]):
+    if any(kw in text for kw in ["preschool", "ages 3-5", "ages 3 and older", "ages 3 and over"]):
         matches.add("Preschool")
     if any(kw in text for kw in ["school age", "school-age", "children ages 5", "elementary"]):
         matches.add("School Age")
