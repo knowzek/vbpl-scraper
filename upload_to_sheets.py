@@ -102,11 +102,9 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 program_type = event.get("Program Type", "")
 
                 if library == "ppl":
-                    # Use pre-tagged categories or fallback from scraper
-                    categories = event.get("Categories", "").strip()
-                    if not categories:
-                        categories = "Audience - Family Event, Audience - Free Event, Audience - Preschool Age, Audience - School Age, Event Location - Portsmouth"
-                
+                    # Instead of using only precomputed tags, apply full logic
+                    categories = ""
+
                 elif library == "hpl":
                     program_types = [pt.strip().lower() for pt in program_type.split(",") if pt.strip()]
                     matched_tags = []
