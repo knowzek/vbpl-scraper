@@ -226,6 +226,7 @@ def export_events_to_csv(library="vbpl", return_df=False):
 
     venue_map = constants.get("venue_names") or name_suffix_map
 
+    # First assign the mapped or raw venue
     df["Venue"] = (
         df["Location"]
           .str.replace(r"^Library Branch:", "", regex=True)
@@ -233,6 +234,13 @@ def export_events_to_csv(library="vbpl", return_df=False):
           .map(venue_map)
           .fillna(df["Location"].str.replace(r"^Library Branch:", "", regex=True).str.strip())
     )
+    
+    # Then filter out any invalid venue names
+    invalid_venue_mask = ~df["Venue"].isin(venue_map.values())
+    if invalid_venue_mask.any():
+        print("⚠️ Skipping events due to invalid or unmapped venue names:")
+        print(df.loc[invalid_venue_mask, ["Event Name", "Venue"]])
+        df = df[~invalid_venue_mask]
 
     def format_event_title(row):
         base = re.sub(r"\s+at\s+.*", "", row["Event Name"]).strip()
