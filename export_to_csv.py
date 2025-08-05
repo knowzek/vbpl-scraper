@@ -17,6 +17,7 @@ import unicodedata
 from email.mime.base import MIMEBase
 from email import encoders
 from email.mime.multipart import MIMEMultipart
+from upload_to_sheets import export_all_events_to_csv_and_email
 
 def send_notification_email_with_attachment(file_path, subject, recipient):
     smtp_user = os.environ["SMTP_USERNAME"]
@@ -332,15 +333,10 @@ if __name__ == "__main__":
 
     all_exports = []
 
-    for lib in LIBRARIES:
-        print(f"\n📁 Collecting events from: {lib.upper()}")
-        try:
-            df = export_events_to_csv(lib, return_df=True)  # We'll modify the function to support this
-            if df is not None and not df.empty:
-                df["Library"] = lib.upper()  # Optional: tag which library it's from
-                all_exports.append(df)
-        except Exception as e:
-            print(f"❌ Failed to export for {lib}: {e}")
+    from upload_to_sheets import export_all_events_to_csv_and_email
+
+    export_all_events_to_csv_and_email()
+
 
     if all_exports:
         master_df = pd.concat(all_exports, ignore_index=True)
