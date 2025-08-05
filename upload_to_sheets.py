@@ -421,3 +421,7 @@ def export_all_events_to_csv_and_email():
         os.environ.get("EVENT_EXPORT_RECIPIENT") or "your@email.com"
     )
 
+if __name__ == "__main__":
+    export_all_events_to_csv_and_email()
+
+
