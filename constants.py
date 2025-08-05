@@ -425,7 +425,7 @@ LIBRARY_CONSTANTS = {
             "Seniors": "Audience - Seniors, Audience - Free Event, Event Location - Newport News",
             "School Age": "Audience - Family Event, Audience - Free Event, Event Location - Newport News, Audience - School Age",
             "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Newport News, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me",
-            "Infant": "Audience - Toddler/Infant, Audience - Free Event, Event Location - Newport News", "Audience - Parent & Me", "List - Toddler Time Events",
+            "Infant": "Audience - Toddler/Infant, Audience - Free Event, Event Location - Newport News, Audience - Parent & Me, List - Toddler Time Events",
             "Family": "Audience - Family Event, Audience - Free Event, Event Location - Newport News"
         }
     }
