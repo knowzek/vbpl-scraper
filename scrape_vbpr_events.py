@@ -21,7 +21,7 @@ def extract_ages(text):
 
     teen_keywords = [
         "grades 6-12", "grades 6 through 12", "grades 6", "grades 7", "grades 8", 
-        "grades 9", "grades 10", "grades 11", "grades 12", "teens", "high school", "middle school"
+        "grades 9", "grades 10", "grades 11", "grades 12", "teens", "high school", "teen", "teens", "middle school"
     ]
     school_age_keywords = [
         "school age", "elementary", "grades 1-5", "grades 1 through 5", "grades 1", "grades 2", 
