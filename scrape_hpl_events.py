@@ -83,7 +83,10 @@ def scrape_hpl_events(mode="all"):
                 if re.search(rf"\b{re.escape(keyword.lower())}\b", combined_text):
                     keyword_tags.extend([c.strip() for c in cat.split(",")])
             
-            categories = ", ".join(dict.fromkeys(program_categories + keyword_tags))
+            # Always append base tags
+            base_tags = ["Audience - Free Event", "Event Location - Hampton"]
+            categories = ", ".join(dict.fromkeys(program_categories + keyword_tags + base_tags))
+
 
 
             # Extract clean location
