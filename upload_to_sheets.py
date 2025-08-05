@@ -167,6 +167,13 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 # Combine with existing program_type-based categories
                 base = [c.strip() for c in categories.split(",") if c.strip()]
                 combined = base + all_tags
+                # Start with any categories already in the event
+                existing_scraped_tags = [c.strip() for c in event.get("Categories", "").split(",") if c.strip()]
+                
+                # Merge with computed tags
+                combined = existing_scraped_tags + base + all_tags + title_based_tags
+                
+                # Deduplicate and join
                 categories = ", ".join(dict.fromkeys(combined))
 
                 categories = categories.replace("\u00A0", " ").replace("Â", "").strip()
