@@ -13,17 +13,33 @@ def is_likely_adult_event(min_age, max_age):
 def extract_ages(text):
     text = text.lower()
     matches = set()
-    if any(kw in text for kw in ["infants", "babies", "baby", "0-2"]):
+
+    if any(kw in text for kw in ["infants", "babies", "baby", "toddlers", "toddler", "0-2"]):
         matches.add("Infant")
-    if any(kw in text for kw in ["preschool", "toddlers", "age 2", "age 3", "ages 3-5"]):
+    if any(kw in text for kw in ["age 3", "ages 3", "ages 4", "preschool", "age 4"]):
         matches.add("Preschool")
-    if any(kw in text for kw in ["school age", "elementary", "ages 5", "grade", "5-12"]):
-        matches.add("School Age")
-    if any(kw in text for kw in ["teen", "teens", "middle school", "high school", "13-17"]):
+
+    teen_keywords = [
+        "grades 6-12", "grades 6 through 12", "grades 6", "grades 7", "grades 8", 
+        "grades 9", "grades 10", "grades 11", "grades 12", "teens", "high school", "middle school"
+    ]
+    school_age_keywords = [
+        "school age", "elementary", "grades 1-5", "grades 1 through 5", "grades 1", "grades 2", 
+        "grades 3", "grades 4", "grades 5", "ages 5-10", "ages 5", "ages 6", "ages 7", "ages 8", 
+        "ages 9", "ages 10", "ages 11", "ages 12", "ages 5-12"
+    ]
+
+    if any(kw in text for kw in teen_keywords):
         matches.add("Teens")
+    elif any(kw in text for kw in school_age_keywords):
+        matches.add("School Age")
+
     if "all ages" in text:
         matches.add("All Ages")
+
     return ", ".join(sorted(matches))
+
+
 
 def scrape_vbpr_events(mode="all"):
     
