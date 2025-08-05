@@ -108,12 +108,48 @@ def scrape_npl_events(mode="all"):
                                 if short_name.lower() in key.lower():
                                     location = full_name
                                     break
+                    # === Category tagging logic ===
 
+                    text_to_match = f"{title} {result.get('description', '')}".lower()
+                    
+                    # 1. Match keyword categories
+                    keyword_tags = []
+                    for keyword, tag_string in TITLE_KEYWORD_TO_CATEGORY.items():
+                        if keyword.lower() in text_to_match:
+                            keyword_tags.extend([t.strip() for t in tag_string.split(",")])
+                    
+                    # 2. Add base location + free tag
+                    base_location_tag = "Event Location - Norfolk"
+                    free_tag = "Audience - Free Event"  # You can always add this for NPL unless charging logic is found
+                    
+                    # 3. Age tags via map_age_to_categories
+                    min_age = 0
+                    max_age = 0
+                    ages_lc = ages.lower()
+                    if "teen" in ages_lc:
+                        min_age, max_age = 13, 17
+                    elif "school" in ages_lc or "grade" in ages_lc:
+                        min_age, max_age = 5, 12
+                    elif "preschool" in ages_lc:
+                        min_age, max_age = 3, 5
+                    elif "infant" in ages_lc or "baby" in ages_lc:
+                        max_age = 2
+                    
+                    age_tags = []
+                    if min_age or max_age:
+                        age_tags = [tag.strip() for tag in map_age_to_categories(min_age, max_age).split(",") if tag.strip()]
+                    
+                    # 4. Merge and deduplicate
+                    final_categories = sorted(set([base_location_tag, free_tag] + keyword_tags + age_tags))
+                    categories = ", ".join(final_categories)
+
+                    
                     events.append({
                         "Event Name": title,
                         "Event Link": result.get("url", ""),
                         "Event Status": "Available",
                         "Time": time_str,
+                        "Categories": categories,
                         "Ages": ages,
                         "Location": location,
                         "Month": dt.strftime("%b"),
