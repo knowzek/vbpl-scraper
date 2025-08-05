@@ -355,17 +355,17 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
         # Export REVIEW NEEDED rows to CSV
         review_rows = [r for r in new_rows if "REVIEW NEEDED" in r[-1]]
-        if review_rows:
-            review_df = pd.DataFrame(review_rows, columns=headers[:len(review_rows[0])])
-            review_path = f"Review Needed - Missing Info - {library}.csv"
-            review_df.to_csv(review_path, index=False)
-            print(f"📎 Exported {len(review_rows)} flagged rows to {review_path}")
-
-            send_notification_email_with_attachment(
-            review_path,
-            f"{library.upper()} — Review Needed: Missing Info",
-            config["email_recipient"]
-           )
+#       if review_rows:
+#           review_df = pd.DataFrame(review_rows, columns=headers[:len(review_rows[0])])
+#           review_path = f"Review Needed - Missing Info - {library}.csv"
+#           review_df.to_csv(review_path, index=False)
+#           print(f"📎 Exported {len(review_rows)} flagged rows to {review_path}")
+#
+#            send_notification_email_with_attachment(
+#            review_path,
+#            f"{library.upper()} — Review Needed: Missing Info",
+#            config["email_recipient"]
+#           )
 
 
         if new_rows:
@@ -389,3 +389,35 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
     except Exception as e:
         print(f"❌ ERROR during upload_events_to_sheet: {e}")
         traceback.print_exc()
+
+def export_all_events_to_csv_and_email():
+    LIBRARIES = ["vbpl", "npl", "chpl", "nnpl", "hpl", "ppl", "spl"]
+    all_rows = []
+    for lib in LIBRARIES:
+        print(f"📥 Fetching events from: {lib.upper()}")
+        config = get_library_config(lib)
+        creds = service_account.Credentials.from_service_account_file(
+            "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON",
+            scopes=["https://www.googleapis.com/auth/spreadsheets"]
+        )
+        client = gspread.authorize(creds)
+        sheet = client.open(config["spreadsheet_name"]).worksheet(config["worksheet_name"])
+        rows = sheet.get_all_values()
+        if not all_rows:
+            all_rows.append(rows[0])  # headers once
+        all_rows.extend(rows[1:])     # all events
+
+    # Write to CSV
+    df = pd.DataFrame(all_rows[1:], columns=all_rows[0])
+    export_path = "All_Libraries_Events.csv"
+    df.to_csv(export_path, index=False)
+    print(f"✅ Exported {len(df)} rows to {export_path}")
+
+    # Email it
+    from export_to_csv import send_notification_email_with_attachment
+    send_notification_email_with_attachment(
+        export_path,
+        "All Libraries – Events Export",
+        os.environ.get("EVENT_EXPORT_RECIPIENT") or "your@email.com"
+    )
+
