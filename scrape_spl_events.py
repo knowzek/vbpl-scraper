@@ -86,6 +86,11 @@ def scrape_spl_events(mode="all"):
                     program_type = category_tag.get_text(strip=True) if category_tag else ""
                     # Extract audience tags from category list
                     audience_tags = [tag.get_text(strip=True) for tag in listing.select("span.s-lc-event-audience-link a")]
+                    # ❌ Skip events where any audience tag is clearly adult
+                    if any("adult" in tag.lower() for tag in audience_tags):
+                        print(f"⏭️ Skipping due to adult audience tag: {audience_tags}")
+                        continue
+
 
                     # Filter out unwanted categories
                     if program_type in UNWANTED_PROGRAM_TYPES:
