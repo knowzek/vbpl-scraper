@@ -47,24 +47,24 @@ def get_events(soup, date, page_no):
         event_description = event_soup.find('div', class_ = 'tribe-events-single-event-description').get_text().strip()
         event['Event Description'] = event_description
 
-        event_meta = event_soup.find('div', class_ = 'tribe-events-event-meta')
+        event_meta_details = event_soup.find('div', class_ = 'tribe-events-meta-group-details')
 
         try:
-            event_time = event_meta.find('div', class_ = 'tribe-recurring-event-time').get_text().strip()
+            event_time = event_meta_details.find('div', class_ = 'tribe-recurring-event-time').get_text().strip()
         except:
             try:
-                event_time = event_meta.find('div', class_ = 'tribe-events-start-time').get_text().strip()
+                event_time = event_meta_details.find('div', class_ = 'tribe-events-start-time').get_text().strip()
             except:
-                event_time = event_meta.find('abbr', class_ = 'tribe-events-start-datetime').get_text().strip().replace("@", "at")
+                event_time = event_meta_details.find('abbr', class_ = 'tribe-events-start-datetime').get_text().strip().replace("@", "at")
                 try:
-                    event_endtime = event_meta.find('abbr', class_ = 'tribe-events-end-datetime').get_text().strip().replace("@", "at")
+                    event_endtime = event_meta_details.find('abbr', class_ = 'tribe-events-end-datetime').get_text().strip().replace("@", "at")
                     event_time += f" - {event_endtime}"
                 except:
                     pass
 
         event['Time'] = event_time
 
-        event_series = event_meta.find('dd', class_ = 'tec-events-pro-series-meta-detail--link')
+        event_series = event_meta_details.find('dd', class_ = 'tec-events-pro-series-meta-detail--link')
         try:
             event['Series'] = event_series.get_text().strip()
             event['Series Link'] = event_series.find('a')['href']
@@ -74,7 +74,7 @@ def get_events(soup, date, page_no):
 
         event['Tags'] = []
         try:
-            event_tags = event_meta.find('dd', class_ = 'tribe-event-tags').find_all('a')
+            event_tags = event_meta_details.find('dd', class_ = 'tribe-event-tags').find_all('a')
             for tag in event_tags:
                 event['Tags'].append(
                     {
@@ -86,13 +86,16 @@ def get_events(soup, date, page_no):
             pass
 
         try:
-            event_website = event_meta.find('dd', class_ = 'tribe-events-event-url').find('a')['href']
+            event_website = event_meta_details.find('dd', class_ = 'tribe-events-event-url').find('a')['href']
             event['Event Website'] = event_website
         except:
             event['Event Website'] = ""
 
+        event_meta_organizer = event_soup.find('div', class_ = 'tribe-events-meta-group-organizer')
+
+
         try:
-            event_organizer = event_meta.find('dd', class_ = 'tribe-organizer')
+            event_organizer = event_meta_organizer.find('dd', class_ = 'tribe-organizer')
             event['Organizer'] = event_organizer.get_text().strip()
             event['Organizer Link'] = event_organizer.find('a')['href']
         except:
@@ -100,7 +103,21 @@ def get_events(soup, date, page_no):
             event['Organizer Link'] = ""
 
         try:
-            event_venue = event_meta.find('dd', class_ = 'tribe-venue')
+            organizer_phone = event_meta_organizer.find('dd', class_ = 'tribe-organizer-tel')
+            event['Organizer Phone'] = organizer_phone.get_text().strip()
+        except:
+            event['Organizer Phone'] = ""
+
+        try:
+            organizer_website = event_meta_organizer.find('dd', class_ = 'tribe-organizer-url')
+            event['Organizer Website'] = organizer_website.find('a')['href']
+        except:
+            event['Organizer Website'] = ""
+
+        event_meta_venue = event_soup.find('div', class_ = 'tribe-events-meta-group-venue')
+
+        try:
+            event_venue = event_meta_venue.find('dd', class_ = 'tribe-venue')
             event['Venue'] = event_venue.get_text().strip()
             event['Venue Link'] = event_venue.find('a')['href']
         except:
@@ -108,13 +125,13 @@ def get_events(soup, date, page_no):
             event['Venue Link'] = ""
 
         try:
-            venue_website = event_meta.find('dd', class_ = 'tribe-venue-url')
+            venue_website = event_meta_venue.find('dd', class_ = 'tribe-venue-url')
             event['Venue Website'] = venue_website.find('a')['href']
         except:
             event['Venue Website'] = ""
 
         try:
-            venue_phone = event_meta.find('dd', class_ = 'tribe-venue-tel')
+            venue_phone = event_meta_venue.find('dd', class_ = 'tribe-venue-tel')
             event['Venue Phone'] = venue_phone.get_text().strip()
         except:
             event['Venue Phone'] = ""
@@ -123,7 +140,7 @@ def get_events(soup, date, page_no):
 
 
         try:
-            event_location = event_meta.find('dd', class_ = 'tribe-venue-location')
+            event_location = event_meta_venue.find('dd', class_ = 'tribe-venue-location')
             event['Location'] = {
                 "full": event_location.get_text().strip(),
             }
