@@ -137,6 +137,13 @@ LIBRARY_CONSTANTS = {
         },
         "event_name_suffix": " (Chesapeake)"
     },
+    "visithampton": {
+        "name_suffix_map": {},
+        "venue_names": {
+            "Elizabeth River Park near Osprey Shelter": "Elizabeth River Boat Landing and Park",
+        },
+        "event_name_suffix": " (Hampton)"
+    },
 
     "vbpl": {
         "program_type_to_categories": {
