@@ -47,22 +47,22 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Father": "Audience - Parent & Me",
     "caregiver": "Audience - Parent & Me",
     "dad": "Audience - Parent & Me",
-    "weather": "Audience – Outdoor Event",
-    "trains": "List – Events with Trains",
-    "Volunteer": "List – Youth Volunteer Opportunities",
-    "free": "Audience – Free Event",
-    "all ages": "Audience – Family Event, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me, Audience - Family Event",
-    "fireworks": "List – Fireworks",
-    "parade": "List – Parades",
+    "weather": "Audience - Outdoor Event",
+    "trains": "List - Events with Trains",
+    "Volunteer": "List - Youth Volunteer Opportunities",
+    "free": "Audience - Free Event",
+    "all ages": "Audience - Family Event, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me, Audience - Family Event",
+    "fireworks": "List - Fireworks",
+    "parade": "List - Parades",
     "infant": "Audience - Toddler/Infant",
-    "tween": "Audience – School Age",
-    "PNO": "List – Parents Night Out",
-    "taylor swift": "List – Swiftie Events",
-    "Potter": "List – Wizard Events",
-    "Harry Potter": "List – Wizard Events",
-    "outdoor": "Audience – Outdoor Event",
-    "outdoors": "Audience – Outdoor Event",
-    "high school": "Audience – Teens"
+    "tween": "Audience - School Age",
+    "PNO": "List - Parents Night Out",
+    "taylor swift": "List - Swiftie Events",
+    "Potter": "List - Wizard Events",
+    "Harry Potter": "List - Wizard Events",
+    "outdoor": "Audience - Outdoor Event",
+    "outdoors": "Audience - Outdoor Event",
+    "high school": "Audience - Teens"
 }
 
 TITLE_KEYWORD_TO_AGE_CATEGORIES_PPL = {
@@ -136,6 +136,13 @@ LIBRARY_CONSTANTS = {
             "Elizabeth River Park near Osprey Shelter": "Elizabeth River Boat Landing and Park",
         },
         "event_name_suffix": " (Chesapeake)"
+    },
+    "visithampton": {
+        "name_suffix_map": {},
+        "venue_names": {
+            "Elizabeth River Park near Osprey Shelter": "Elizabeth River Boat Landing and Park",
+        },
+        "event_name_suffix": " (Hampton)"
     },
 
     "vbpl": {
