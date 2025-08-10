@@ -105,6 +105,18 @@ def get_library_config(library):
             "email_recipient": "knowzek@gmail.com",
             "email_subject": "New VisitChesapeake CSV export ready"
         }
+
+    elif library == "visithampton":
+        return {
+            "spreadsheet_name": "VisitHampton Events",
+            "worksheet_name": "VisitHampton Events",
+            "log_worksheet_name": "VisitHampton Log",
+            "organizer_name": "",
+            "event_name_suffix": "",
+            "drive_folder_id": "",  # or use a new one
+            "email_recipient": "",
+            "email_subject": "New VisitHampton CSV export ready"
+        }
     
     
     else:

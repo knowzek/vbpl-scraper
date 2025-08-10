@@ -1,7 +1,63 @@
 import requests
 from bs4 import BeautifulSoup
-from helpers import wJson
 from datetime import datetime, timedelta, timezone
+from helpers import wJson, rJson
+import re
+from constants import TITLE_KEYWORD_TO_CATEGORY_RAW
+
+def check_keyword(word, text):
+    pattern = rf'\b{re.escape(word)}\b'
+    if re.search(pattern, text, re.IGNORECASE):
+        return True
+    return False
+
+def clean_data(full_data):
+    # full_data = rJson('events.json')
+
+    loc_cat = "Event Location - Hampton"
+    free_cat = "Audience - Free Event"
+    age_cats = [
+        "Audience - School Age",
+        "Audience - Teens",
+        "Audience - Family Event"
+    ]
+
+    full_data_new = []
+
+    for i, event in enumerate(full_data):
+        categories = set()
+        tags = event['Tags']
+        tags = [t['tag'] for t in tags]
+        if not "Things to Do with Kids" in tags:
+            continue
+
+        for keyword, categorie in TITLE_KEYWORD_TO_CATEGORY_RAW.items():
+            if check_keyword(keyword.lower(), event['Event Name'].lower()) or check_keyword(keyword, event['Event Description'].lower()):
+                categories.add(categorie)
+
+        categories = list(categories)
+
+        full_data[i]['Categories'] = [loc_cat, free_cat]
+
+        if free_cat in categories:
+            categories.remove(free_cat)
+
+        full_data[i]['Categories'].extend(age_cats)
+        
+        if categories:
+            # print(event['Event Link'])
+            categories = ", ".join(categories)
+            categories = categories.split(', ')
+            categories = list(set(categories))
+            full_data[i]['Categories'].extend(categories)
+
+        full_data[i]['Categories'] = ", ".join(full_data[i]['Categories'])
+        
+        full_data_new.append(full_data[i])
+
+    # wJson(full_data_new, 'full_data.json')
+        
+    return full_data_new
 
 def get_events(soup, date, page_no):
 
@@ -141,43 +197,46 @@ def get_events(soup, date, page_no):
 
         try:
             event_location = event_meta_venue.find('dd', class_ = 'tribe-venue-location')
-            event['Location'] = {
-                "full": event_location.get_text().strip(),
-            }
-            street_address = event_location.find('span', class_ = 'tribe-street-address')
-            if street_address:
-                event['Location']['street address'] = street_address.get_text().strip()
-            else:
-                event['Location']['street address'] = ""
+            event['Location'] = event_location.get_text().strip(),
             
-            locality = event_location.find('span', class_ = 'tribe-locality')
-            if locality:
-                event['Location']['locality'] = locality.get_text().strip()
-            else:
-                event['Location']['locality'] = ""
+            # event['Location'] = {
+            #     "full": event_location.get_text().strip(),
+            # }
+            # street_address = event_location.find('span', class_ = 'tribe-street-address')
+            # if street_address:
+            #     event['Location']['street address'] = street_address.get_text().strip()
+            # else:
+            #     event['Location']['street address'] = ""
+            
+            # locality = event_location.find('span', class_ = 'tribe-locality')
+            # if locality:
+            #     event['Location']['locality'] = locality.get_text().strip()
+            # else:
+            #     event['Location']['locality'] = ""
 
-            region = event_location.find('abbr', class_ = 'tribe-region')
-            if region:
-                event['Location']['region'] = region.get_text().strip()
-                event['Location']['full region'] = region['title']
-            else:
-                event['Location']['region'] = ""
-                event['Location']['full region'] = ""
+            # region = event_location.find('abbr', class_ = 'tribe-region')
+            # if region:
+            #     event['Location']['region'] = region.get_text().strip()
+            #     event['Location']['full region'] = region['title']
+            # else:
+            #     event['Location']['region'] = ""
+            #     event['Location']['full region'] = ""
 
-            postal_code = event_location.find('span', class_ = 'tribe-postal-code')
-            if postal_code:
-                event['Location']['postal code'] = postal_code.get_text().strip()
-            else:
-                event['Location']['postal code'] = ""
+            # postal_code = event_location.find('span', class_ = 'tribe-postal-code')
+            # if postal_code:
+            #     event['Location']['postal code'] = postal_code.get_text().strip()
+            # else:
+            #     event['Location']['postal code'] = ""
 
-            country_name = event_location.find('span', class_ = 'tribe-country-name')
-            if country_name:
-                event['Location']['country name'] = country_name.get_text().strip()
-            else:
-                event['Location']['country name'] = ""
+            # country_name = event_location.find('span', class_ = 'tribe-country-name')
+            # if country_name:
+            #     event['Location']['country name'] = country_name.get_text().strip()
+            # else:
+            #     event['Location']['country name'] = ""
 
         except:
-            event['Location'] = {}
+            # event['Location'] = {}
+            event['Location'] = ""
             
         events.append(event)
 
@@ -230,9 +289,10 @@ def scrap_visithampton(mode = "all"):
                 print("reach date limit, stop scraping...")
                 break
         all_events.extend(events)
-        wJson(all_events, 'events.json')
+        # wJson(all_events, 'events.json')
         page_st += 1
+    all_events = clean_data(all_events)
+    return all_events
 
 if __name__ == "__main__": 
-    scrap_visithampton("weekly")
     pass

@@ -207,6 +207,12 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 
                 # Add fallback if nothing matched
                 if not tag_list:
+                    # if library == "visithampton":
+                    #     event.setdefault("Location", {})
+                    #     if "full" in event['Location']:
+                    #         event['Location'] = event['Location']['full']
+                    #     else:
+                    #         event['Location'] = ""
                     # Extract just the city name from known location formats
                     raw_location = event.get("Location", "").strip()
                     fallback_city = ""
@@ -391,7 +397,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
         traceback.print_exc()
 
 def export_all_events_to_csv_and_email():
-    LIBRARIES = ["vbpl", "npl", "chpl", "nnpl", "hpl", "ppl", "spl"]
+    LIBRARIES = ["vbpl", "npl", "chpl", "nnpl", "hpl", "ppl", "spl", "visithampton"]
     all_rows = []
     for lib in LIBRARIES:
         print(f"📥 Fetching events from: {lib.upper()}")

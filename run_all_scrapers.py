@@ -7,12 +7,13 @@ from scrape_nnpl_events import scrape_nnpl_events
 from scrape_spl_events import scrape_spl_events
 from scrape_ppl_events import scrape_ppl_events
 from scrape_events import scrape_vbpl_events
+from scrap_visithampton_events import scrap_visithampton
 from upload_to_sheets import upload_events_to_sheet
 from constants import LIBRARY_CONSTANTS
 
 from datetime import datetime, timedelta
 
-LIBRARIES = ["vbpl", "npl", "chpl", "nnpl", "hpl", "spl", "ppl"]
+LIBRARIES = ["vbpl", "npl", "chpl", "nnpl", "hpl", "spl", "ppl", "visithampton"]
 MODE = "monthly"  # or "weekly", or "all"
 
 def get_cutoff(mode):
@@ -49,6 +50,8 @@ def run_all_scrapers():
                 events = scrape_spl_events(mode=MODE)
             elif library == "ppl":
                 events = scrape_ppl_events(mode=MODE)
+            elif library == "visithampton":
+                events = scrap_visithampton(mode=MODE)
             else:
                 print(f"⚠️ Unknown library: {library}")
                 continue
