@@ -111,10 +111,10 @@ def get_library_config(library):
             "spreadsheet_name": "VisitHampton Events",
             "worksheet_name": "VisitHampton Events",
             "log_worksheet_name": "VisitHampton Log",
-            "organizer_name": "",
-            "event_name_suffix": "",
-            "drive_folder_id": "",  # or use a new one
-            "email_recipient": "",
+            "organizer_name": "Visit Hampton VA",
+            "event_name_suffix": " (Hampton)",
+            "drive_folder_id": "1WZL7Y_CvnRd4Tr9bImjmVgeYkXI3XK90",  # or use a new one
+            "email_recipient": "knowzek@gmail.com",
             "email_subject": "New VisitHampton CSV export ready"
         }
     
