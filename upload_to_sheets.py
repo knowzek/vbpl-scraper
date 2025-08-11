@@ -34,6 +34,11 @@ def connect_to_sheet(spreadsheet_name, worksheet_name):
 def normalize(row):
     return [cell.strip() for cell in row[:13]] + [""] * (13 - len(row))
 
+def _kw_hit(text: str, kw: str) -> bool:
+    t = (text or "").lower()
+    k = (kw or "").lower()
+    # match kw as a whole word/phrase (no letter/number touching it)
+    return re.search(rf'(?<!\w){re.escape(k)}(?!\w)', t) is not None
 
 def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_to_categories={}, name_suffix_map={}):
     config = get_library_config(library)
@@ -168,17 +173,14 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 
                 title_based_tags = []
                 
-                # === Match single keywords (case-insensitive) in title OR description
+                # Single keywords: title OR description, with word boundaries
                 for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
-                    if keyword in title_text or keyword in full_text:
-                        # optional debug:
-                        print(f"🔎 keyword '{keyword}' → {cat} for {event.get('Event Name')}")
+                    if _kw_hit(title_text, keyword) or _kw_hit(full_text, keyword):
                         title_based_tags.extend([c.strip() for c in cat.split(",")])
-
                 
-                # === Match combined keyword pairs (case-insensitive)
+                # Combined keyword pairs: both must hit with word boundaries
                 for (kw1, kw2), cat in COMBINED_KEYWORD_TO_CATEGORY.items():
-                    if kw1.lower() in full_text and kw2.lower() in full_text:
+                    if _kw_hit(full_text, kw1) and _kw_hit(full_text, kw2):
                         title_based_tags.extend([c.strip() for c in cat.split(",")])
                 
                 # Final deduplication
