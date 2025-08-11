@@ -113,7 +113,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                             matched_tags.extend([c.strip() for c in cat.split(",")])
                     categories = ", ".join(dict.fromkeys(matched_tags))  # remove duplicates, preserve order
                 
-                elif library == "vbpr":
+                elif library in ("vbpr", "visithampton"):
                     # For VBPR, use the categories provided by the scraper
                     categories = event.get("Categories", "").strip()
                 else:
@@ -226,19 +226,24 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 categories = ", ".join(dict.fromkeys(tag_list))
 
                 name_original = event.get("Event Name", "")
-                # Remove any "@ LibraryName" from event titles before suffixing
                 name_without_at = re.sub(r"\s*@\s*[^@,;:\\/]+", "", name_original, flags=re.IGNORECASE).strip()
                 name_cleaned = re.sub(r"\s+at\s+.*", "", name_without_at, flags=re.IGNORECASE).strip()
-
-                loc = event.get("Location", "")
+                
+                # Use Venue for visithampton only (fallback to Location if Venue missing).
+                if library == "visithampton":
+                    pref_loc = (event.get("Venue", "") or "").strip() or (event.get("Location", "") or "").strip()
+                else:
+                    pref_loc = (event.get("Location", "") or "").strip()
+                
                 suffix = config.get("event_name_suffix", "")
-                loc_clean = re.sub(r"^Library Branch:", "", loc).strip()
+                loc_clean = re.sub(r"^Library Branch:", "", pref_loc).strip()
                 display_loc = name_suffix_map.get(loc_clean, loc_clean)
                 
                 # Normalize casing
                 base_name = name_cleaned.lower()
                 loc_lower = display_loc.lower()
                 suffix_lower = suffix.lower()
+
                 
                 # Avoid duplicate location suffix
                 if base_name.endswith(loc_lower) or suffix_lower in base_name:
@@ -259,7 +264,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     event.get("Event Status", ""),
                     event.get("Time", ""),
                     event.get("Ages", ""),
-                    event.get("Location", ""),
+                    (event.get("Venue", "") if library == "visithampton" else event.get("Location", "")),
                     event.get("Month", ""),
                     event.get("Day", ""),
                     event.get("Year", ""),
