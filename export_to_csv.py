@@ -17,7 +17,6 @@ import unicodedata
 from email.mime.base import MIMEBase
 from email import encoders
 from email.mime.multipart import MIMEMultipart
-from upload_to_sheets import export_all_events_to_csv_and_email
 
 def send_notification_email_with_attachment(file_path, subject, recipient):
     smtp_user = os.environ["SMTP_USERNAME"]
@@ -59,7 +58,8 @@ def infer_location_from_title(title, name_suffix_map):
     for full, short in name_suffix_map.items():
         if short_name.lower() in short.lower():
             return full
-    return None if return_df else ""
+    return ""
+
 
 # === UTILITY FUNCTIONS ===
 def _format_time(raw: str) -> str:
@@ -340,10 +340,6 @@ if __name__ == "__main__":
     print("🧪 Running unified CSV export for LIBRARIES:", LIBRARIES)
 
     all_exports = []
-
-    from upload_to_sheets import export_all_events_to_csv_and_email
-
-    export_all_events_to_csv_and_email()
 
 
     if all_exports:
