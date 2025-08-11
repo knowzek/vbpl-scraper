@@ -226,23 +226,29 @@ def export_events_to_csv(library="vbpl", return_df=False):
 
     venue_map = constants.get("venue_names") or name_suffix_map
 
-    # First assign the mapped or raw venue
-    df["Venue"] = (
-        df["Location"]
-          .str.replace(r"^Library Branch:", "", regex=True)
-          .str.strip()
-          .map(venue_map)
-          .fillna(df["Location"].str.replace(r"^Library Branch:", "", regex=True).str.strip())
-    )
-    
-    # Then filter out any invalid venue names
-    invalid_venue_mask = ~df["Venue"].isin(venue_map.values())
-    if invalid_venue_mask.any():
-        print("⚠️ Skipping events due to invalid or unmapped venue names:")
-        print(df.loc[invalid_venue_mask, ["Event Name", "Venue"]])
-        df = df[~invalid_venue_mask]
+    if library == "visithampton":
+        # Trust the sheet’s Location (you already set Column F to Venue in the uploader)
+        df["Venue"] = df["Location"].astype(str).str.strip()
+    else:
+        df["Venue"] = (
+            df["Location"]
+              .str.replace(r"^Library Branch:", "", regex=True)
+              .str.strip()
+              .map(venue_map)
+              .fillna(df["Location"].str.replace(r"^Library Branch:", "", regex=True).str.strip())
+        )
+        # Only enforce mapping for non-Visithampton
+        invalid_venue_mask = ~df["Venue"].isin(venue_map.values())
+        if invalid_venue_mask.any():
+            print("⚠️ Skipping events due to invalid or unmapped venue names:")
+            print(df.loc[invalid_venue_mask, ["Event Name", "Venue"]])
+            df = df[~invalid_venue_mask]
+
 
     def format_event_title(row):
+        if library == "visithampton":
+            # Keep the title as-is (plus suffix)
+            return (row["Event Name"] or "").strip() + suffix
         base = re.sub(r"\s+at\s+.*", "", row["Event Name"]).strip()
         loc_clean = re.sub(r"^Library Branch:", "", row["Location"]).strip()
         suffix_name = name_suffix_map.get(loc_clean, loc_clean)
@@ -336,11 +342,15 @@ def export_events_to_csv(library="vbpl", return_df=False):
     return csv_path
 
 if __name__ == "__main__":
-    LIBRARIES = ["vbpl", "npl", "chpl", "nnpl", "hpl", "ppl", "spl", "vbpr"]
+    LIBRARIES = ["vbpl", "npl", "chpl", "nnpl", "hpl", "ppl", "spl", "vbpr", "visithampton"]
     print("🧪 Running unified CSV export for LIBRARIES:", LIBRARIES)
 
     all_exports = []
-
+    for lib in LIBRARIES:
+        print(f"🚀 Exporting {lib} …")
+        df = export_events_to_csv(lib, return_df=True)
+        if df is not None and not df.empty:
+            all_exports.append(df)
 
     if all_exports:
         master_df = pd.concat(all_exports, ignore_index=True)
@@ -348,10 +358,10 @@ if __name__ == "__main__":
         master_df.to_csv(csv_path, index=False)
         print(f"✅ Wrote combined CSV with {len(master_df)} events")
 
-        # ✅ Send one email with attachment
         subject = "Unified Events Export"
         recipient = os.environ.get("EXPORT_RECIPIENT", "you@example.com")
         send_notification_email_with_attachment(csv_path, subject, recipient)
     else:
         print("🚫 No events to export across all libraries.")
+
 
