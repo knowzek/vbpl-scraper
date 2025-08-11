@@ -31,6 +31,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "KINDERSTEM": "List - STEM/STEAM, Audience - Preschool Age",
     "SPR": "Audience - Special Events, List - STEM/STEAM",
     "Build Bash": "List - STEM/STEAM",
+    "austism": "Audience - Special Needs",
     "neurodiverse": "Audience - Special Needs, List - Special Needs Events",
     "neurodiversity": "Audience - Special Needs, List - Special Needs Events",
     "asd": "Audience - Special Needs, List - Special Needs Events",
