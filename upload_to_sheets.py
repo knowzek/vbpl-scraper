@@ -264,11 +264,13 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
 
                 # Decide what to put in the Google Sheet "Location" (Column F)
-                organizer = (event.get("Organizer", "") or "").strip()
-                if library == "visithampton" and organizer.lower() == "fort monroe national monument":
+                organizer = (event.get("Organizer", "") or "").strip().lower()
+                if library == "visithampton" and organizer == "fort monroe national monument":
                     sheet_location = "Fort Monroe"
+                elif library == "visithampton":
+                    sheet_location = (event.get("Venue", "") or "").strip()
                 else:
-                    sheet_location = (event.get("Venue", "") or "").strip() if library == "visithampton" else (event.get("Location", "") or "").strip()
+                    sheet_location = (event.get("Location", "") or "").strip()
 
                 row_core = [
                     event_name,
@@ -292,11 +294,11 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 # Flag if required fields are missing
                 missing_fields = []
-                if not event.get("Event Description", "").strip():
+                if not (event.get("Event Description", "") or "").strip():
                     missing_fields.append("description")
-                if not event.get("Location", "").strip():
+                if not (sheet_location or "").strip():
                     missing_fields.append("location")
-                
+                                
                 if missing_fields:
                     site_sync_status = "REVIEW NEEDED - MISSING INFO"
                     status = "review needed"
