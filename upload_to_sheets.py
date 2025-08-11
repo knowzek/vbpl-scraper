@@ -168,12 +168,13 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 
                 title_based_tags = []
                 
-                # === Match single keywords (case-insensitive)
+                # === Match single keywords (case-insensitive) in title OR description
                 for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
-                    if keyword.lower() in title_text:
-                        if keyword.lower() == "homeschool":
-                            print(f"✅ Matched keyword 'homeschool' in → {event.get('Event Name')}")
+                    if keyword in title_text or keyword in full_text:
+                        # optional debug:
+                        print(f"🔎 keyword '{keyword}' → {cat} for {event.get('Event Name')}")
                         title_based_tags.extend([c.strip() for c in cat.split(",")])
+
                 
                 # === Match combined keyword pairs (case-insensitive)
                 for (kw1, kw2), cat in COMBINED_KEYWORD_TO_CATEGORY.items():
