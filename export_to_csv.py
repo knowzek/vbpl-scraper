@@ -224,11 +224,13 @@ def export_events_to_csv(library="vbpl", return_df=False):
         if not str(row["Location"]).strip() else row["Location"], axis=1
     )
 
-    venue_map = constants.get("venue_names") or name_suffix_map
+    venue_map = constants.get("venue_names") or name_suffix_map  # keep existing line
 
     if library == "visithampton":
-        # Trust the sheet’s Location (you already set Column F to Venue in the uploader)
-        df["Venue"] = df["Location"].astype(str).str.strip()
+        # Case/spacing-normalized mapping with fallback to original Location
+        raw_loc = df["Location"].astype(str).str.replace(r"\s+", " ", regex=True).str.strip()
+        vm_lower = {str(k).lower(): v for k, v in (constants.get("venue_names") or {}).items()}
+        df["Venue"] = raw_loc.apply(lambda x: vm_lower.get(x.lower(), x))
     else:
         df["Venue"] = (
             df["Location"]
@@ -237,13 +239,12 @@ def export_events_to_csv(library="vbpl", return_df=False):
               .map(venue_map)
               .fillna(df["Location"].str.replace(r"^Library Branch:", "", regex=True).str.strip())
         )
-        # Only enforce mapping for non-Visithampton
-        invalid_venue_mask = ~df["Venue"].isin(venue_map.values())
+        # Keep the non-visithampton filter
+        invalid_venue_mask = ~df["Venue"].isin((venue_map or {}).values())
         if invalid_venue_mask.any():
             print("⚠️ Skipping events due to invalid or unmapped venue names:")
             print(df.loc[invalid_venue_mask, ["Event Name", "Venue"]])
             df = df[~invalid_venue_mask]
-
 
     def format_event_title(row):
         title = str(row.get("Event Name", "")).strip()
