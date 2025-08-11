@@ -162,21 +162,6 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 if age_tags and not has_audience_tag(all_tags):
                     all_tags.extend(age_tags)
 
-                
-                # Combine with existing program_type-based categories
-                base = [c.strip() for c in categories.split(",") if c.strip()]
-                combined = base + all_tags
-                # Start with any categories already in the event
-                existing_scraped_tags = [c.strip() for c in event.get("Categories", "").split(",") if c.strip()]
-                
-                # Merge with computed tags
-                combined = existing_scraped_tags + base + all_tags + title_based_tags
-                
-                # Deduplicate and join
-                categories = ", ".join(dict.fromkeys(combined))
-
-                categories = categories.replace("\u00A0", " ").replace("Â", "").strip()
-
                 # === Normalize title and description text
                 title_text = event.get("Event Name", "").lower()
                 full_text = f"{event.get('Event Name', '')} {event.get('Event Description', '')}".lower()
