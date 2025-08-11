@@ -79,8 +79,17 @@ def get_events(soup, date, page_no):
         print("=====================================================")
         time_tag = div.find('time')
         if time_tag and time_tag.has_attr('datetime'):
-            # print("date:", time_tag['datetime'])
-            event['date'] = time_tag['datetime'].strip()
+            event_date = time_tag['datetime'].strip()
+            event['date'] = event_date
+        
+            try:
+                dt = datetime.strptime(event_date, "%Y-%m-%d")
+                event['Month'] = dt.strftime("%b")   # e.g., "Aug"
+                event['Day'] = str(dt.day)           # e.g., "11"
+                event['Year'] = str(dt.year)         # e.g., "2025"
+            except Exception:
+                event['Month'] = event['Day'] = event['Year'] = ""
+
         
         event_wrapper = div.find('div', class_='tribe-events-calendar-list__event-wrapper')
         event_details = event_wrapper.find('div', class_='tribe-events-calendar-list__event-details')
