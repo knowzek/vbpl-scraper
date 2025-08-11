@@ -82,6 +82,46 @@ def _split_times(time_str: str):
     end = _format_time(parts[1] if len(parts) > 1 else "")
     return start, end, "FALSE"
 
+MONTHS = {
+    "jan": 1, "january": 1,
+    "feb": 2, "february": 2,
+    "mar": 3, "march": 3,
+    "apr": 4, "april": 4,
+    "may": 5,
+    "jun": 6, "june": 6,
+    "jul": 7, "july": 7,
+    "aug": 8, "august": 8,
+    "sep": 9, "sept": 9, "september": 9,
+    "oct": 10, "october": 10,
+    "nov": 11, "november": 11,
+    "dec": 12, "december": 12,
+}
+
+def _parse_time_with_dates(s):
+    """
+    Parse strings like:
+      'September 6 at 9:00 am - September 7 at 6:00 pm'
+    Return dict or None:
+      {"start_time": "9:00 AM", "end_time": "6:00 PM", "end_month": 9, "end_day": 7}
+    """
+    if not s:
+        return None
+    pat = re.compile(
+        r'(?i)^\s*([A-Za-z]+)\s+(\d{1,2})\s+at\s+([0-9]{1,2}(?::[0-9]{2})?\s*[ap]\.?m\.?)\s*[-–—]\s*([A-Za-z]+)\s+(\d{1,2})\s+at\s+([0-9]{1,2}(?::[0-9]{2})?\s*[ap]\.?m\.?)\s*$'
+    )
+    m = pat.match(s.strip())
+    if not m:
+        return None
+    sm, sd, st, em, ed, et = m.groups()
+    # normalize times using your _format_time helper
+    start_time = _format_time(st)
+    end_time = _format_time(et)
+    end_month = MONTHS.get(em.lower(), None)
+    end_day = int(ed)
+    return {"start_time": start_time, "end_time": end_time,
+            "end_month": end_month, "end_day": end_day}
+
+
 def _add_hours(time_str: str, hours: int = 1) -> str:
     t = (time_str or "").strip()
     if not t:
@@ -222,6 +262,33 @@ def export_events_to_csv(library="vbpl", return_df=False):
     df[["EVENT START TIME", "EVENT END TIME"]] = time_df[["start", "end"]]
     df["ALL DAY EVENT"] = time_df["all_day"]
     df.loc[df["ALL DAY EVENT"] == "TRUE", ["EVENT START TIME", "EVENT END TIME"]] = ["", ""]
+
+    # --- Handle strings like "September 6 at 9:00 am - September 7 at 6:00 pm"
+    mask_datey = df["Time"].astype(str).str.contains(r'(?i)\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+\d+\s+at\s+\d', regex=True)
+    
+    def _fix_row_with_dates(row):
+        parsed = _parse_time_with_dates(row["Time"])
+        if not parsed:
+            return row
+        # override times
+        row["EVENT START TIME"] = parsed["start_time"]
+        row["EVENT END TIME"]   = parsed["end_time"]
+        # set proper end date using the same year as the row
+        try:
+            year = int(str(row.get("Year", "")).strip() or str(row.get("EVENT START DATE", "")).split("-")[0])
+        except Exception:
+            # fallback: use year from EVENT START DATE if present
+            try:
+                year = int(str(row.get("EVENT START DATE", "")).split("-")[0])
+            except Exception:
+                year = None
+        if parsed["end_month"] and year:
+            end_dt = datetime(year, parsed["end_month"], parsed["end_day"])
+            row["EVENT END DATE"] = end_dt.strftime("%Y-%m-%d")
+        return row
+    
+    df = df.apply(lambda r: _fix_row_with_dates(r) if mask_datey.loc[r.name] else r, axis=1)
+
 
     # --- Custom duration fix: Gibraltar tour is a 1-hour tour (don’t use the "11-3" range)
     GIB_KEY = "gibraltar of the chesapeake and the building of a nation"
