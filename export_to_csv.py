@@ -1,6 +1,6 @@
 import gspread
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 import base64
 import os
 import json
@@ -81,6 +81,21 @@ def _split_times(time_str: str):
     start = _format_time(parts[0] if parts else "")
     end = _format_time(parts[1] if len(parts) > 1 else "")
     return start, end, "FALSE"
+
+def _add_hours(time_str: str, hours: int = 1) -> str:
+    t = (time_str or "").strip()
+    if not t:
+        return ""
+    # support "11 AM" and "11:00 AM"
+    for fmt in ("%I:%M %p", "%I %p"):
+        try:
+            dt = datetime.strptime(t.replace(".", ""), fmt)
+            dt2 = dt + timedelta(hours=hours)
+            # keep minutes only if they existed in input
+            return dt2.strftime("%-I:%M %p") if ":" in t else dt2.strftime("%-I %p")
+        except ValueError:
+            continue
+    return t  # fallback unchanged if parsing fails
 
 def _ascii_quotes(val):
     if not isinstance(val, str):
@@ -207,6 +222,16 @@ def export_events_to_csv(library="vbpl", return_df=False):
     df[["EVENT START TIME", "EVENT END TIME"]] = time_df[["start", "end"]]
     df["ALL DAY EVENT"] = time_df["all_day"]
     df.loc[df["ALL DAY EVENT"] == "TRUE", ["EVENT START TIME", "EVENT END TIME"]] = ["", ""]
+
+    # --- Custom duration fix: Gibraltar tour is a 1-hour tour (don’t use the "11-3" range)
+    GIB_KEY = "gibraltar of the chesapeake and the building of a nation"
+    mask = df["Event Name"].astype(str).str.lower().str.contains(GIB_KEY, na=False)
+    
+    # End time = start time + 1 hour (only when we have a start time)
+    df.loc[mask, "EVENT END TIME"] = df.loc[mask, "EVENT START TIME"].apply(lambda t: _add_hours(t, 1))
+    # Ensure it's not treated as an all-day event
+    df.loc[mask, "ALL DAY EVENT"] = "FALSE"
+
 
     df["Month"] = df["Month"].astype(str)
     df["Day"] = df["Day"].astype(str)
