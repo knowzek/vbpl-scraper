@@ -246,15 +246,21 @@ def export_events_to_csv(library="vbpl", return_df=False):
 
 
     def format_event_title(row):
+        title = str(row.get("Event Name", "")).strip()
         if library == "visithampton":
-            # Keep the title as-is (plus suffix)
-            return (row["Event Name"] or "").strip() + suffix
-        base = re.sub(r"\s+at\s+.*", "", row["Event Name"]).strip()
-        loc_clean = re.sub(r"^Library Branch:", "", row["Location"]).strip()
+            return f"{title}{suffix}"
+        base = re.sub(r"\s+at\s+.*", "", title).strip()
+        loc = str(row.get("Location", "")).strip()
+        loc_clean = re.sub(r"^Library Branch:", "", loc).strip()
         suffix_name = name_suffix_map.get(loc_clean, loc_clean)
-        return f"{base} at {suffix_name}{suffix}" if suffix_name else base + suffix
-
-    df["Event Name"] = df.apply(format_event_title, axis=1)
+        out = f"{base} at {suffix_name}{suffix}" if suffix_name else base + suffix
+        return str(out)
+    
+    # ⬇️ replace the old single-line assignment with this block
+    titles = df.apply(format_event_title, axis=1)
+    if hasattr(titles, "columns"):  # just in case a DataFrame sneaks in
+        titles = titles.iloc[:, 0]
+    df["Event Name"] = titles.astype(str).values
 
     expected_export_cols = [
         "Event Name", "Venue", "EVENT START DATE", "EVENT START TIME", "EVENT END DATE",
