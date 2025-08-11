@@ -229,7 +229,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 name_without_at = re.sub(r"\s*@\s*[^@,;:\\/]+", "", name_original, flags=re.IGNORECASE).strip()
                 name_cleaned = re.sub(r"\s+at\s+.*", "", name_without_at, flags=re.IGNORECASE).strip()
                 
-                # Use Venue for visithampton only (fallback to Location if Venue missing).
+                # Use Venue for visithampton (fallback to Location); others use Location as before
                 if library == "visithampton":
                     pref_loc = (event.get("Venue", "") or "").strip() or (event.get("Location", "") or "").strip()
                 else:
@@ -239,12 +239,11 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 loc_clean = re.sub(r"^Library Branch:", "", pref_loc).strip()
                 display_loc = name_suffix_map.get(loc_clean, loc_clean)
                 
-                # Normalize casing
+                # Normalize casing for suffix checks
                 base_name = name_cleaned.lower()
                 loc_lower = display_loc.lower()
-                suffix_lower = suffix.lower()
+                suffix_lower = (suffix or "").lower()
 
-                
                 # Avoid duplicate location suffix
                 if base_name.endswith(loc_lower) or suffix_lower in base_name:
                     event_name = f"{name_cleaned}"
@@ -258,13 +257,21 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 if not categories:
                     categories = event.get("Categories", "") or f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event"
 
+
+                # Decide what to put in the Google Sheet "Location" (Column F)
+                organizer = (event.get("Organizer", "") or "").strip()
+                if library == "visithampton" and organizer.lower() == "fort monroe national monument":
+                    sheet_location = "Fort Monroe"
+                else:
+                    sheet_location = (event.get("Venue", "") or "").strip() if library == "visithampton" else (event.get("Location", "") or "").strip()
+
                 row_core = [
                     event_name,
                     link,
                     event.get("Event Status", ""),
                     event.get("Time", ""),
                     event.get("Ages", ""),
-                    (event.get("Venue", "") if library == "visithampton" else event.get("Location", "")),
+                    sheet_location,
                     event.get("Month", ""),
                     event.get("Day", ""),
                     event.get("Year", ""),
