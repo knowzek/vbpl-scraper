@@ -269,7 +269,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 # Decide what to put in the Google Sheet "Location" (Column F)
                 organizer = (event.get("Organizer", "") or "").strip().lower()
                 if library == "visithampton" and organizer == "fort monroe national monument":
-                    sheet_location = "Fort Monroe"
+                    sheet_location = "Fort Monroe Visitor & Education Center"
                 elif library == "visithampton":
                     sheet_location = (event.get("Venue", "") or "").strip()
                 else:
