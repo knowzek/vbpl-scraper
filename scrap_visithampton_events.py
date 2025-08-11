@@ -16,11 +16,7 @@ def clean_data(full_data):
 
     loc_cat = "Event Location - Hampton"
     free_cat = "Audience - Free Event"
-    age_cats = [
-        "Audience - School Age",
-        "Audience - Teens",
-        "Audience - Family Event"
-    ]
+    age_cats = "Audience - Family Event"
 
     full_data_new = []
 
