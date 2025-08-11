@@ -197,7 +197,7 @@ def get_events(soup, date, page_no):
 
         try:
             event_location = event_meta_venue.find('dd', class_ = 'tribe-venue-location')
-            event['Location'] = event_location.get_text().strip(),
+            event['Location'] = event_location.get_text().strip()
             
             # event['Location'] = {
             #     "full": event_location.get_text().strip(),
