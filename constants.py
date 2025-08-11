@@ -5,7 +5,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Story Time": "List - Storytimes",
     "Storytime": "List - Storytimes",
     "babies in bloom": "List - Storytimes",
-    "walking tour": "List - Local Tours",
+    "walking tour": "List - Local Tours, Audience - Outdoor Event",
     "math": "List - STEM/STEAM",
     "science": "List - STEM/STEAM",
     "nature": "List - STEM/STEAM",
