@@ -140,7 +140,7 @@ LIBRARY_CONSTANTS = {
     "visithampton": {
         "name_suffix_map": {},
         "venue_names": {
-            "Elizabeth River Park near Osprey Shelter": "Elizabeth River Boat Landing and Park",
+            "Armstrong Stadium": "Hampton University - Armstrong Stadium",
         },
         "event_name_suffix": " (Hampton)"
     },
