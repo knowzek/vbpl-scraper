@@ -227,7 +227,12 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 name_original = event.get("Event Name", "")
                 name_without_at = re.sub(r"\s*@\s*[^@,;:\\/]+", "", name_original, flags=re.IGNORECASE).strip()
-                name_cleaned = re.sub(r"\s+at\s+.*", "", name_without_at, flags=re.IGNORECASE).strip()
+                # For visithampton: DO NOT strip " at ...".
+                # For others: keep stripping anything after " at ".
+                if library == "visithampton":
+                    name_cleaned = name_without_at
+                else:
+                    name_cleaned = re.sub(r"\s+at\s+.*", "", name_without_at, flags=re.IGNORECASE).strip()
                 
                 # Use Venue for visithampton (fallback to Location); others use Location as before
                 if library == "visithampton":
