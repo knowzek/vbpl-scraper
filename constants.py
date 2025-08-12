@@ -12,6 +12,8 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "STEM": "List - STEM/STEAM",
     "lego": "List - STEM/STEAM",
     "chess": "List - STEM/STEAM",
+    "fish": "List - Fishing",
+    "fishing": "List - Fishing",
     #"liveart": "Audience - Family Event, List - Arts & Crafts",
     #"Crochet": "Audience - Family Event, List - Arts & Crafts",
     #"Terrarium": "Audience - Family Event, List - Arts & Crafts",
