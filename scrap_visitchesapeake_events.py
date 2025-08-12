@@ -149,7 +149,7 @@ def get_token():
     response.raise_for_status()
     return response.text.strip()
 
-def get_events(mode = "all"):
+def scrap_visitchesapeake(mode = "all"):
     print("start scrapping from visitchesapeake.com ...")
     today = datetime.now(timezone.utc)
     if mode == "weekly":
@@ -225,6 +225,6 @@ def get_events(mode = "all"):
 
 
 if __name__ == "__main__":
-    events_data = get_events()
+    events_data = scrap_visitchesapeake()
     pass
 

@@ -5,7 +5,7 @@ from scrape_npl_events import scrape_npl_events
 from upload_to_sheets import upload_events_to_sheet
 from export_to_csv import export_events_to_csv
 from scrape_chpl_events import scrape_chpl_events
-from scrape_visitchesapeake_events import scrape_visitchesapeake_events
+from scrap_visitchesapeake_events import scrap_visitchesapeake
 from constants import LIBRARY_CONSTANTS
 from scrape_nnpl_events import scrape_nnpl_events
 from scrap_visithampton_events import scrap_visithampton
@@ -65,8 +65,8 @@ if __name__ == "__main__":
         events = scrape_vbpr_events(mode=mode)
 
     elif library == "visitchesapeake":
-        from scrape_visitchesapeake_events import scrape_visitchesapeake_events
-        events = scrape_visitchesapeake_events(mode=mode)
+        from scrap_visitchesapeake_events import scrap_visitchesapeake
+        events = scrap_visitchesapeake(mode=mode)
     
     elif library == "visithampton":
         from scrap_visithampton_events import scrap_visithampton
