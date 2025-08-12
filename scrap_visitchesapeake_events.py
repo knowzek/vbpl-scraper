@@ -73,7 +73,9 @@ def filter_data(data):
         d['Time'] = d['Time'].lower()
         d['Time'] = d['Time'].replace('starting:', '')
         d['Time'] = d['Time'].replace('from:', '')
-        d['Time'] = d['Time'].replace('to', '-').strip()
+        d['Time'] = d['Time'].replace('to', '-')
+        d['Time'] = d['Time'].replace(' pm', 'pm')
+        d['Time'] = d['Time'].replace(' am', 'am').strip()
 
         d['Location'] = d.get('location', '')
         d['Event Link'] = d.get('absoluteUrl', '')
