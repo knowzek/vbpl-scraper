@@ -4,6 +4,81 @@ from helpers import wJson, rJson
 import json
 from datetime import datetime, timedelta, timezone
 import pytz
+import re
+from constants import TITLE_KEYWORD_TO_CATEGORY_RAW
+
+def check_keyword(word, text):
+    pattern = rf'\b{re.escape(word)}\b'
+    if re.search(pattern, text, re.IGNORECASE):
+        return True
+    return False
+
+def get_categories(event, cats_toadd):
+
+    loc_cat = "Event Location - Chesapeake"
+    age_cat = "Audience - Family Event"
+
+    Categories = set()
+
+    for cat in cats_toadd:
+        Categories.add(cat)
+
+    for keyword, categorie in TITLE_KEYWORD_TO_CATEGORY_RAW.items():
+        if check_keyword(keyword.lower(), event['Event Name'].lower()) or check_keyword(keyword, event['Event Description'].lower()):
+            Categories.add(categorie)
+
+    Categories = list(Categories)
+
+    event['Categories'] = [loc_cat, age_cat]
+    
+    if Categories:
+        Categories = ", ".join(Categories)
+        Categories = Categories.split(', ')
+        Categories = list(set(Categories))
+        event['Categories'].extend(Categories)
+
+    event['Categories'] = ", ".join(event['Categories'])
+
+def filter_data(data):
+    newData = []
+    for d in data:
+        categories = d['categories']
+        scoreSTR = "" 
+        cats_toadd = []
+
+        for cat in categories:
+            if cat['catName'] == "Family Fun":
+                scoreSTR += "Main, "
+            if cat['catName'] == "Fishing":
+                cats_toadd.append("List - Fishing")
+
+        listing = d.get('listing', {})
+        subCategories = listing.get('categories', [])
+        for sub in subCategories:
+            if sub['subcatname'] == "Family Fun":
+                scoreSTR += "sub, "
+            if sub['subcatname'] == "Outdoor Recreation":
+                cats_toadd.append("Audience - Outdoor Event")
+            
+
+            
+
+        if not scoreSTR:
+            continue
+
+        d['Event Name'] = d.get('title', '')
+        d['Event Description'] = d.get('description', '')
+        d['Time'] = d.get('times', '')
+        d['Event Location'] = d.get('location', '')
+        d['Event Link'] = d.get('absoluteUrl', '')
+
+        get_categories(d, cats_toadd)
+
+        
+        newData.append(d)
+
+    return newData
+
 
 
 BASE_URL = "https://www.visitchesapeake.com"
@@ -56,7 +131,7 @@ def format_data(jsondata):
         except:
             pass
         try:
-            doc['endDate'] = get_previous_date(doc['date'])
+            doc['endDate'] = get_previous_date(doc['endDate'])
         except:
             pass
         if "dates" in doc:
@@ -94,7 +169,7 @@ def get_events(mode = "all"):
         token = get_token()
         start_date= get_right_date(today.date())
         if mode == "all":
-            end_date=get_right_date(today.date() + timedelta(days=30))
+            end_date=get_right_date(today.date() + timedelta(days=10))
         else:
             end_date=get_right_date(date_range_end.date())
         # print(start_date)
@@ -115,7 +190,7 @@ def get_events(mode = "all"):
             },
             "options": {
                 "skip": 0,
-                "limit": 10,
+                "limit": 20,
                 "hooks": ["afterFind_listing", "afterFind_host"],
                 "sort": {"date": 1, "rank": 1, "title": 1},
                 "fields": {},
@@ -129,7 +204,11 @@ def get_events(mode = "all"):
         events_url = f"{BASE_URL}/includes/rest_v2/plugins_events_events_by_date/find/?json={encoded_payload}&token={token}"
         response = requests.get(events_url, headers=HEADERS)
         response.raise_for_status()
-        data = format_data(response.json())
+        responseJson = response.json()
+        # print(responseJson['docs']['count'])
+        data = format_data(responseJson)
+        # print(len(data))
+        # print("========")
         for d in data:
             if d['absoluteUrl'] in all_data_absoluteUrl:
                 continue
@@ -138,13 +217,14 @@ def get_events(mode = "all"):
 
         if mode != "all":
             break
-        today = today + timedelta(days=29)
+        today = today + timedelta(days=9)
 
-
-    wJson(all_data, "all_data.json")
+    all_data = filter_data(all_data)
+    # wJson(all_data, "all_data.json")
     return all_data
 
 
 if __name__ == "__main__":
     events_data = get_events()
     pass
+
