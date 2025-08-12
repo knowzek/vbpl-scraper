@@ -68,7 +68,13 @@ def filter_data(data):
 
         d['Event Name'] = d.get('title', '')
         d['Event Description'] = d.get('description', '')
+
         d['Time'] = d.get('times', '')
+        d['Time'] = d['Time'].lower()
+        d['Time'] = d['Time'].replace('starting:', '')
+        d['Time'] = d['Time'].replace('from:', '')
+        d['Time'] = d['Time'].replace('to', '-').strip()
+
         d['Event Location'] = d.get('location', '')
         d['Event Link'] = d.get('absoluteUrl', '')
 
@@ -219,6 +225,6 @@ def scrap_visitchesapeake(mode = "all"):
 
 
 if __name__ == "__main__":
-    events_data = scrap_visitchesapeake("monthly")
+    events_data = scrap_visitchesapeake("all")
     pass
 
