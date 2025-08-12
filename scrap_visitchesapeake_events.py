@@ -75,7 +75,7 @@ def filter_data(data):
         d['Time'] = d['Time'].replace('from:', '')
         d['Time'] = d['Time'].replace('to', '-').strip()
 
-        d['Event Location'] = d.get('location', '')
+        d['Location'] = d.get('location', '')
         d['Event Link'] = d.get('absoluteUrl', '')
 
         get_categories(d, cats_toadd)
