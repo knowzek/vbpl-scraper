@@ -78,6 +78,11 @@ def filter_data(data):
         d['Location'] = d.get('location', '')
         d['Event Link'] = d.get('absoluteUrl', '')
 
+        date = d['date'].split('-')
+        d['Year'] = date[0]
+        d['Month'] = date[1]
+        d['Day'] = date[2]
+
         get_categories(d, cats_toadd)
 
         
