@@ -168,12 +168,8 @@ def scrap_visitchesapeake(mode = "all"):
         """Fetch events from VisitChesapeake using the token."""
         token = get_token()
         start_date= get_right_date(today.date())
-        if mode == "all":
-            end_date=get_right_date(today.date() + timedelta(days=10))
-        else:
-            end_date=get_right_date(date_range_end.date())
-        # print(start_date)
-        # print(end_date)
+        end_date=get_right_date(today.date() + timedelta(days=7))
+        print(start_date, " - ", end_date)
         payload = {
             "filter": {
                 "solrOptions": {},
@@ -215,9 +211,7 @@ def scrap_visitchesapeake(mode = "all"):
             all_data_absoluteUrl.append(d['absoluteUrl'])
             all_data.append(d)
 
-        if mode != "all":
-            break
-        today = today + timedelta(days=9)
+        today = today + timedelta(days=8)
 
     all_data = filter_data(all_data)
     # wJson(all_data, "all_data.json")
@@ -225,6 +219,6 @@ def scrap_visitchesapeake(mode = "all"):
 
 
 if __name__ == "__main__":
-    events_data = scrap_visitchesapeake()
+    events_data = scrap_visitchesapeake("monthly")
     pass
 
