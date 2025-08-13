@@ -448,7 +448,7 @@ def export_events_to_csv(library="vbpl", return_df=False):
     return csv_path
 
 if __name__ == "__main__":
-    LIBRARIES = ["vbpl", "npl", "chpl", "nnpl", "hpl", "ppl", "spl", "vbpr", "visithampton"]
+    LIBRARIES = ["vbpl", "npl", "chpl", "nnpl", "hpl", "ppl", "spl", "vbpr", "visithampton", "visitchesapeake"]
     print("🧪 Running unified CSV export for LIBRARIES:", LIBRARIES)
 
     all_exports = []
@@ -465,7 +465,7 @@ if __name__ == "__main__":
         print(f"✅ Wrote combined CSV with {len(master_df)} events")
 
         subject = "Unified Events Export"
-        recipient = os.environ.get("EXPORT_RECIPIENT", "you@example.com")
+        recipient = os.environ.get("EXPORT_RECIPIENT", "knowzek@gmail.com")
         send_notification_email_with_attachment(csv_path, subject, recipient)
     else:
         print("🚫 No events to export across all libraries.")
