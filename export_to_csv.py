@@ -304,9 +304,34 @@ def export_events_to_csv(library="vbpl", return_df=False):
     df["Day"] = df["Day"].astype(str)
     df["Year"] = df["Year"].astype(str)
     
-    month_str = df["Month"] + " " + df["Day"] + " " + df["Year"]
+    # Build candidates
+    abbr = (df["Month"].astype(str).str.strip() + " " +
+            df["Day"].astype(str).str.strip()   + " " +
+            df["Year"].astype(str).str.strip())
     
-    df["EVENT START DATE"] = pd.to_datetime(month_str, format="%b %d %Y", errors="raise").dt.strftime("%Y-%m-%d")
+    num  = (df["Month"].astype(str).str.zfill(2) + " " +
+            df["Day"].astype(str).str.zfill(2)   + " " +
+            df["Year"].astype(str).str.strip())
+    
+    # Try abbreviated month (Aug), then full month (August), then numeric (08)
+    dates = pd.to_datetime(abbr, format="%b %d %Y", errors="coerce")
+    mask = dates.isna()
+    if mask.any():
+        dates.loc[mask] = pd.to_datetime(abbr[mask], format="%B %d %Y", errors="coerce")
+    mask = dates.isna()
+    if mask.any():
+        dates.loc[mask] = pd.to_datetime(num[mask],  format="%m %d %Y", errors="coerce")
+    
+    # If anything is still NaT, log and drop those rows so the cron doesn’t crash
+    bad_mask = dates.isna()
+    if bad_mask.any():
+        print("⚠️ Bad date rows (dropping):")
+        print(df.loc[bad_mask, ["Event Name", "Month", "Day", "Year", "Time", "Event Link"]])
+        df = df.loc[~bad_mask].copy()
+        dates = dates.loc[~bad_mask]
+    
+    df["EVENT START DATE"] = dates.dt.strftime("%Y-%m-%d")
+
     df["EVENT END DATE"] = df["Event End Date"].fillna("").astype(str)
     df.loc[df["EVENT END DATE"].str.strip() == "", "EVENT END DATE"] = df["EVENT START DATE"]
     df["EVENT END DATE"] = df["EVENT END DATE"].fillna("").astype(str)
