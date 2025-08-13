@@ -9,6 +9,7 @@ from scrape_ppl_events import scrape_ppl_events
 from scrape_events import scrape_vbpl_events
 from scrap_visithampton_events import scrap_visithampton
 from scrap_visitchesapeake_events import scrap_visitchesapeake
+from scrap_visitnewportnews_events import scrap_visitnewportnews
 from upload_to_sheets import upload_events_to_sheet
 from constants import LIBRARY_CONSTANTS
 
@@ -55,6 +56,8 @@ def run_all_scrapers():
                 events = scrap_visithampton(mode=MODE)
             elif library == "visitchesapeake":
                 events = scrap_visitchesapeake(mode=MODE)
+            elif library == "visitnewportnews":
+                events = scrap_visitnewportnews(mode=MODE)
             else:
                 print(f"⚠️ Unknown library: {library}")
                 continue
