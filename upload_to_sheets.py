@@ -47,7 +47,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
     LOG_WORKSHEET_NAME = config["log_worksheet_name"]
     library_constants = LIBRARY_CONSTANTS.get(library, {})
     program_type_to_categories = library_constants.get("program_type_to_categories", {})
-
+    venue_names_map_lc = {k.lower(): v for k, v in library_constants.get("venue_names", {}).items()}
 
     PROGRAM_TYPE_TO_CATEGORIES = {
         "Storytimes & Early Learning": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event, List - Storytimes",
@@ -274,6 +274,10 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     sheet_location = (event.get("Venue", "") or "").strip()
                 else:
                     sheet_location = (event.get("Location", "") or "").strip()
+
+                # Normalize Location via constants.py venue_names (case-insensitive)
+                loc_key = re.sub(r"^Library Branch:", "", sheet_location).strip()
+                sheet_location = venue_names_map_lc.get(loc_key.lower(), loc_key)
 
                 row_core = [
                     event_name,
