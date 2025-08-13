@@ -5,6 +5,7 @@ from helpers import wJson, rJson
 import re
 from constants import TITLE_KEYWORD_TO_CATEGORY_RAW
 
+
 def check_keyword(word, text):
     pattern = rf'\b{re.escape(word)}\b'
     if re.search(pattern, text, re.IGNORECASE):
