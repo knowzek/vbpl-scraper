@@ -35,6 +35,14 @@ COOKIES = {
     "_clsk": "y5y2zn|1755033054713|3|1|s.clarity.ms/collect"
 }
 
+def extract_times(text):
+    pattern = r'\b(?:0?[1-9]|1[0-2])(?:\:[0-5][0-9])?(?:am|pm)\b'
+    lst = re.findall(pattern, text, re.IGNORECASE)
+    for i,t in enumerate(lst):
+        if ':' not in t:
+            lst[i] = t[:-2] + ':00' + t[-2:]
+    return lst
+
 def check_keyword(word, text):
     pattern = rf'\b{re.escape(word)}\b'
     if re.search(pattern, text, re.IGNORECASE):
@@ -109,6 +117,18 @@ def filter_data(data):
         d['Time'] = d['Time'].replace('to', '-')
         d['Time'] = d['Time'].replace(' pm', 'pm')
         d['Time'] = d['Time'].replace(' am', 'am').strip()
+
+        endTime = d.get('endTime', None)
+        if not endTime:
+            currTime = extract_times(d['Time'])
+            if len(currTime) > 0:
+                dt = datetime.strptime(currTime[0].lower(), "%I:%M%p")
+                # Add 1 hour
+                dt += timedelta(hours=1)
+                # Format back to 12-hour time with am/pm
+                newEndTime = dt.strftime("%I:%M%p").lstrip("0")
+            d['Time'] += f" - {newEndTime}"
+
 
         d['Location'] = d.get('location', '')
         d['Event Link'] = d.get('absoluteUrl', '')
@@ -254,7 +274,7 @@ def scrap_visitnewportnews_events(mode = "all"):
                 },
                 "options": {
                     "skip": skip,
-                    "limit": 5,
+                    "limit": 3,
                     "count": True,
                     "castDocs": False,
                     "fields": all_fields,
@@ -267,7 +287,7 @@ def scrap_visitnewportnews_events(mode = "all"):
                 }
             }
             
-            skip += 5
+            skip += 3
             
             params = {
                 "json": json.dumps(payload),
@@ -290,7 +310,7 @@ def scrap_visitnewportnews_events(mode = "all"):
         today = today + timedelta(days=8)
 
     all_data = filter_data(all_data)
-    wJson(all_data, "all_data(visitnewportnews).json")
+    # wJson(all_data, "all_data(visitnewportnews).json")
     return all_data
 
     
