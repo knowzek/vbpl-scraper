@@ -1,6 +1,6 @@
 import requests
 import urllib.parse
-from helpers import wJson, rJson
+from helpers import wJson, rJson, infer_age_categories_from_description
 import json
 from datetime import datetime, timedelta, timezone
 import pytz
@@ -42,30 +42,32 @@ def check_keyword(word, text):
     return False
 
 def get_categories(event, cats_toadd):
+    # Always-on tags
+    base_tags = ["Event Location - Newport News", "Audience - Family Event"]
 
-    # loc_cat = "Event Location - Chesapeake"
-    # age_cat = "Audience - Family Event"
-
-    Categories = set()
-
-    for cat in cats_toadd:
-        Categories.add(cat)
-
+    # 1) Keyword-driven tags 
+    keyword_tags = set(cats_toadd)
     for keyword, categorie in TITLE_KEYWORD_TO_CATEGORY_RAW.items():
         if check_keyword(keyword.lower(), event['Event Name'].lower()) or check_keyword(keyword, event['Event Description'].lower()):
-            Categories.add(categorie)
+            keyword_tags.add(categorie)
 
-    Categories = list(Categories)
+    flat_keyword_tags = []
+    for c in keyword_tags:
+        flat_keyword_tags.extend([x.strip() for x in str(c).split(",") if x.strip()])
 
-    # event['Categories'] = [loc_cat, age_cat]
-    event['Categories'] = []
-    if Categories:
-        Categories = ", ".join(Categories)
-        Categories = Categories.split(', ')
-        Categories = list(set(Categories))
-        event['Categories'].extend(Categories)
+    # 2) Age-based tags from description
+    age_info = infer_age_categories_from_description(event.get("Event Description", ""))
+    age_tags = [x.strip() for x in (age_info.get("categories") or "").split(",") if x.strip()]
 
-    event['Categories'] = ", ".join(event['Categories'])
+    # 3) Merge → dedupe
+    tags = []
+    for group in (base_tags, flat_keyword_tags, age_tags):
+        for t in group:
+            if t and t not in tags:
+                tags.append(t)
+
+    event["Categories"] = ", ".join(tags)
+ 
 
 def filter_data(data):
     newData = []
@@ -74,25 +76,28 @@ def filter_data(data):
         scoreSTR = "" 
         cats_toadd = []
 
-        # for cat in categories:
-        #     if cat['catName'] == "Family Fun":
-        #         scoreSTR += "Main, "
-        #     if cat['catName'] == "Fishing":
-        #         cats_toadd.append("List - Fishing")
+        for cat in categories:
+            if cat['catName'] == "Family Friendly":
+                scoreSTR += "Main, "
+            if cat['catName'] == "Fishing":
+                cats_toadd.append("List - Fishing")
 
-        # listing = d.get('listing', {})
-        # subCategories = listing.get('categories', [])
-        # for sub in subCategories:
-        #     if sub['subcatname'] == "Family Fun":
-        #         scoreSTR += "sub, "
-        #     if sub['subcatname'] == "Outdoor Recreation":
-        #         cats_toadd.append("Audience - Outdoor Event")
+        listing = d.get('listing', {})
+        subCategories = listing.get('categories', [])
+        for sub in subCategories:
+            if sub['subcatname'] == "Family Friendly":
+                scoreSTR += "sub, "
+            if sub['subcatname'] == "Outdoor Recreation":
+                cats_toadd.append("Audience - Outdoor Event")
             
 
             
 
-        # if not scoreSTR:
-        #     continue
+        if not scoreSTR:
+            continue
+
+        if "free" in d.get('admission', '').lower():
+            cats_toadd.append("Audience - Free Event")
 
         d['Event Name'] = d.get('title', '')
         d['Event Description'] = d.get('description', '')

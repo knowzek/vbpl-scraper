@@ -67,6 +67,9 @@ def filter_data(data):
         if not scoreSTR:
             continue
 
+        if "free" in d.get('admission', '').lower():
+            cats_toadd.append("Audience - Free Event")
+
         d['Event Name'] = d.get('title', '')
         d['Event Description'] = d.get('description', '')
 
