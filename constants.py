@@ -137,7 +137,11 @@ LIBRARY_CONSTANTS = {
     "visitchesapeake": {
         "name_suffix_map": {},
         "venue_names": {
-            "Elizabeth River Park near Osprey Shelter": "Elizabeth River Boat Landing and Park",
+            "Chesapeake City Park Marketplace Shelter": "Chesapeake City Park",
+            "Dismal Swamp Canal Trail": "Great Dismal Swamp Canal Trail - Ches.",
+            "Northwest River Park Equestrian Area": "Northwest River Park",
+            "Elizabeth River Park": "Elizabeth River Boat Landing and Park",
+            "Elizabeth River Park near Osprey Shelter": "Elizabeth River Boat Landing and Park"
         },
         "event_name_suffix": " (Chesapeake)"
     },
