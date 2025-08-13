@@ -211,7 +211,7 @@ def format_data(jsondata):
     return docs
 
 
-def scrap_visitnewportnews_events(mode = "all"):
+def scrap_visitnewportnews(mode = "all"):
     print("start scrapping from visitnewportnews.com ...")
     today = datetime.now(timezone.utc)
     if mode == "weekly":
@@ -318,5 +318,5 @@ def scrap_visitnewportnews_events(mode = "all"):
     
 
 if __name__ == "__main__":
-    events_data = scrap_visitnewportnews_events("all")
+    events_data = scrap_visitnewportnews("all")
     pass

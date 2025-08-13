@@ -9,6 +9,7 @@ from scrap_visitchesapeake_events import scrap_visitchesapeake
 from constants import LIBRARY_CONSTANTS
 from scrape_nnpl_events import scrape_nnpl_events
 from scrap_visithampton_events import scrap_visithampton
+from scrap_visitnewportnews_events import scrap_visitnewportnews
 
 
 if __name__ == "__main__":
@@ -71,6 +72,10 @@ if __name__ == "__main__":
     elif library == "visithampton":
         from scrap_visithampton_events import scrap_visithampton
         events = scrap_visithampton(mode=mode)
+
+    elif library == "visitnewportnews":
+        from scrap_visitnewportnews_events import scrap_visitnewportnews
+        events = scrap_visitnewportnews(mode=mode)
     
     else:
         raise ValueError(f"Unknown library: {library}")
