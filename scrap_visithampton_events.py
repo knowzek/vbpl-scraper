@@ -17,7 +17,7 @@ def clean_data(full_data):
 
     loc_cat = "Event Location - Hampton"
     free_cat = "Audience - Free Event"
-    age_cats = "Audience - Family Event"
+    age_cat = "Audience - Family Event"
 
     full_data_new = []
 
@@ -39,7 +39,7 @@ def clean_data(full_data):
         if free_cat in categories:
             categories.remove(free_cat)
 
-        full_data[i]['Categories'].extend(age_cats)
+        full_data[i]['Categories'].append(age_cat)
         
         if categories:
             # print(event['Event Link'])
