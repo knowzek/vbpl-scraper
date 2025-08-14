@@ -25,7 +25,6 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "preschool": "Audience - Preschool Age",
     "tiny tot": "Audience - Toddler/Infant, Audience - Parent & Me",
     "steam": "List - STEM/STEAM",
-    "pride": "List - PRIDE Events",
     "computers": "List - STEM/STEAM",
     "yoga": "Category - Fitness Events",
     "food distribution": "List - Food Distribution",
