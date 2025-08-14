@@ -3,56 +3,103 @@ import re
 from typing import Dict, Optional
 from datetime import datetime, timedelta
 
-# helpers.py
-import re
-from datetime import datetime, timedelta
 
+# 12h like "7", "7:30", "07:30 pm", "11AM"
 TIME12_RE = re.compile(r'\b(1[0-2]|0?[1-9])(?::([0-5]\d))?\s*([ap]\.?m\.?)\b', re.I)
+# 24h like "17:00" or "17:00:00"
+TIME24_RE = re.compile(r'^\s*([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?\s*$')
 
-def _fmt12(dt):  # always "H:MM AM/PM"
-    s = dt.strftime("%I:%M %p")
-    return s.lstrip("0")  # drop leading zero for 01..09
+def _fmt12(dt: datetime) -> str:
+    return dt.strftime("%I:%M %p").lstrip("0")
 
-def _parse12(h, m, ap):
-    h = int(h)
-    m = int(m or 0)
-    ap = ap.lower()
-    if ap.startswith('p') and h != 12: h += 12
-    if ap.startswith('a') and h == 12: h = 0
-    return datetime(2000, 1, 1, h, m)
+def _parse12_to_dt(t: str) -> datetime | None:
+    m = TIME12_RE.match(t.strip())
+    if not m: return None
+    h, mi, ap = m.groups()
+    h = int(h); mi = int(mi or 0)
+    if ap[0].lower() == "p" and h != 12: h += 12
+    if ap[0].lower() == "a" and h == 12: h = 0
+    return datetime(2000, 1, 1, h, mi)
 
-def normalize_time_string(raw: str, default_minutes=60) -> str:
-    """Return 'H:MM AM - H:MM PM', 'All Day Event', or original if unparseable/multi-schedule."""
-    if not raw:
-        return ""
+def to_12h(s: str) -> str:
+    """'17:00' → '5:00 PM', '17:00:00' → '5:00 PM', '11AM' → '11:00 AM'. Else unchanged."""
+    s = (s or "").strip()
+    if not s: return ""
+    m = TIME24_RE.match(s)
+    if m:
+        h = int(m.group(1)); mi = int(m.group(2))
+        ap = "AM" if h < 12 else "PM"
+        h12 = 12 if h % 12 == 0 else h % 12
+        return f"{h12}:{mi:02d} {ap}"
+    m2 = TIME12_RE.search(s)
+    if m2:
+        h, mi, ap = m2.groups()
+        return f"{int(h)}:{(mi or '00'):s} {'AM' if ap[0].lower()=='a' else 'PM'}"
+    return s
+
+def normalize_time_string(raw: str, default_minutes=60, keep_original_if_many_times=True) -> str:
+    """
+    Returns 'H:MM AM - H:MM PM', 'All Day Event', or original if unparseable/multi-schedule.
+    - Converts 'to' → ' - ' and strips seconds.
+    - If ≥3 times found (store hours), leaves original.
+    """
+    if not raw: return ""
     s = raw.strip()
+    s = re.sub(r'\bto\b', '-', s, flags=re.I)
+    s = re.sub(r'\s*[-–—]\s*', ' - ', s)
+    s = re.sub(r':([0-5]\d):[0-5]\d\b', r':\1', s)  # drop :ss
 
-    # Standardize separators first
-    s = re.sub(r'\bto\b', '-', s, flags=re.I)         # "7 PM to 9 PM" -> "7 PM - 9 PM"
-    s = re.sub(r'\s*[-–—]\s*', ' - ', s)              # normalize any dash spacing
-    s = re.sub(r':([0-5]\d):[0-5]\d\b', r':\1', s)    # strip trailing seconds in any times
-
-    # All-day?
     if re.search(r'\ball\s*day\b', s, re.I):
         return "All Day Event"
 
-    # Extract 12h clock times anywhere in the string
-    matches = list(TIME12_RE.findall(s))
+    # Find times: convert any 24h tokens to 12h first, then collect 12h.
+    tokens = []
+    for part in re.split(r'[^0-9apm:]+', s):
+        t12 = to_12h(part)
+        if TIME12_RE.match(t12):
+            tokens.append(t12)
 
-    # If this looks like an hours-of-operation string (>=3 times), don't guess — keep original
-    if len(matches) >= 3:
+    if keep_original_if_many_times and len(tokens) >= 3:
+        return s
+    if not tokens:
         return s
 
-    if not matches:
-        return s
+    start = _parse12_to_dt(tokens[0])
+    end = _parse12_to_dt(tokens[-1]) if len(tokens) >= 2 else (start + timedelta(minutes=default_minutes))
+    return f"{_fmt12(start)} - {_fmt12(end)}"
 
-    start_dt = _parse12(*matches[0])
-    if len(matches) >= 2:
-        end_dt = _parse12(*matches[-1])
-    else:
-        end_dt = start_dt + timedelta(minutes=default_minutes)
+def normalize_time_from_fields(times_text=None, start_time=None, end_time=None, default_minutes=60) -> str:
+    """Single entrypoint for scrapers. Feed whatever fields you have; get a clean display string."""
+    pre = (times_text or "").strip()
+    pre = (pre.replace("Starting:", "").replace("starting:", "")
+             .replace("From:", "").replace("from:", "").strip())
+    if (not pre) and start_time:
+        pre = to_12h(start_time)
+    end_12 = to_12h(end_time) if end_time else ""
+    s = f"{pre} - {end_12}".strip() if end_12 else pre
+    return normalize_time_string(s, default_minutes=default_minutes)
 
-    return f"{_fmt12(start_dt)} - {_fmt12(end_dt)}"
+def split_display_time(display: str):
+    """
+    From a display string, return: (start_12, end_12, start_24, end_24, all_day_bool).
+    Useful in upload_to_sheets for separate columns.
+    """
+    if not display: return "", "", "", "", False
+    if "all day" in display.lower():
+        return "", "", "", "", True
+    if " - " not in display:
+        return "", "", "", "", False
+    left, right = [x.strip() for x in display.split(" - ", 1)]
+    m1 = TIME12_RE.match(left); m2 = TIME12_RE.match(right)
+    def _to24(m):
+        if not m: return ""
+        h, mi, ap = m.groups()
+        h = int(h); mi = int(mi or 0)
+        if ap[0].lower()=='p' and h != 12: h += 12
+        if ap[0].lower()=='a' and h == 12: h = 0
+        return f"{h:02d}:{mi:02d}"
+    return left, right, _to24(m1), _to24(m2), False
+
 
 
 def wJson(jsonFile, filePath):
