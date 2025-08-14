@@ -127,7 +127,7 @@ def get_library_config(library):
             "event_name_suffix": " (Newport News)",
             "drive_folder_id": "1K2IrUB20XIeHm6gvl-dlZDb3NoD7Jlur", 
             "email_recipient": "knowzek@gmail.com",
-            "email_subject": "New VisitNewportNews CSV export ready"
+            "email_subject": "New VisitNewportNews CSV export ready",
             "name_suffix_map": {
                 # "Virginia Living Museum": "Virginia Living Museum (Newport News)",
                 # "Ferguson Center for the Arts": "Ferguson Center for the Arts (Newport News)"
