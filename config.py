@@ -130,7 +130,7 @@ def get_library_config(library):
             "email_subject": "New VisitNewportNews CSV export ready"
             "name_suffix_map": {
                 # "Virginia Living Museum": "Virginia Living Museum (Newport News)",
-                # "Ferguson Center for the Arts": "Ferguson Center for the Arts (Newport News)",
+                # "Ferguson Center for the Arts": "Ferguson Center for the Arts (Newport News)"
             }
         }
     
