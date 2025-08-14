@@ -3,12 +3,17 @@ import re
 from typing import Dict, Optional
 from datetime import datetime, timedelta
 
-TIME_RE = re.compile(r'\b(1[0-2]|0?[1-9])(?::([0-5]\d))?\s*([ap]\.?m\.?)\b', re.I)
+# helpers.py
+import re
+from datetime import datetime, timedelta
 
-def _fmt(dt):  # 12-hour “8:00 AM”
-    return dt.strftime("%-I:%M %p")
+TIME12_RE = re.compile(r'\b(1[0-2]|0?[1-9])(?::([0-5]\d))?\s*([ap]\.?m\.?)\b', re.I)
 
-def _parse(h, m, ap):
+def _fmt12(dt):  # always "H:MM AM/PM"
+    s = dt.strftime("%I:%M %p")
+    return s.lstrip("0")  # drop leading zero for 01..09
+
+def _parse12(h, m, ap):
     h = int(h)
     m = int(m or 0)
     ap = ap.lower()
@@ -16,33 +21,38 @@ def _parse(h, m, ap):
     if ap.startswith('a') and h == 12: h = 0
     return datetime(2000, 1, 1, h, m)
 
-def normalize_time_string(raw, default_minutes=60):
-    """Return a normalized 'start - end' or 'All Day Event' or original string."""
+def normalize_time_string(raw: str, default_minutes=60) -> str:
+    """Return 'H:MM AM - H:MM PM', 'All Day Event', or original if unparseable/multi-schedule."""
     if not raw:
         return ""
     s = raw.strip()
+
+    # Standardize separators first
+    s = re.sub(r'\bto\b', '-', s, flags=re.I)         # "7 PM to 9 PM" -> "7 PM - 9 PM"
+    s = re.sub(r'\s*[-–—]\s*', ' - ', s)              # normalize any dash spacing
+    s = re.sub(r':([0-5]\d):[0-5]\d\b', r':\1', s)    # strip trailing seconds in any times
 
     # All-day?
     if re.search(r'\ball\s*day\b', s, re.I):
         return "All Day Event"
 
-    # Already looks like a range: just normalize dash spacing
-    if re.search(r'\s*[-–—]\s*', s):
-        return re.sub(r'\s*[-–—]\s*', " - ", s)
+    # Extract 12h clock times anywhere in the string
+    matches = list(TIME12_RE.findall(s))
 
-    # Otherwise, mine any times anywhere in the string (handles semicolons, commas, etc.)
-    matches = TIME_RE.findall(s)
-    if not matches:
-        # No times found — leave it as-is
+    # If this looks like an hours-of-operation string (>=3 times), don't guess — keep original
+    if len(matches) >= 3:
         return s
 
-    start_dt = _parse(*matches[0])
+    if not matches:
+        return s
+
+    start_dt = _parse12(*matches[0])
     if len(matches) >= 2:
-        end_dt = _parse(*matches[-1])
+        end_dt = _parse12(*matches[-1])
     else:
         end_dt = start_dt + timedelta(minutes=default_minutes)
 
-    return f"{_fmt(start_dt)} - {_fmt(end_dt)}"
+    return f"{_fmt12(start_dt)} - {_fmt12(end_dt)}"
 
 
 def wJson(jsonFile, filePath):
