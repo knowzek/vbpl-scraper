@@ -76,7 +76,7 @@ def normalize_time_from_fields(times_text=None, start_time=None, end_time=None, 
     if (not pre) and start_time:
         pre = to_12h(start_time)
     end_12 = to_12h(end_time) if end_time else ""
-    s = f"{pre} - {end_12}".strip() if end_12 else pre
+    s = f"{pre} - {end_12}".strip() if not end_12 else pre
     return normalize_time_string(s, default_minutes=default_minutes)
 
 def split_display_time(display: str):
@@ -189,3 +189,7 @@ def infer_age_categories_from_description(description: str) -> Dict[str, Optiona
             deduped.append(t)
 
     return {"min_age": min_age, "max_age": max_age, "categories": ", ".join(deduped)}
+
+
+if __name__ == "__main__":
+    pass
