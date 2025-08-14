@@ -177,7 +177,7 @@ def scrap_visitchesapeake(mode = "all"):
         date_range_end = today + timedelta(days=90)
 
     all_data = []
-    all_data_absoluteUrl = []
+    all_data_unique = []
     
     while True:
         if today > date_range_end:
@@ -223,15 +223,18 @@ def scrap_visitchesapeake(mode = "all"):
         # print(len(data))
         # print("========")
         for d in data:
-            if d['absoluteUrl'] in all_data_absoluteUrl:
+            url_check = d.get("absoluteUrl", "")
+            unique_entry = f"{url_check}-{d.get("date", "")}"
+            if unique_entry in all_data_unique:
                 continue
-            all_data_absoluteUrl.append(d['absoluteUrl'])
+            all_data_unique.append(unique_entry)
             all_data.append(d)
+        # all_data.extend(data)
 
         today = today + timedelta(days=8)
 
     all_data = filter_data(all_data)
-    # wJson(all_data, "all_data.json")
+    # wJson(all_data, "test.json")
     return all_data
 
 
