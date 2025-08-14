@@ -130,8 +130,6 @@ def filter_data(data):
         # One source of truth: normalize to "H:MM AM - H:MM PM" (or leave as-is if unparseable/All Day)
         d['Time'] = normalize_time_string(time_str)  # default +60 min if only one time found
 
-
-
         d['Location'] = d.get('location', '')
         d['Event Link'] = d.get('absoluteUrl', '')
 
