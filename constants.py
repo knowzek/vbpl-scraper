@@ -152,6 +152,21 @@ LIBRARY_CONSTANTS = {
         },
         "event_name_suffix": " (Hampton)"
     },
+    
+    "visithampton": {
+        "name_suffix_map": {},
+        "venue_names": {
+            "City Center at Oyster Point": "City Center Oyster Point",
+            "Virginia Living Museum": "The Virginia Living Museum",
+            "Lee Hall Depot": "Lee Hall Depot",
+            "Historic Endview": "Endview Plantation / Historic Endview",
+            "Ferguson Center for the Arts": "Ferguson Center",
+            "Mary M. Torggler Fine Arts Center": "Mary M. Torggler Fine Arts Center",
+            "Tradition Brewing Company": "Tradition Brewing Company",
+            
+        },
+        "event_name_suffix": " (Newport News)"
+    },
 
     "vbpl": {
         "program_type_to_categories": {
