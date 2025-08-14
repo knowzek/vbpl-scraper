@@ -101,7 +101,7 @@ def get_library_config(library):
             "log_worksheet_name": "VisitChesapeake Log",
             "organizer_name": "Chesapeake Parks, Recreation, and Tourism",
             "event_name_suffix": " (Chesapeake)",
-            "drive_folder_id": "1K2IrUB20XIeHm6gvl-dlZDb3NoD7Jlur",  # or use a new one
+            "drive_folder_id": "1K2IrUB20XIeHm6gvl-dlZDb3NoD7Jlur", 
             "email_recipient": "knowzek@gmail.com",
             "email_subject": "New VisitChesapeake CSV export ready"
         }
@@ -113,9 +113,21 @@ def get_library_config(library):
             "log_worksheet_name": "VisitHampton Log",
             "organizer_name": "Visit Hampton VA",
             "event_name_suffix": " (Hampton)",
-            "drive_folder_id": "1WZL7Y_CvnRd4Tr9bImjmVgeYkXI3XK90",  # or use a new one
+            "drive_folder_id": "1Mjz3g2WWrmRYoR5PfBqepq0qrflb1VbJ", 
             "email_recipient": "knowzek@gmail.com",
             "email_subject": "New VisitHampton CSV export ready"
+        }
+
+    elif library == "visitnewportnews":
+        return {
+            "spreadsheet_name": "VisitNewportNews Events",
+            "worksheet_name": "VisitNewportNews Events",
+            "log_worksheet_name": "VisitNewportNews Log",
+            "organizer_name": "City of Newport News Parks & Recreation Historic Services Division",
+            "event_name_suffix": " (Newport News)",
+            "drive_folder_id": "1K2IrUB20XIeHm6gvl-dlZDb3NoD7Jlur", 
+            "email_recipient": "knowzek@gmail.com",
+            "email_subject": "New VisitNewportNews CSV export ready"
         }
     
     
