@@ -48,6 +48,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
     library_constants = LIBRARY_CONSTANTS.get(library, {})
     program_type_to_categories = library_constants.get("program_type_to_categories", {})
     venue_names_map_lc = {k.lower(): v for k, v in library_constants.get("venue_names", {}).items()}
+    age_to_categories = age_to_categories or {}
+    name_suffix_map = name_suffix_map or {}
 
     PROGRAM_TYPE_TO_CATEGORIES = {
         "Storytimes & Early Learning": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event, List - Storytimes",
