@@ -1,6 +1,6 @@
 import requests
 import urllib.parse
-from helpers import wJson, rJson, infer_age_categories_from_description
+from helpers import wJson, rJson, infer_age_categories_from_description, normalize_time_string
 import json
 from datetime import datetime, timedelta, timezone
 import pytz
@@ -35,13 +35,13 @@ COOKIES = {
     "_clsk": "y5y2zn|1755033054713|3|1|s.clarity.ms/collect"
 }
 
-def extract_times(text):
-    pattern = r'\b(?:0?[1-9]|1[0-2])(?:\:[0-5][0-9])?(?:am|pm)\b'
-    lst = re.findall(pattern, text, re.IGNORECASE)
-    for i,t in enumerate(lst):
-        if ':' not in t:
-            lst[i] = t[:-2] + ':00' + t[-2:]
-    return lst
+# def extract_times(text):
+#    pattern = r'\b(?:0?[1-9]|1[0-2])(?:\:[0-5][0-9])?(?:am|pm)\b'
+#    lst = re.findall(pattern, text, re.IGNORECASE)
+#    for i,t in enumerate(lst):
+#        if ':' not in t:
+#            lst[i] = t[:-2] + ':00' + t[-2:]
+#    return lst
 
 def check_keyword(word, text):
     pattern = rf'\b{re.escape(word)}\b'
@@ -110,24 +110,26 @@ def filter_data(data):
         d['Event Name'] = d.get('title', '')
         d['Event Description'] = d.get('description', '')
 
-        d['Time'] = d.get('times', '')
-        d['Time'] = d['Time'].lower()
-        d['Time'] = d['Time'].replace('starting:', '')
-        d['Time'] = d['Time'].replace('from:', '')
-        d['Time'] = d['Time'].replace('to', '-')
-        d['Time'] = d['Time'].replace(' pm', 'pm')
-        d['Time'] = d['Time'].replace(' am', 'am').strip()
+        # Build a raw time string from available fields
+        raw_time = (d.get('times') or d.get('startTime') or "").strip()
+        
+        prepped = (raw_time
+                   .replace("Starting:", "")
+                   .replace("starting:", "")
+                   .replace("From:", "")
+                   .replace("from:", "")
+                   .strip())
+        
+        # If the API also gives an explicit end time, include it;
+        # the helper will recognize it's already a range and just normalize.
+        if d.get('endTime'):
+            time_str = f"{prepped} - {d['endTime']}"
+        else:
+            time_str = prepped
+        
+        # One source of truth: normalize to "H:MM AM - H:MM PM" (or leave as-is if unparseable/All Day)
+        d['Time'] = normalize_time_string(time_str)  # default +60 min if only one time found
 
-        endTime = d.get('endTime', None)
-        if not endTime:
-            currTime = extract_times(d['Time'])
-            if len(currTime) > 0:
-                dt = datetime.strptime(currTime[0].lower(), "%I:%M%p")
-                # Add 1 hour
-                dt += timedelta(hours=1)
-                # Format back to 12-hour time with am/pm
-                newEndTime = dt.strftime("%I:%M%p").lstrip("0")
-            d['Time'] += f" - {newEndTime}"
 
 
         d['Location'] = d.get('location', '')
