@@ -224,7 +224,7 @@ def scrap_visitnewportnews(mode = "all"):
         date_range_end = today + timedelta(days=90)
 
     all_data = []
-    all_data_absoluteUrl = []
+    all_data_unique = []
     all_fields = set(rJson('all_fields(visitnewportnews).json'))
     all_fields = {field : 1 for field in all_fields}
 
@@ -304,9 +304,13 @@ def scrap_visitnewportnews(mode = "all"):
             if len(data) == 0:
                 break
             for d in data:
-                if d['absoluteUrl'] in all_data_absoluteUrl:
+                url_check = d.get("absoluteUrl", "")
+                if url_check == "":
+                    url_check = d.get("url", "")
+                unique_entry = f"{url_check}-{d.get("date", "")}"
+                if unique_entry in all_data_unique:
                     continue
-                all_data_absoluteUrl.append(d['absoluteUrl'])
+                all_data_unique.append(unique_entry)
                 all_data.append(d)
         
         today = today + timedelta(days=8)
