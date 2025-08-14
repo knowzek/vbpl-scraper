@@ -1,6 +1,49 @@
 import json, requests, os
 import re
 from typing import Dict, Optional
+from datetime import datetime, timedelta
+
+TIME_RE = re.compile(r'\b(1[0-2]|0?[1-9])(?::([0-5]\d))?\s*([ap]\.?m\.?)\b', re.I)
+
+def _fmt(dt):  # 12-hour “8:00 AM”
+    return dt.strftime("%-I:%M %p")
+
+def _parse(h, m, ap):
+    h = int(h)
+    m = int(m or 0)
+    ap = ap.lower()
+    if ap.startswith('p') and h != 12: h += 12
+    if ap.startswith('a') and h == 12: h = 0
+    return datetime(2000, 1, 1, h, m)
+
+def normalize_time_string(raw, default_minutes=60):
+    """Return a normalized 'start - end' or 'All Day Event' or original string."""
+    if not raw:
+        return ""
+    s = raw.strip()
+
+    # All-day?
+    if re.search(r'\ball\s*day\b', s, re.I):
+        return "All Day Event"
+
+    # Already looks like a range: just normalize dash spacing
+    if re.search(r'\s*[-–—]\s*', s):
+        return re.sub(r'\s*[-–—]\s*', " - ", s)
+
+    # Otherwise, mine any times anywhere in the string (handles semicolons, commas, etc.)
+    matches = TIME_RE.findall(s)
+    if not matches:
+        # No times found — leave it as-is
+        return s
+
+    start_dt = _parse(*matches[0])
+    if len(matches) >= 2:
+        end_dt = _parse(*matches[-1])
+    else:
+        end_dt = start_dt + timedelta(minutes=default_minutes)
+
+    return f"{_fmt(start_dt)} - {_fmt(end_dt)}"
+
 
 def wJson(jsonFile, filePath):
     with open(filePath, 'w', encoding='utf-8') as jsonWriter:
