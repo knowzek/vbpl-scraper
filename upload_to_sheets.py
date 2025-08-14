@@ -120,7 +120,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                             matched_tags.extend([c.strip() for c in cat.split(",")])
                     categories = ", ".join(dict.fromkeys(matched_tags))  # remove duplicates, preserve order
                 
-                elif library in ("vbpr", "visithampton", "visitchesapeake", "visitnewportnews"):
+                elif library in ("vbpr", "visithampton", "visitchesapeake", "visitnewportnews", "portsvaevents"):
                     # For VBPR, use the categories provided by the scraper
                     categories = event.get("Categories", "").strip()
                 else:
@@ -409,7 +409,19 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
         traceback.print_exc()
 
 def export_all_events_to_csv_and_email():
-    LIBRARIES = ["vbpl", "npl", "chpl", "nnpl", "hpl", "ppl", "spl", "visithampton"]
+    LIBRARIES = [
+        "vbpl",
+        "npl",
+        "chpl",
+        "nnpl",
+        "hpl",
+        "spl",
+        "ppl",
+        "visithampton",
+        "visitchesapeake",
+        "visitnewportnews",
+        "portsvaevents"
+    ]
     all_rows = []
     for lib in LIBRARIES:
         print(f"📥 Fetching events from: {lib.upper()}")
