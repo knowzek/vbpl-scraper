@@ -1,6 +1,6 @@
 import requests
 import urllib.parse
-from helpers import wJson, rJson, infer_age_categories_from_description, normalize_time_string
+from helpers import wJson, rJson, infer_age_categories_from_description, normalize_time_from_fields
 import json
 from datetime import datetime, timedelta, timezone
 import pytz
@@ -110,25 +110,13 @@ def filter_data(data):
         d['Event Name'] = d.get('title', '')
         d['Event Description'] = d.get('description', '')
 
-        # Build a raw time string from available fields
-        raw_time = (d.get('times') or d.get('startTime') or "").strip()
-        
-        prepped = (raw_time
-                   .replace("Starting:", "")
-                   .replace("starting:", "")
-                   .replace("From:", "")
-                   .replace("from:", "")
-                   .strip())
-        
-        # If the API also gives an explicit end time, include it;
-        # the helper will recognize it's already a range and just normalize.
-        if d.get('endTime'):
-            time_str = f"{prepped} - {d['endTime']}"
-        else:
-            time_str = prepped
-        
-        # One source of truth: normalize to "H:MM AM - H:MM PM" (or leave as-is if unparseable/All Day)
-        d['Time'] = normalize_time_string(time_str)  # default +60 min if only one time found
+        # One source of truth (handles 12/24h, "to"/dashes, seconds, multi-schedule safety)
+        d['Time'] = normalize_time_from_fields(
+            times_text=d.get('times'),
+            start_time=d.get('startTime'),
+            end_time=d.get('endTime'),
+            default_minutes=60
+        )
 
         d['Location'] = d.get('location', '')
         d['Event Link'] = d.get('absoluteUrl', '')
@@ -305,7 +293,7 @@ def scrap_visitnewportnews(mode = "all"):
                 url_check = d.get("absoluteUrl", "")
                 if url_check == "":
                     url_check = d.get("url", "")
-                unique_entry = f"{url_check}-{d.get("date", "")}"
+                unique_entry = f"{url_check}-{d.get('date','')}"
                 if unique_entry in all_data_unique:
                     continue
                 all_data_unique.append(unique_entry)
