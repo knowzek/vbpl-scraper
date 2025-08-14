@@ -55,7 +55,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "trains": "List - Events with Trains",
     "Volunteer": "List - Youth Volunteer Opportunities",
     "free": "Audience - Free Event",
-    "all ages": "Audience - Family Event, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me, Audience - Family Event",
+    "all ages": "Audience - Family Event",
     "fireworks": "List - Fireworks",
     "parade": "List - Parades",
     "infant": "Audience - Toddler/Infant",
