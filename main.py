@@ -93,8 +93,8 @@ if __name__ == "__main__":
             events,
             mode=mode,
             library=library,
-            age_to_categories=constants.get("age_to_categories"),
-            name_suffix_map=constants.get("name_suffix_map")
+            age_to_categories=constants.get("age_to_categories", {}), 
+            name_suffix_map=constants.get("name_suffix_map", {})  
         )
         # export_events_to_csv(library=library)
         print("✅ Done.")
