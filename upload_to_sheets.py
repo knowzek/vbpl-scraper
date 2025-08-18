@@ -48,8 +48,9 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
     library_constants = LIBRARY_CONSTANTS.get(library, {})
     program_type_to_categories = library_constants.get("program_type_to_categories", {})
     venue_names_map_lc = {k.lower(): v for k, v in library_constants.get("venue_names", {}).items()}
-    age_to_categories = age_to_categories or {}
-    name_suffix_map = name_suffix_map or {}
+    age_to_categories = age_to_categories or library_constants.get("age_to_categories", {})
+    name_suffix_map = name_suffix_map or library_constants.get("name_suffix_map", {})
+
 
     PROGRAM_TYPE_TO_CATEGORIES = {
         "Storytimes & Early Learning": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event, List - Storytimes",
@@ -124,12 +125,11 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     event["Location"] = "Yorktown Library"
                 
                     # (3) Exclude if Ages is ONLY adult
-                    ages_only = (event.get("Ages", "") or "").strip().lower()
+                    ages_only = re.sub(r"\s+", " ", (event.get("Ages", "") or "").strip().lower()).strip(", ")
                     if ages_only in {"adult", "adults", "adults 18+", "18+"}:
                         print(f"⏭️ Skipping YPL adult-only event: {event.get('Event Name')}")
                         skipped += 1
                         continue
-
 
                 elif library == "hpl":
                     program_types = [pt.strip().lower() for pt in program_type.split(",") if pt.strip()]
@@ -245,16 +245,18 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     tag_list.append(fallback)
 
                 
-                # Final deduplication
-                print(f"🧾 Final categories for {event.get('Event Name')}: {tag_list}")
-
+                # Add YPL base tags
                 if library == "ypl":
-                tag_list.extend([
-                    "Audience - Free Event",
-                    "Event Location - Yorktown",
-                    "Event Location - York County",
-                ])
+                    tag_list.extend([
+                        "Audience - Free Event",
+                        "Event Location - Yorktown",
+                        "Event Location - York County",
+                    ])
+                
+                # Final dedupe and stringify
                 categories = ", ".join(dict.fromkeys(tag_list))
+                print(f"🧾 Final categories for {event.get('Event Name')}: {categories}")
+
 
                 name_original = event.get("Event Name", "")
                 name_without_at = re.sub(r"\s*@\s*[^@,;:\\/]+", "", name_original, flags=re.IGNORECASE).strip()
