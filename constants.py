@@ -206,7 +206,7 @@ LIBRARY_CONSTANTS = {
         "event_name_suffix": " (Virginia Beach)"
     },
 
-    "ypl": = {
+    "ypl": {
         "name_suffix_map": {
             # "Yorktown Library": "Yorktown Library",
             # "Tabb Library": "Tabb Library",
