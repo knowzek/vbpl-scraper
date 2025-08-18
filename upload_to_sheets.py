@@ -111,6 +111,26 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     # Instead of using only precomputed tags, apply full logic
                     categories = ""
 
+                # --- YPL pre-filtering and normalization ---
+                if library == "ypl":
+                    # (1) Skip any event whose Location contains "Tabb"
+                    loc_before = (event.get("Location", "") or "")
+                    if "tabb" in loc_before.lower():
+                        print(f"⏭️ Skipping YPL event at Tabb: {event.get('Event Name')}")
+                        skipped += 1
+                        continue
+                
+                    # (2) Force Location to Yorktown Library (for all events)
+                    event["Location"] = "Yorktown Library"
+                
+                    # (3) Exclude if Ages is ONLY adult
+                    ages_only = (event.get("Ages", "") or "").strip().lower()
+                    if ages_only in {"adult", "adults", "adults 18+", "18+"}:
+                        print(f"⏭️ Skipping YPL adult-only event: {event.get('Event Name')}")
+                        skipped += 1
+                        continue
+
+
                 elif library == "hpl":
                     program_types = [pt.strip().lower() for pt in program_type.split(",") if pt.strip()]
                     matched_tags = []
@@ -228,6 +248,12 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 # Final deduplication
                 print(f"🧾 Final categories for {event.get('Event Name')}: {tag_list}")
 
+                if library == "ypl":
+                tag_list.extend([
+                    "Audience - Free Event",
+                    "Event Location - Yorktown",
+                    "Event Location - York County",
+                ])
                 categories = ", ".join(dict.fromkeys(tag_list))
 
                 name_original = event.get("Event Name", "")
