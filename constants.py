@@ -205,6 +205,20 @@ LIBRARY_CONSTANTS = {
     },
         "event_name_suffix": " (Virginia Beach)"
     },
+
+    "ypl" = {
+        "name_suffix_map": {
+            # "Yorktown Library": "Yorktown Library",
+            # "Tabb Library": "Tabb Library",
+        },
+        "venue_names": {
+            # "Yorktown Library": "Yorktown Library",
+            # "Tabb Library": "Tabb Library",
+        },
+        "event_name_suffix": " (York County)",
+        # "age_to_categories": { ... }  # add later if you want auto-tagging
+    }
+
     
     "npl": {
         "age_to_categories": {
