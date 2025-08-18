@@ -153,7 +153,7 @@ LIBRARY_CONSTANTS = {
         "event_name_suffix": " (Hampton)"
     },
     
-    "visithampton": {
+    "visitnewportnews": {
         "name_suffix_map": {},
         "venue_names": {
             "City Center at Oyster Point": "City Center Oyster Point",
