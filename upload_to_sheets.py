@@ -334,7 +334,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 # Flag if required fields are missing
                 missing_fields = []
-                if not (event.get("Event Description", "") or "").strip():
+                if not desc_value.strip():
                     missing_fields.append("description")
                 if not (sheet_location or "").strip():
                     missing_fields.append("location")
