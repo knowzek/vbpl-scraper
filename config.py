@@ -136,7 +136,7 @@ def get_library_config(library):
 
     elif library == "ypl":
         return {
-            "spreadsheet_name": "York County Library Events",
+            "spreadsheet_name": "YPL Events",
             "worksheet_name": "YPL Events",
             "log_worksheet_name": "YPL Log",
             "organizer_name": "York County Public Library",
