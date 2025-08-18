@@ -1,4 +1,5 @@
 import requests
+from concurrent.futures import ThreadPoolExecutor
 import urllib.parse
 from helpers import wJson, rJson, infer_age_categories_from_description
 import json
@@ -166,27 +167,16 @@ def get_token():
     response.raise_for_status()
     return response.text.strip()
 
-def scrap_visitchesapeake(mode = "all"):
-    print("start scrapping from visitchesapeake.com ...")
-    today = datetime.now(timezone.utc)
-    if mode == "weekly":
-        date_range_end = today + timedelta(days=7)
-    elif mode == "monthly":
-        date_range_end = today + timedelta(days=30)
-    else:
-        date_range_end = today + timedelta(days=90)
-
-    all_data = []
-    all_data_unique = []
+def scrap_day(date_obj, all_fields):
+    """Scrap events for a single day (helper for multithreading)."""
+    token = get_token()
+    start_date = get_right_date(date_obj.date())
+    end_date = get_right_date(date_obj.date())
+    print(start_date, " - ", end_date)
     
+    skip, plus_val = 0, 10
+    day_data = []
     while True:
-        if today > date_range_end:
-            break
-        """Fetch events from VisitChesapeake using the token."""
-        token = get_token()
-        start_date= get_right_date(today.date())
-        end_date=get_right_date(today.date() + timedelta(days=7))
-        print(start_date, " - ", end_date)
         payload = {
             "filter": {
                 "solrOptions": {},
@@ -202,11 +192,11 @@ def scrap_visitchesapeake(mode = "all"):
                 }
             },
             "options": {
-                "skip": 0,
-                "limit": 20,
+                "skip": skip,
+                "limit": plus_val,
                 "hooks": ["afterFind_listing", "afterFind_host"],
                 "sort": {"date": 1, "rank": 1, "title": 1},
-                "fields": {},
+                "fields": all_fields,
                 "count": True
             }
         }
@@ -218,23 +208,55 @@ def scrap_visitchesapeake(mode = "all"):
         response = requests.get(events_url, headers=HEADERS)
         response.raise_for_status()
         responseJson = response.json()
-        # print(responseJson['docs']['count'])
         data = format_data(responseJson)
-        # print(len(data))
-        # print("========")
-        for d in data:
-            url_check = d.get("absoluteUrl", "")
-            unique_entry = f"{url_check}-{d.get("date", "")}"
-            if unique_entry in all_data_unique:
-                continue
-            all_data_unique.append(unique_entry)
-            all_data.append(d)
-        # all_data.extend(data)
 
-        today = today + timedelta(days=8)
+        if not data:
+            break
+        day_data.extend(data)
+        skip += plus_val
+    return day_data
+
+
+def scrap_visitchesapeake(mode = "all", max_workers=10):
+    print("start scrapping from visitchesapeake.com ...")
+    today = datetime.now(timezone.utc)
+    if mode == "weekly":
+        date_range_end = today + timedelta(days=7)
+    elif mode == "monthly":
+        date_range_end = today + timedelta(days=30)
+    else:
+        date_range_end = today + timedelta(days=90)
+
+    # Prepare fields
+    all_fields = set(rJson('all_fields(visitnewportnews).json'))
+    all_fields = {field: 1 for field in all_fields}
+
+    # Build list of days to scrape
+    dates = []
+    cur = today
+    while cur <= date_range_end:
+        dates.append(cur)
+        cur += timedelta(days=1)
+    
+    all_data = []
+    all_data_unique = set()
+
+    # Threaded scrape while preserving order
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        results = list(executor.map(lambda d: scrap_day(d, all_fields), dates))
+
+    # Merge results in the same order as dates
+    for day_data in results:
+        for d in day_data:
+            url_check = d.get("absoluteUrl")
+            unique_entry = f"{url_check}-{d.get('date','')}"
+            if unique_entry not in all_data_unique:
+                all_data_unique.add(unique_entry)
+                all_data.append(d)
 
     all_data = filter_data(all_data)
-    # wJson(all_data, "test.json")
+    # wJson(all_data, "all_data(visitchesapeake) new.json")
+    
     return all_data
 
 
