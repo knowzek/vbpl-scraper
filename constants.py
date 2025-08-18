@@ -217,7 +217,7 @@ LIBRARY_CONSTANTS = {
         },
         "event_name_suffix": " (York County)",
         # "age_to_categories": { ... }  # add later if you want auto-tagging
-    }
+    },
 
     
     "npl": {
