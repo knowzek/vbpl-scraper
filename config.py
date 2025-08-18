@@ -118,6 +118,18 @@ def get_library_config(library):
             "email_subject": "New VisitHampton CSV export ready"
         }
 
+    elif library == "visitportsmouth":
+        return {
+            "spreadsheet_name": "VisitPortsmouth Events",
+            "worksheet_name": "VisitPortsmouth Events",
+            "log_worksheet_name": "VisitPortsmouth Log",
+            "organizer_name": "Portsmouth Parks and Recreation",
+            "event_name_suffix": " (Portsmouth)",
+            "drive_folder_id": "1Q3SP5yWDFtQvcScsvvvP78bJp_1MvAmO", 
+            "email_recipient": "knowzek@gmail.com",
+            "email_subject": "New VisitPortsmouth CSV export ready"
+        }
+
     elif library == "visitnewportnews":
         return {
             "spreadsheet_name": "VisitNewportNews Events",
