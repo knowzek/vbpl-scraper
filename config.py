@@ -118,38 +118,37 @@ def get_library_config(library):
             "email_subject": "New VisitHampton CSV export ready"
         }
 
-    elif library == "visitnewportnews":
-        return {
-            "spreadsheet_name": "VisitNewportNews Events",
-            "worksheet_name": "VisitNewportNews Events",
-            "log_worksheet_name": "VisitNewportNews Log",
-            "organizer_name": "City of Newport News Parks & Recreation Historic Services Division",
-            "event_name_suffix": " (Newport News)",
-            "drive_folder_id": "1K2IrUB20XIeHm6gvl-dlZDb3NoD7Jlur", 
-            "email_recipient": "knowzek@gmail.com",
-            "email_subject": "New VisitNewportNews CSV export ready",
-            "name_suffix_map": {
-                # "Virginia Living Museum": "Virginia Living Museum (Newport News)",
-                # "Ferguson Center for the Arts": "Ferguson Center for the Arts (Newport News)"
+        elif library == "visitnewportnews":
+            return {
+                "spreadsheet_name": "VisitNewportNews Events",
+                "worksheet_name": "VisitNewportNews Events",
+                "log_worksheet_name": "VisitNewportNews Log",
+                "organizer_name": "City of Newport News Parks & Recreation Historic Services Division",
+                "event_name_suffix": " (Newport News)",
+                "drive_folder_id": "1K2IrUB20XIeHm6gvl-dlZDb3NoD7Jlur",
+                "email_recipient": "knowzek@gmail.com",
+                "email_subject": "New VisitNewportNews CSV export ready",
+                "name_suffix_map": {
+                    # "Virginia Living Museum": "Virginia Living Museum (Newport News)",
+                    # "Ferguson Center for the Arts": "Ferguson Center for the Arts (Newport News)"
+                }
             }
-
+    
         elif library == "ypl":
-        return {
-            "spreadsheet_name": "YPL Events",
-            "worksheet_name": "YPL Events",
-            "log_worksheet_name": "YPL Log",
-            "organizer_name": "Yorktown Public Library",
-            "event_name_suffix": " (Yorktown)",
-            "drive_folder_id": "1t2JQIfRWGJ_ijUJzl1KKlyYGDLMzLeFi", 
-            "email_recipient": "knowzek@gmail.com",
-            "email_subject": "New YPL CSV export ready"
-        }
+            return {
+                "spreadsheet_name": "York County Library Events",
+                "worksheet_name": "YPL Events",
+                "log_worksheet_name": "YPL Log",
+                "organizer_name": "York County Public Library",
+                "event_name_suffix": " (York County)",
+                "drive_folder_id": "1t2JQIfRWGJ_ijUJzl1KKlyYGDLMzLeFi",
+                "email_recipient": "knowzek@gmail.com",
+                "email_subject": "New YPL CSV export ready"
+            }
+    
+        else:
+            raise ValueError(f"Unsupported library code: {library}")
 
-        }
-    
-    
-    else:
-        raise ValueError(f"Unsupported library code: {library}")
 
 
 def map_age_to_categories(min_age, max_age):
