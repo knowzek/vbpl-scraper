@@ -118,7 +118,7 @@ def get_library_config(library):
             "email_subject": "New VisitHampton CSV export ready"
         }
 
-    elif library == "visitportsmouth":
+    elif library == "portsvaevents":
         return {
             "spreadsheet_name": "VisitPortsmouth Events",
             "worksheet_name": "VisitPortsmouth Events",
