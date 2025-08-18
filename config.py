@@ -132,6 +132,19 @@ def get_library_config(library):
                 # "Virginia Living Museum": "Virginia Living Museum (Newport News)",
                 # "Ferguson Center for the Arts": "Ferguson Center for the Arts (Newport News)"
             }
+
+        elif library == "ypl":
+        return {
+            "spreadsheet_name": "YPL Events",
+            "worksheet_name": "YPL Events",
+            "log_worksheet_name": "YPL Log",
+            "organizer_name": "Yorktown Public Library",
+            "event_name_suffix": " (Yorktown)",
+            "drive_folder_id": "1t2JQIfRWGJ_ijUJzl1KKlyYGDLMzLeFi", 
+            "email_recipient": "knowzek@gmail.com",
+            "email_subject": "New YPL CSV export ready"
+        }
+
         }
     
     
