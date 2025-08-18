@@ -105,6 +105,9 @@ def scrape_YPL_events(mode="all"):
                 loc_el = card.select_one(".lc-event-info__item--categories")
                 location = loc_el.get_text(" ", strip=True) if loc_el else ""
 
+                desc_el = card.select_one(".field--name-description")
+                description = desc_el.get_text(" ", strip=True) if desc_el else ""
+
                 events.append({
                     "Event Name": name,
                     "Event Link": link,
@@ -117,7 +120,7 @@ def scrape_YPL_events(mode="all"):
                     "Year": str(event_date.year),
                     "Event Date": date_str,
                     "Event End Date": date_str,
-                    "Event Description": "",
+                    "Event Description": description,
                     "Series": "",
                     "Program Type": "",
                     "Categories": "",
