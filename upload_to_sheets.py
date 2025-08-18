@@ -107,6 +107,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 program_type = event.get("Program Type", "")
+                # Ensure categories always exists (prevents UnboundLocalError)
+                categories = ""
 
                 if library == "ppl":
                     # Instead of using only precomputed tags, apply full logic
@@ -189,10 +191,19 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 if age_tags and not has_audience_tag(all_tags):
                     all_tags.extend(age_tags)
 
+                # Ensure description exists for keyword tagging and sheet column
+                desc_value = (
+                    event.get("Event Description")
+                    or event.get("Description")
+                    or event.get("Desc")
+                    or event.get("Event Details")
+                    or ""
+                )
+
                 # === Normalize title and description text
-                title_text = event.get("Event Name", "").lower()
-                full_text = f"{event.get('Event Name', '')} {event.get('Event Description', '')}".lower()
-                
+                title_text = (event.get("Event Name", "") or "").lower()
+                full_text = f"{event.get('Event Name', '')} {desc_value}".lower()
+
                 title_based_tags = []
                 
                 # Single keywords: title OR description, with word boundaries
@@ -205,47 +216,17 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     if _kw_hit(full_text, kw1) and _kw_hit(full_text, kw2):
                         title_based_tags.extend([c.strip() for c in cat.split(",")])
                 
-                # Final deduplication
+                # Build the tag list from the three sources
+                # 1) Start from program-type/default categories
                 tag_list = [c.strip() for c in categories.split(",") if c.strip()]
-
-                # Add age-based categories
+                
+                # 2) Add age-based categories
                 tag_list.extend(all_tags)
                 
-                # Add title-based categories
+                # 3) Add keyword categories
                 tag_list.extend(title_based_tags)
                 
-                # Add fallback if nothing matched
-                if not tag_list:
-                    # if library == "visithampton":
-                    #     event.setdefault("Location", {})
-                    #     if "full" in event['Location']:
-                    #         event['Location'] = event['Location']['full']
-                    #     else:
-                    #         event['Location'] = ""
-                    # Extract just the city name from known location formats
-                    raw_location = event.get("Location", "").strip()
-                    fallback_city = ""
-                
-                    if "Norfolk" in raw_location:
-                        fallback_city = "Norfolk"
-                    elif "Virginia Beach" in raw_location:
-                        fallback_city = "Virginia Beach"
-                    elif "Chesapeake" in raw_location:
-                        fallback_city = "Chesapeake"
-                    elif "Portsmouth" in raw_location:
-                        fallback_city = "Portsmouth"
-                    elif "Hampton" in raw_location:
-                        fallback_city = "Hampton"
-                    elif "Newport News" in raw_location:
-                        fallback_city = "Newport News"
-                    elif "Suffolk" in raw_location:
-                        fallback_city = "Suffolk"
-                
-                    fallback = f"Event Location - {fallback_city}, Audience - Free Event" if fallback_city else "Audience - Free Event"
-                    tag_list.append(fallback)
-
-                
-                # Add YPL base tags
+                # YPL: always add base tags
                 if library == "ypl":
                     tag_list.extend([
                         "Audience - Free Event",
@@ -253,7 +234,29 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                         "Event Location - York County",
                     ])
                 
-                # Final dedupe and stringify
+                # If nothing matched at all, add a reasonable fallback
+                if not tag_list:
+                    raw_location = (event.get("Location", "") or "").strip()
+                    fallback_city = ""
+                    for city in ("Norfolk", "Virginia Beach", "Chesapeake", "Portsmouth", "Hampton", "Newport News", "Suffolk"):
+                        if city.lower() in raw_location.lower():
+                            fallback_city = city
+                            break
+                    if library == "ypl":
+                        # Always at least these for YPL
+                        tag_list.extend([
+                            "Audience - Free Event",
+                            "Event Location - Yorktown",
+                            "Event Location - York County",
+                        ])
+                    else:
+                        tag_list.append(
+                            f"Event Location - {fallback_city}, Audience - Free Event"
+                            if fallback_city else
+                            "Audience - Free Event"
+                        )
+                
+                # Final dedupe to string
                 categories = ", ".join(dict.fromkeys(tag_list))
                 print(f"🧾 Final categories for {event.get('Event Name')}: {categories}")
 
@@ -319,7 +322,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     event.get("Month", ""),
                     event.get("Day", ""),
                     event.get("Year", ""),
-                    event.get("Event Description", ""),
+                    desc_value,
                     event.get("Series", ""),
                     program_type,
                     categories
