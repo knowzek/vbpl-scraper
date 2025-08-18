@@ -139,8 +139,8 @@ def get_library_config(library):
             "spreadsheet_name": "YPL Events",
             "worksheet_name": "YPL Events",
             "log_worksheet_name": "YPL Log",
-            "organizer_name": "York County Public Library",
-            "event_name_suffix": " (York County)",
+            "organizer_name": "Yorktown Public Library",
+            "event_name_suffix": " (Yorktown)",
             "drive_folder_id": "1t2JQIfRWGJ_ijUJzl1KKlyYGDLMzLeFi",
             "email_recipient": "knowzek@gmail.com",
             "email_subject": "New YPL CSV export ready"
