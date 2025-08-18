@@ -1,11 +1,12 @@
-import requests
-import urllib.parse
-from helpers import wJson, rJson, infer_age_categories_from_description, normalize_time_from_fields
-import json
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
+import requests, json
+# import urllib.parse
+from helpers import wJson, rJson, infer_age_categories_from_description, normalize_time_from_fields
 import pytz
 import re
 from constants import TITLE_KEYWORD_TO_CATEGORY_RAW
+
 
 BASE_URL = "https://www.visitnewportnews.com"
 
@@ -199,7 +200,55 @@ def format_data(jsondata):
     return docs
 
 
-def scrap_visitnewportnews(mode = "all"):
+
+def scrap_day(date_obj, all_fields):
+    """Scrap events for a single day (helper for multithreading)."""
+    token = get_token()
+    start_date = get_right_date(date_obj.date())
+    end_date = get_right_date(date_obj.date())
+    print(start_date, " - ", end_date)
+    url = f"{BASE_URL}/includes/rest_v2/plugins_events_events_by_date/find/"
+    
+    skip, plus_val = 0, 10
+    day_data = []
+    while True:
+        payload = {
+            "filter": {
+                "active": True,
+                "$and": [
+                    {"categories.catId": {
+                        "$in": ["9","4","3","6","5","8","12","2","7","1","10"]
+                    }}
+                ],
+                "date_range": {
+                    "start": {"$date": start_date},
+                    "end": {"$date": end_date}
+                }
+            },
+            "options": {
+                "skip": skip,
+                "limit": plus_val,
+                "count": True,
+                "castDocs": False,
+                "fields": all_fields,
+                "hooks": [],
+                "sort": {"date": 1, "rank": 1, "title_sort": 1}
+            }
+        }
+        params = {"json": json.dumps(payload), "token": token}
+        response = requests.get(url, headers=HEADERS, cookies=COOKIES, params=params)
+        response.raise_for_status()
+        responseJson = response.json()
+
+        data = format_data(responseJson)
+        if not data:
+            break
+        day_data.extend(data)
+        skip += plus_val
+    return day_data
+
+
+def scrap_visitnewportnews(mode="all", max_workers=10):
     print("start scrapping from visitnewportnews.com ...")
     today = datetime.now(timezone.utc)
     if mode == "weekly":
@@ -209,105 +258,39 @@ def scrap_visitnewportnews(mode = "all"):
     else:
         date_range_end = today + timedelta(days=90)
 
-    all_data = []
-    all_data_unique = []
+    # Prepare fields
     all_fields = set(rJson('all_fields(visitnewportnews).json'))
-    all_fields = {field : 1 for field in all_fields}
+    all_fields = {field: 1 for field in all_fields}
 
+    # Build list of days to scrape
+    dates = []
+    cur = today
+    while cur <= date_range_end:
+        dates.append(cur)
+        cur += timedelta(days=1)
 
+    all_data = []
+    all_data_unique = set()
 
-    while True:
-        if today > date_range_end:
-            break
-        """Fetch events from VisitChesapeake using the token."""
-        token = get_token()
-        start_date= get_right_date(today.date())
-        end_date=get_right_date(today.date() + timedelta(days=7))
+    # Threaded scrape while preserving order
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        results = list(executor.map(lambda d: scrap_day(d, all_fields), dates))
 
-        print(start_date, " - ", end_date)
-        url = f"{BASE_URL}/includes/rest_v2/plugins_events_events_by_date/find/"
-        skip = 0
-        while True:
-
-            payload = {
-                "filter": {
-                    "active": True,
-                    "$and": [
-                        {
-                            "categories.catId": {
-                                "$in": [
-                                    "9",
-                                    "4",
-                                    "3",
-                                    "6",
-                                    "5",
-                                    "8",
-                                    "12",
-                                    "2",
-                                    "7",
-                                    "1",
-                                    "10"
-                                ]
-                            }
-                        }
-                    ],
-                    "date_range": {
-                        "start": {
-                            "$date": start_date
-                        },
-                        "end": {
-                            "$date": end_date
-                        }
-                    }
-                },
-                "options": {
-                    "skip": skip,
-                    "limit": 3,
-                    "count": True,
-                    "castDocs": False,
-                    "fields": all_fields,
-                    "hooks": [],
-                    "sort": {
-                        "date": 1,
-                        "rank": 1,
-                        "title_sort": 1
-                    }
-                }
-            }
-            
-            skip += 3
-            
-            params = {
-                "json": json.dumps(payload),
-                "token": token
-            }
-
-            response = requests.get(url, headers=HEADERS, cookies=COOKIES, params=params)
-            response.raise_for_status()
-            responseJson = response.json()
-
-            data = format_data(responseJson)
-            if len(data) == 0:
-                break
-            for d in data:
-                url_check = d.get("absoluteUrl", "")
-                if url_check == "":
-                    url_check = d.get("url", "")
-                unique_entry = f"{url_check}-{d.get('date','')}"
-                if unique_entry in all_data_unique:
-                    continue
-                all_data_unique.append(unique_entry)
+    # Merge results in the same order as dates
+    for day_data in results:
+        for d in day_data:
+            url_check = d.get("absoluteUrl") or d.get("url", "")
+            unique_entry = f"{url_check}-{d.get('date','')}"
+            if unique_entry not in all_data_unique:
+                all_data_unique.add(unique_entry)
                 all_data.append(d)
-        
-        today = today + timedelta(days=8)
 
     all_data = filter_data(all_data)
-    # wJson(all_data, "all_data(visitnewportnews).json")
+    # wJson(all_data, "all_data(visitnewportnews) new.json")
     return all_data
 
-    
 
-    
+
 
 if __name__ == "__main__":
     events_data = scrap_visitnewportnews("all")
