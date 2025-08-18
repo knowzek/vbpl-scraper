@@ -208,7 +208,7 @@ def scrap_portsvaevents(mode = "all"):
                 break
         all_events.extend(events)
         page_st += 1
-    wJson(all_events, 'events.json')
+    # wJson(all_events, 'events.json')
     return all_events
 
 if __name__ == "__main__": 
