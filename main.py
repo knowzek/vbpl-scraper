@@ -83,8 +83,8 @@ if __name__ == "__main__":
         events = scrap_portsvaevents(mode=mode)
 
     elif library == "ypl":
-    from scrape_ypl_events import scrape_YPL_events
-    events = scrape_YPL_events(mode=mode)
+        from scrape_ypl_events import scrape_YPL_events
+        events = scrape_YPL_events(mode=mode)
     
     else:
         raise ValueError(f"Unknown library: {library}")
