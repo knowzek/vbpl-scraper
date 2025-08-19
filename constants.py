@@ -168,6 +168,28 @@ LIBRARY_CONSTANTS = {
         "event_name_suffix": " (Newport News)"
     },
 
+    "portsvaevents": {
+        "name_suffix_map": {},
+        "venue_names": {
+            "Children’s Museum of Virginia": "Children's Museum of Virginia",
+            "Portsmouth Naval Shipyard Museum": "Portsmouth Naval Shipyard Museum",
+            "Portsmouth Art & Cultural Center": "Portsmouth Art & Cultural Center",
+            "Portsmouth Colored Community Library Museum": "Portsmouth Colored Community Library Museum",
+            "Portsmouth Art & Cultural Center Annex": "Portsmouth Art & Cultural Center Annex",
+            "High Street Corridor": "High Street Portsmouth",
+            "Atlantis Games & Comics Portsmouth": "Atlantis Games & Comics - Portsmouth",
+            "Portsmouth Museums": "Children's Museum of Virginia",
+            "Olde Towne Portsmouth": "Olde Towne Portsmouth",
+            "Jewish Museum & Cultural Center": "Jewish Museum and Cultural Center",
+            "Hoffler Creek Wildlife Preserve": "Hoffler Creek Wildlife Preserve",
+            "High Street Landing": "High Street Landing",
+            "4 Prints Sake": "4 Prints Sake",
+            "That Art Store": "That Art Store",
+            
+        },
+        "event_name_suffix": " (Portsmouth)"
+    },
+
     "vbpl": {
         "program_type_to_categories": {
             "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event, List - Storytimes",
