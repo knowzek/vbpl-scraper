@@ -3,7 +3,11 @@ from datetime import datetime, timedelta
 from time import sleep
 from bs4 import BeautifulSoup
 import re
-from constants import UNWANTED_TITLE_KEYWORDS
+from constants import (
+    UNWANTED_TITLE_KEYWORDS,
+    TITLE_KEYWORD_TO_CATEGORY,
+    COMBINED_KEYWORD_TO_CATEGORY,
+)
 
 def scrape_npl_events(mode="all"):
     print("🌐 Scraping Norfolk Public Library events via weekly date chunks...")
