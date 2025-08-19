@@ -5,6 +5,34 @@ from helpers import wJson, rJson, infer_age_categories_from_description
 import re
 from constants import TITLE_KEYWORD_TO_CATEGORY_RAW
 
+def is_too_late(time_str: str) -> bool:
+    """
+    Return True if the event ends at 7:00 PM or later.
+    Works with formats like:
+      "6:00 PM - 7:30 PM"
+      "7:00 PM"
+      "All Day Event" (treated as allowed)
+    """
+    if not time_str or "all day" in time_str.lower():
+        return False
+
+    # Split on dash, take the END if available
+    parts = re.split(r"\s*[-–—]\s*", time_str)
+    end_part = parts[1] if len(parts) > 1 else parts[0]
+
+    try:
+        end_time = datetime.strptime(end_part.strip(), "%I:%M %p")
+    except ValueError:
+        try:
+            end_time = datetime.strptime(end_part.strip(), "%I %p")
+        except ValueError:
+            return False  # skip filtering if parsing fails
+
+    # Compare against 7:00 PM
+    cutoff = datetime.strptime("7:00 PM", "%I:%M %p")
+    return end_time >= cutoff
+
+
 
 def check_keyword(word, text):
     pattern = rf'\b{re.escape(word)}\b'
@@ -154,7 +182,11 @@ def get_events(soup, date, page_no):
             event['old_location'] = ""
             
 
-        get_categories(event)    
+        get_categories(event)
+        # ⏭️ Skip events ending 7pm or later
+        if is_too_late(event.get("Time", "")):
+            print(f"⏭️ Skipping late event → {event['Event Name']} ({event['Time']})")
+            continue
 
         events.append(event)
 
