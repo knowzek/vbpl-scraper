@@ -209,7 +209,7 @@ def scrap_day(date_obj, all_fields):
     print(start_date, " - ", end_date)
     url = f"{BASE_URL}/includes/rest_v2/plugins_events_events_by_date/find/"
     
-    skip, plus_val = 0, 10
+    skip, plus_val = 0, 3
     day_data = []
     while True:
         payload = {
