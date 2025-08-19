@@ -116,15 +116,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 # --- YPL pre-filtering and normalization ---
                 if library == "ypl":
-                    # (1) Skip any event whose Location contains "Tabb"
-                    loc_before = (event.get("Location", "") or "")
-                    if "tabb" in loc_before.lower():
-                        print(f"⏭️ Skipping YPL event at Tabb: {event.get('Event Name')}")
-                        skipped += 1
-                        continue
-                
-                    # (2) Force Location to Yorktown Library (for all events)
-                    event["Location"] = "Yorktown Library"
+                    event["Location"] = event.get("Location", "").strip()
                 
                     # (3) Exclude if Ages is ONLY adult
                     ages_only = re.sub(r"\s+", " ", (event.get("Ages", "") or "").strip().lower()).strip(", ")
