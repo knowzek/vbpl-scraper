@@ -236,8 +236,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 if library == "ypl":
                     tag_list.extend([
                         "Audience - Free Event",
-                        "Event Location - Yorktown",
-                        "Event Location - York County",
+                        "Event Location - Yorktown / York County",
                     ])
 
                 # Always add base tags for NPL
