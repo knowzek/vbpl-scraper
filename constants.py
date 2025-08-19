@@ -116,6 +116,7 @@ UNWANTED_TITLE_KEYWORDS = [
     "Summer Meals",
     "cpr",
     "first aid",
+    "3D Printer Orientation",
     "adult"
 ]
 
