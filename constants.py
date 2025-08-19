@@ -1,11 +1,11 @@
 # constants.py
 
 TITLE_KEYWORD_TO_CATEGORY_RAW = {
-    "storytime": "List - Storytimes",
-    "Story Time": "List - Storytimes",
-    "Storytime": "List - Storytimes",
-    "babygarten": "List - Storytimes",
-    "babies in bloom": "List - Storytimes",
+    "storytime": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
+    "Story Time": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
+    "Storytime": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
+    "babygarten": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
+    "babies in bloom": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
     "anime": "List – Cosplay, Anime, Comics",
     "cosplay": "List – Cosplay, Anime, Comics",
     "comics": "List – Cosplay, Anime, Comics",
@@ -16,7 +16,6 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "STEM": "List - STEM/STEAM",
     "lego": "List - STEM/STEAM",
     "chess": "List - STEM/STEAM",
-    "tech": "List - STEM/STEAM",
     "technology": "List - STEM/STEAM",
     "stargazing": "List - Planetarium Programs & Astronomy Events",
     "fish": "List - Fishing",
@@ -156,6 +155,7 @@ LIBRARY_CONSTANTS = {
         "name_suffix_map": {},
         "venue_names": {
             "Armstrong Stadium": "Hampton University - Armstrong Stadium",
+            "The American Theater": "The American Theatre"
         },
         "event_name_suffix": " (Hampton)"
     },
