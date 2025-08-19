@@ -113,6 +113,15 @@ UNWANTED_TITLE_KEYWORDS = [
     "adult"
 ]
 
+UNWANTED_VENUES = [
+    "Momac Brewing Company",
+    "Sound Bar at Rivers Casino",
+    "Roger Browns Restaurant and Sports Bar",
+    "Roger Brown's Restaurant and Sports Bar",
+    "Baron’s Pub Portsmouth",
+    "Harbor Park Stadium"
+]
+
 AGE_RANGE_TO_CATEGORY = [
     (0, 2, "Audience - Parent & Me, Audience - Toddler/Infant"),
     (3, 4, "Audience - Preschool Age"),
