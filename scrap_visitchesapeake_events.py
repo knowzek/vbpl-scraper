@@ -174,7 +174,7 @@ def scrap_day(date_obj, all_fields):
     end_date = get_right_date(date_obj.date())
     print(start_date, " - ", end_date)
     
-    skip, plus_val = 0, 10
+    skip, plus_val = 0, 3
     day_data = []
     while True:
         payload = {
