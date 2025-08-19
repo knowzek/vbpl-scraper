@@ -6,12 +6,20 @@ import traceback
 from config import get_library_config
 import json
 import re
-from constants import LIBRARY_CONSTANTS, TITLE_KEYWORD_TO_CATEGORY
+from constants import LIBRARY_CONSTANTS, TITLE_KEYWORD_TO_CATEGORY, UNWANTED_TITLE_KEYWORDS
 from constants import COMBINED_KEYWORD_TO_CATEGORY
 import pandas as pd
 
 def has_audience_tag(tags):
     return any("Audience -" in tag for tag in tags)
+
+def _has_unwanted_title(title: str) -> bool:
+    t = (title or "").lower()
+    for kw in UNWANTED_TITLE_KEYWORDS:
+        # whole-word, case-insensitive match
+        if re.search(rf"\b{re.escape(kw.lower())}\b", t):
+            return True
+    return False
 
 
 def _clean_link(url: str) -> str:
@@ -104,6 +112,12 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     continue
 
                 link = _clean_link(raw_link)
+
+                title_for_filter = (event.get("Event Name", "") or "").strip()
+                if _has_unwanted_title(title_for_filter):
+                    print(f"⏭️ Skipping (unwanted title): {title_for_filter}")
+                    skipped += 1
+                    continue
 
                 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 program_type = event.get("Program Type", "")
