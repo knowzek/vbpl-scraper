@@ -7,6 +7,8 @@ from scrape_nnpl_events import scrape_nnpl_events
 from scrape_spl_events import scrape_spl_events
 from scrape_ppl_events import scrape_ppl_events
 from scrape_events import scrape_vbpl_events
+from scrape_ypl_events import scrape_YPL_events
+from scrape_vbpr_events import scrape_vbpr_events
 from scrap_visithampton_events import scrap_visithampton
 from scrap_visitchesapeake_events import scrap_visitchesapeake
 from scrap_visitnewportnews_events import scrap_visitnewportnews
@@ -24,6 +26,8 @@ LIBRARIES = [
     "hpl",
     "spl",
     "ppl",
+    "ypl",
+    "vbpr",
     "visithampton",
     "visitchesapeake",
     "visitnewportnews",
@@ -74,6 +78,10 @@ def run_all_scrapers():
                 events = scrap_visitnewportnews(mode=MODE)
             elif library == "portsvaevents":
                 events = scrap_portsvaevents(mode=MODE)
+            elif library == "ypl":
+                events = scrape_YPL_events(mode=MODE)
+            elif library == "vbpr":
+                events = scrape_vbpr_events(mode=MODE)
             else:
                 print(f"⚠️ Unknown library: {library}")
                 continue
