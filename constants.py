@@ -116,6 +116,7 @@ UNWANTED_TITLE_KEYWORDS = [
     "cpr",
     "first aid",
     "3D Printer Orientation",
+    "museum closed",
     "adult"
 ]
 
