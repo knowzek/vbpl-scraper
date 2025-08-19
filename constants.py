@@ -233,11 +233,14 @@ LIBRARY_CONSTANTS = {
     "ypl": {
         "name_suffix_map": {
             # "Yorktown Library": "Yorktown Library",
-            # "Tabb Library": "Tabb Library",
+            # "Tabb Library": "Tabb Library"
         },
         "venue_names": {
-            # "Yorktown Library": "Yorktown Library",
-            # "Tabb Library": "Tabb Library",
+            "Tabb Meeting Room": "Tabb Library",
+            "Yorktown Meeting Room": "Yorktown Library",
+            "Yorktown Children's Wing": "Yorktown Library",
+            "Tabb Program Room": "Tabb Library",
+            "Yorktown Youth Programs Room": "Yorktown Library"
         },
         "event_name_suffix": " (York County)",
         "age_to_categories": {
