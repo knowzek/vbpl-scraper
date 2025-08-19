@@ -188,6 +188,21 @@ def get_events(soup, date, page_no):
             print(f"⏭️ Skipping late event → {event['Event Name']} ({event['Time']})")
             continue
 
+        # === Block specific venues before appending ===
+        BLOCKED_VENUES = [
+            "Momac Brewing Company",
+            "Sound Bar at Rivers Casino",
+            "Roger Browns Restaurant and Sports Bar",
+            "Roger Brown's Restaurant and Sports Bar",
+            "Baron’s Pub Portsmouth",
+            "Harbor Park Stadium",
+        ]
+        
+        loc = (event.get("Location") or "").strip()
+        if any(v.lower() in loc.lower() for v in BLOCKED_VENUES):
+            print(f"⏭️ Skipping event at blocked venue: {loc} → {event.get('Event Name')}")
+            continue
+            
         events.append(event)
 
         # wJson(events, f'jsons/events({date})(page {page_no}).json')
