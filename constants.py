@@ -158,10 +158,12 @@ LIBRARY_CONSTANTS = {
         "venue_names": {
             "City Center at Oyster Point": "City Center Oyster Point",
             "Virginia Living Museum": "The Virginia Living Museum",
+            "The Virginia Living Museum": "The Virginia Living Museum",
             "Lee Hall Depot": "Lee Hall Depot",
             "Historic Endview": "Endview Plantation / Historic Endview",
             "Ferguson Center for the Arts": "Ferguson Center",
             "Mary M. Torggler Fine Arts Center": "Mary M. Torggler Fine Arts Center",
+            "Endview Plantation / Historic Endview": "Endview Plantation / Historic Endview",
             "Tradition Brewing Company": "Tradition Brewing Company",
             
         },
