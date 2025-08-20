@@ -13,6 +13,7 @@ from scrap_visithampton_events import scrap_visithampton
 from scrap_visitchesapeake_events import scrap_visitchesapeake
 from scrap_visitnewportnews_events import scrap_visitnewportnews
 from scrap_portsvaevents_events import scrap_portsvaevents
+from scrap_visitsuffolk_events import scrap_visitsuffolk
 from upload_to_sheets import upload_events_to_sheet
 from constants import LIBRARY_CONSTANTS
 
@@ -31,9 +32,9 @@ LIBRARIES = [
     "visithampton",
     "visitchesapeake",
     "visitnewportnews",
-    "portsvaevents"
+    "portsvaevents",
+    "visitsuffolk"
 ]
-
 MODE = "monthly"  # or "weekly", or "all"
 
 def get_cutoff(mode):
@@ -82,6 +83,8 @@ def run_all_scrapers():
                 events = scrape_YPL_events(mode=MODE)
             elif library == "vbpr":
                 events = scrape_vbpr_events(mode=MODE)
+            elif library == "visitsuffolk":
+                events = scrap_visitsuffolk(mode=MODE)
             else:
                 print(f"⚠️ Unknown library: {library}")
                 continue

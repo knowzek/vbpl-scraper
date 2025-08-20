@@ -11,6 +11,7 @@ from scrape_nnpl_events import scrape_nnpl_events
 from scrap_visithampton_events import scrap_visithampton
 from scrap_visitnewportnews_events import scrap_visitnewportnews
 from scrap_portsvaevents_events import scrap_portsvaevents
+from scrap_visitsuffolk_events import scrap_visitsuffolk
 
 
 if __name__ == "__main__":
@@ -85,6 +86,11 @@ if __name__ == "__main__":
     elif library == "ypl":
         from scrape_ypl_events import scrape_YPL_events
         events = scrape_YPL_events(mode=mode)
+    
+    elif library == "visitsuffolk":
+        from scrap_visitsuffolk_events import scrap_visitsuffolk
+        events = scrap_visitsuffolk(mode=mode)
+
     
     else:
         raise ValueError(f"Unknown library: {library}")
