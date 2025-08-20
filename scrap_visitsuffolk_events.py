@@ -166,7 +166,7 @@ def get_events(html_content):
                 event_json['Month'] = date[1]
                 event_json['Day'] = date[2]
             
-            event_json['Location'] = event_json.get('location', {}).get('address', '')
+            event_json['Location'] = event_json.get('location', {}).get('name', '')
             event_json['Organizer'] = event_json.get('organizer_name', '')
 
             price = event_json.get('offers', {}).get('price', '')
