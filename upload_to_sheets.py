@@ -119,6 +119,16 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     skipped += 1
                     continue
 
+                # === Exclude unwanted events for specific scrapers ===
+                if library in ["visitsuffolk", "portsvaevents", "visitnewportnews", "visithampton", "visitchesapeake"]:
+                    exclude_keywords = ["live", "patio"]
+                    name_text = (event.get("Event Name", "") or "").lower()
+                    desc_text = (event.get("Event Description", "") or "").lower()
+                    if any(kw in name_text for kw in exclude_keywords) or any(kw in desc_text for kw in exclude_keywords):
+                        print(f"⏭️ Skipping (excluded keyword): {event.get('Event Name')}")
+                        skipped += 1
+                        continue
+                
                 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 program_type = event.get("Program Type", "")
                 # Ensure categories always exists (prevents UnboundLocalError)
