@@ -146,6 +146,22 @@ def get_library_config(library):
             }
         }
 
+    elif library == "visitsuffolk":
+        return {
+            "spreadsheet_name": "VisitSuffolk Events",
+            "worksheet_name": "VisitSuffolk Events",
+            "log_worksheet_name": "VisitSuffolk Log",
+            "organizer_name": "Suffolk Parks - Recreation",
+            "event_name_suffix": " (Suffolk)",
+            "drive_folder_id": "1w8bZFLno25cyjreixoqAkh4eGTYHtGTJ",
+            "email_recipient": "knowzek@gmail.com",
+            "email_subject": "New VisitSuffolk CSV export ready",
+            "name_suffix_map": {
+                # "Virginia Living Museum": "Virginia Living Museum (Newport News)",
+                # "Ferguson Center for the Arts": "Ferguson Center for the Arts (Newport News)"
+            }
+        }
+
     elif library == "ypl":
         return {
             "spreadsheet_name": "YPL Events",
