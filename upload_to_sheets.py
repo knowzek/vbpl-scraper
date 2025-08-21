@@ -365,6 +365,10 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     status = "new"
                     site_sync_status = existing_row[15] if link in existing_data else "new"
 
+                # === Flag "exhibit" events for attention ===
+                if "exhibit" in event.get("Event Name", "").lower():
+                    site_sync_status = "NEEDS ATTENTION"
+
                 if link in existing_data:
                     existing_vals = {
                         "status": existing_row[2],
@@ -383,7 +387,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     changed_to_cancelled = (
                         existing_vals["status"].lower() != current_vals["status"].lower()
                         and current_vals["status"].lower() == "cancelled"
-                    )
+                )
                     date_changed = (
                         existing_vals["month"] != current_vals["month"]
                         or existing_vals["day"] != current_vals["day"]
