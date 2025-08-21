@@ -6,6 +6,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Storytime": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
     "babygarten": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
     "babies in bloom": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
+    "cars": "List – Car Shows & Events",
     "anime": "List – Cosplay, Anime, Comics",
     "cosplay": "List – Cosplay, Anime, Comics",
     "comics": "List – Cosplay, Anime, Comics",
