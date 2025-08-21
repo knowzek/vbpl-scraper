@@ -1,4 +1,4 @@
-import requests
+import requests, time
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta, timezone
 from helpers import wJson, rJson, infer_age_categories_from_description
@@ -112,6 +112,7 @@ def get_events(soup, date, page_no):
         event['Event Link'] = link
 
         event_soup = get_soup_from_url(link)
+        time.sleep(0.1)
 
         # event_schedule = event_soup.find('div', class_ = 'tribe-events-schedule')
         # event_date_start = event_schedule.find('span', class_ = 'tribe-event-date-start').get_text().strip()
@@ -210,7 +211,10 @@ def get_events(soup, date, page_no):
 
     return events
 
-def get_soup_from_url(url):
+def get_soup_from_url(url, retrys=5):
+    if retrys == 0:
+        return None
+    
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
     }
@@ -221,7 +225,9 @@ def get_soup_from_url(url):
         return BeautifulSoup(response.text, 'html.parser')
     except requests.RequestException as e:
         print(f"[Error] Failed to fetch {url} - {e}")
-        return None
+        print(f"try again after {6-retrys} sec...")
+        time.sleep(6-retrys)
+        return get_soup_from_url(url, retrys -1)
 
 
 def scrap_portsvaevents(mode = "all"):
@@ -237,10 +243,10 @@ def scrap_portsvaevents(mode = "all"):
     page_st = 1
     MAX_PAGES = 50
     # date_st = "2025-08-01"
-    date_st = today.date()
 
     all_events = []
     while page_st < MAX_PAGES:
+        date_st = today.date()
         print("=====================================================")
         print(f"page: {page_st}")
         url = f"https://portsvaevents.com/events/list/page/{page_st}/?tribe-bar-date={date_st}"
@@ -249,15 +255,24 @@ def scrap_portsvaevents(mode = "all"):
         soup = get_soup_from_url(url)
         events = get_events(soup, date_st, page_st)
         if len(events) > 0:
-            curr_date = datetime.strptime(events[-1]['date'], "%Y-%m-%d").replace(tzinfo=timezone.utc)
-            if curr_date > date_range_end:
+            tmp_date = datetime.strptime(events[-1]['date'], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            for event in events:
+                curr_date = event['date']
+                if curr_date == str(date_st):
+                    all_events.append(event)
+                else:
+                    today = today + timedelta(days=1)
+                    page_st = 0
+                    break
+            if tmp_date > date_range_end:
                 print("reach date limit, stop scraping...")
                 break
-        all_events.extend(events)
+        # all_events.extend(events)
         page_st += 1
+        time.sleep(0.1)
     # wJson(all_events, 'events.json')
     return all_events
 
 if __name__ == "__main__": 
-    scrap_portsvaevents("all")
+    # scrap_portsvaevents("weekly")
     pass
