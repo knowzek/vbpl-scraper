@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 import requests
 from ics import Calendar
 from bs4 import BeautifulSoup
@@ -6,6 +6,8 @@ from constants import LIBRARY_CONSTANTS
 import re
 from constants import UNWANTED_TITLE_KEYWORDS
 from constants import TITLE_KEYWORD_TO_CATEGORY
+from zoneinfo import ZoneInfo
+
 
 ICAL_URL = "https://www.hampton.gov/common/modules/iCalendar/iCalendar.aspx?catID=24&feed=calendar"
 
@@ -34,10 +36,12 @@ def is_likely_adult_event(text):
     ]
     return any(kw in text for kw in keywords)
 
+eastern = ZoneInfo("America/New_York")
+
 def scrape_hpl_events(mode="all"):
     print("📚 Scraping Hampton Public Library events from iCal feed...")
 
-    today = datetime.now(timezone.utc)
+    today = datetime.now(eastern)
     if mode == "weekly":
         date_range_end = today + timedelta(days=7)
     elif mode == "monthly":
@@ -52,15 +56,32 @@ def scrape_hpl_events(mode="all"):
 
     events = []
     for event in calendar.events:
+
         try:
             if event.begin is None:
                 continue
-            event_date = event.begin.datetime.astimezone(timezone.utc)
-            if event_date > date_range_end:
-                continue
 
+            # get start
+            start_raw = event.begin.datetime
+            if start_raw.tzinfo is None:
+                start_raw = start_raw.replace(tzinfo=eastern)
+            start_dt_local = start_raw.astimezone(eastern)
+            
+            # get end
+            end_dt_local = None
+            if event.end and event.end.datetime:
+                end_raw = event.end.datetime
+                if end_raw.tzinfo is None:
+                    end_raw = end_raw.replace(tzinfo=eastern)
+                end_dt_local = end_raw.astimezone(eastern)
+
+            # Use local time for range checks
+            if start_dt_local > date_range_end:
+                continue
+                
             name = event.name.strip() if event.name else ""
             description = event.description.strip() if event.description else ""
+            
             # Skip unwanted titles like "Summer Meals"
             if any(bad_word in name.lower() for bad_word in UNWANTED_TITLE_KEYWORDS):
                 print(f"⏭️ Skipping: Unwanted title match → {name}")
@@ -115,8 +136,8 @@ def scrape_hpl_events(mode="all"):
                 continue
 
             # Format time
-            start_time = event.begin.datetime.astimezone(timezone.utc).strftime("%-I:%M %p")
-            end_time = event.end.datetime.astimezone(timezone.utc).strftime("%-I:%M %p") if event.end else ""
+            start_time = start_dt_local.strftime("%-I:%M %p")
+            end_time = end_dt_local.strftime("%-I:%M %p") if end_dt_local else ""
             time_str = f"{start_time} - {end_time}" if end_time else start_time
 
             events.append({
@@ -126,11 +147,11 @@ def scrape_hpl_events(mode="all"):
                 "Time": time_str,
                 "Ages": "",
                 "Location": location,
-                "Month": event_date.strftime("%b"),
-                "Day": str(event_date.day),
-                "Year": str(event_date.year),
-                "Event Date": event_date.strftime("%Y-%m-%d"),
-                "Event End Date": event.end.datetime.astimezone(timezone.utc).strftime("%Y-%m-%d") if event.end else event_date.strftime("%Y-%m-%d"),
+                "Month": start_dt_local.strftime("%b"),
+                "Day": str(start_dt_local.day),
+                "Year": str(start_dt_local.year),
+                "Event Date": start_dt_local.strftime("%Y-%m-%d"),
+                "Event End Date": (end_dt_local or start_dt_local).strftime("%Y-%m-%d"),
                 "Event Description": description,
                 "Series": "",
                 "Program Type": program_type,
