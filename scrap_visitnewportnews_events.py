@@ -141,7 +141,7 @@ def filter_data(data):
         
         t = (d.get('Time') or "").strip()
         
-        # Match "H:MM AM - H:MM PM" (flex spaces around dash)
+        # Case A: already "H:MM AM - H:MM PM" — ensure they're not identical
         m = re.match(r'^\s*(\d{1,2}:\d{2}\s*[AP]M)\s*-\s*(\d{1,2}:\d{2}\s*[AP]M)\s*$', t, re.IGNORECASE)
         if m:
             left, right = m.group(1).strip(), m.group(2).strip()
@@ -159,6 +159,19 @@ def filter_data(data):
                         except Exception:
                             d['Time'] = _synthesize_range_from(left, 60)
                     elif st_field:
+                        d['Time'] = _synthesize_range_from(st_field, 60)
+                    else:
+                        d['Time'] = _synthesize_range_from(left, 60)
+            except Exception:
+                # parsing failed → leave as-is
+                pass
+        else:
+            # Case B: single time like "7:00 PM" → synthesize an end time
+            single = re.match(r'^\s*(\d{1,2}:\d{2}\s*[AP]M)\s*$', t, re.IGNORECASE)
+            if single:
+                d['Time'] = _synthesize_range_from(single.group(1), 60)
+        # ---- END: fix identical start/end ----
+
 
 
         d['Location'] = d.get('location', '')
