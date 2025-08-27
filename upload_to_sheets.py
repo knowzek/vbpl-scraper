@@ -34,26 +34,27 @@ import os, json
 from google.oauth2 import service_account
 
 def connect_to_sheet(spreadsheet_name, worksheet_name):
-    # Read JSON string from Render environment variable
     creds_json = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+    if not creds_json:
+        # Fallback to Render Secret File mount
+        secret_path = "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON"
+        if os.path.exists(secret_path):
+            with open(secret_path, "r") as f:
+                creds_json = f.read()
+
     if not creds_json:
         raise RuntimeError("GOOGLE_APPLICATION_CREDENTIALS_JSON env var not set")
 
-    # Parse the JSON string into a dict
     creds_dict = json.loads(creds_json)
-
-    # Build credentials from that dict
     creds = service_account.Credentials.from_service_account_info(
         creds_dict,
-        scopes=["https://www.googleapis.com/auth/spreadsheets",
-                "https://www.googleapis.com/auth/drive"]
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive",
+        ],
     )
-
-    import gspread
     client = gspread.authorize(creds)
     return client.open(spreadsheet_name).worksheet(worksheet_name)
-
-
 
 def normalize(row):
     return [cell.strip() for cell in row[:13]] + [""] * (13 - len(row))
