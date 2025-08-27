@@ -119,6 +119,48 @@ def filter_data(data):
             default_minutes=60
         )
 
+        # ---- BEGIN: fix identical start/end ----
+        def _fmt_time12(dt):
+            # Cross-platform 12h format w/o leading zero
+            s = dt.strftime("%I:%M %p")
+            return s.lstrip("0")
+        
+        def _parse_time12(s):
+            raw = (s or "").strip().upper()
+            # allow "7:00 PM" or "7:00PM"
+            raw = raw.replace(" ", "")
+            return datetime.strptime(raw, "%I:%M%p")
+        
+        def _synthesize_range_from(start_str, minutes=60):
+            try:
+                base = _parse_time12(start_str)
+                end  = base + timedelta(minutes=minutes)
+                return f"{_fmt_time12(base)} - {_fmt_time12(end)}"
+            except Exception:
+                return start_str
+        
+        t = (d.get('Time') or "").strip()
+        
+        # Match "H:MM AM - H:MM PM" (flex spaces around dash)
+        m = re.match(r'^\s*(\d{1,2}:\d{2}\s*[AP]M)\s*-\s*(\d{1,2}:\d{2}\s*[AP]M)\s*$', t, re.IGNORECASE)
+        if m:
+            left, right = m.group(1).strip(), m.group(2).strip()
+            try:
+                if _parse_time12(left) == _parse_time12(right):
+                    st_field = (d.get('startTime') or "").strip()
+                    en_field = (d.get('endTime') or "").strip()
+                    # If API gave distinct start/end, trust them
+                    if st_field and en_field:
+                        try:
+                            if _parse_time12(st_field) != _parse_time12(en_field):
+                                d['Time'] = f"{st_field} - {en_field}"
+                            else:
+                                d['Time'] = _synthesize_range_from(left, 60)
+                        except Exception:
+                            d['Time'] = _synthesize_range_from(left, 60)
+                    elif st_field:
+
+
         d['Location'] = d.get('location', '')
         d['Event Link'] = d.get('absoluteUrl', '')
 
