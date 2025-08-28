@@ -14,9 +14,9 @@ from scrap_visitchesapeake_events import scrap_visitchesapeake
 from scrap_visitnewportnews_events import scrap_visitnewportnews
 from scrap_portsvaevents_events import scrap_portsvaevents
 from scrap_visitsuffolk_events import scrap_visitsuffolk
-from scrap_visitnorfolk_events import scrap_visitnorfolk
-from scrap_visityorktown_events import scrap_visityorktown
-from scrape_poquosonpl_events import scrape_poquosonpl
+from scrap_visitnorfolk_events import scrap_visitnorfolk_events
+from scrap_visityorktown_events import scrap_visityorktown_events
+from scrape_poquosonpl_events import scrape_poquosonpl_events
 from upload_to_sheets import upload_events_to_sheet
 from constants import LIBRARY_CONSTANTS
 
@@ -93,13 +93,13 @@ def run_all_scrapers():
                 events = scrap_visitsuffolk(mode=MODE)
 
             elif library == "visitnorfolk":
-                events = scrap_visitsuffolk(mode=MODE)
+                events = scrap_visitnorfolk_events(mode=MODE)
 
             elif library == "visityorktown":
-                events = scrap_visitsuffolk(mode=MODE)
+                events = scrap_visityorktown_events(mode=MODE)
 
             elif library == "poquosonpl":
-                events = scrap_visitsuffolk(mode=MODE)
+                events = scrape_poquosonpl_events(mode=MODE)
             else:
                 print(f"⚠️ Unknown library: {library}")
                 continue
