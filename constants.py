@@ -243,24 +243,17 @@ LIBRARY_CONSTANTS = {
     
         # Raw ICS "Location" → preferred display name
         "venue_names": {
-            "Mary D. Pretlow Anchor Branch Library": "Pretlow Branch Library",
-            "Jordan-Newby Anchor Branch Library at Broad Creek": "Jordan-Newby Anchor Branch Library",
-            "Barron F. Black Branch Library": "Barron F. Black Branch Library",
-            "Richard A. Tucker Memorial Library": "Richard A. Tucker Memorial Library",
-            "Larchmont Branch Library": "Larchmont Branch Library",
-            "Van Wyck Branch Library": "Van Wyck Branch Library",
-            "Downtown Branch at Slover": "The Slover / Downtown Branch Library",
-            "Park Place Branch Library": "Park Place Branch Library",
-            "Little Creek Branch Library": "Little Creek Branch Library",
-            "Janaf Branch Library": "Janaf Branch Library",
-            "MacArthur Memorial": "MacArthur Memorial",
+            "MacArthur Memorial": "MacArthur Memorial", `
+            "Attucks Theatre": "Attucks Theatre",`
+            "Northside Park": "Northside Park",'
+            "Chartway Arena": "Chartway Arena",
             "MacArthur Center Green": "MacArthur Center Green",
             "Wells Theater": "Wells Theatre",
             "Hugh R Copeland Center": "Hugh R. Copeland Center",
             "Booker T. Washington High School": "Booker T. Washington High School",
-            "Lambert's Point Community Center": "Lambert’s Point Community Center",
-            "Five Points Park/Plaza": "Five Points Park/Plaza",
-            "Lafayette Park": "Lafayette Park",
+            "Lambert’s Point Community Center": "Lambert’s Point Recreation Center",
+            "Five Points Park/Plaza": "Five Points Park & Civic Plaza",`
+            "Lafayette Park": "Lafayette Park",`
             "Naval Station Norfolk": "Naval Station Norfolk",
             "Starbucks at Wards Corner 7550 Granby St.  Norfolk VA 23505": "Starbucks – Wards Corner",
             "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks – Wards Corner"
