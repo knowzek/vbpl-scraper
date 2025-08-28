@@ -241,16 +241,19 @@ def scrape_poquosonpl_events(cutoff_date=None, mode="all"):
                 d_resp.raise_for_status()
                 d_soup = BeautifulSoup(d_resp.text, "html.parser")
                 
-                # ✅ robust description extraction
+                # description
                 description = extract_description(d_soup)
-
-                # Extract Program Type (used for category assignment)
-                program_type_tag = d_soup.select_one(".lc-event__program-types span")
-                series_block = d_soup.select_one(".lc-repeating-dates__details")
                 
-                # Detect if part of a series
-                series_block = detail_soup.select_one(".lc-repeating-dates__details")
+                # program type (define the variable!)
+                program_type_tag = d_soup.select_one(
+                    ".lc-event__program-types span, .field--name-field-program-type span, .program-type span"
+                )
+                program_type = program_type_tag.get_text(strip=True) if program_type_tag else ""
+                
+                # series?
+                series_block = d_soup.select_one(".lc-repeating-dates__details, .field--name-field-series")
                 is_series = "Yes" if series_block else ""
+
 
                 categories = _build_categories(name, description, program_type, ages)
                 # Append event to list
