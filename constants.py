@@ -182,6 +182,16 @@ LIBRARY_CONSTANTS = {
         "event_name_suffix": " (Newport News)"
     },
 
+    "visitsuffolk": {
+        "name_suffix_map": {},
+        "venue_names": {
+            "Embroidery &amp; Print House / Gift Shop": "Embroidery & Print House / Gift Shop",
+            "Kayak Ramp at Constant's Wharf Park &amp; Marina": "Constant's Wharf",
+            
+        },
+        "event_name_suffix": " (Suffolk)"
+    },
+
     "portsvaevents": {
         "name_suffix_map": {},
         "venue_names": {
