@@ -6,6 +6,7 @@ from ics import Calendar
 from bs4 import BeautifulSoup
 from zoneinfo import ZoneInfo
 from constants import TITLE_KEYWORD_TO_CATEGORY
+from constants import LIBRARY_CONSTANTS
 
 EASTERN = ZoneInfo("America/New_York")
 
@@ -139,4 +140,119 @@ def _canonical_link(description: str, uid: str) -> str:
     return ""
 
 def _within_range(dt_utc: datetime, start: datetime, end: datetime) -> bool:
-    return (dt
+    return (dt_utc >= start) and (dt_utc <= end)
+
+def scrap_visitnorfolk_events(mode="all"):
+    """
+    Scrape VisitNorfolk iCal feeds and return normalized events.
+    Returns a list of dicts ready for upload_to_sheets.py.
+    """
+    print("🗓️  Scraping VisitNorfolk iCal feeds…")
+
+    now_utc = datetime.now(timezone.utc)
+    if mode == "weekly":
+        date_start = now_utc
+        date_end = now_utc + timedelta(days=7)
+    elif mode == "monthly":
+        # current month window
+        first_of_month = datetime(now_utc.year, now_utc.month, 1, tzinfo=timezone.utc)
+        if now_utc.month == 12:
+            next_month = datetime(now_utc.year + 1, 1, 1, tzinfo=timezone.utc)
+        else:
+            next_month = datetime(now_utc.year, now_utc.month + 1, 1, tzinfo=timezone.utc)
+        date_start = first_of_month
+        date_end = next_month - timedelta(seconds=1)
+    else:
+        date_start = now_utc
+        date_end = now_utc + timedelta(days=90)
+
+    events = []
+    seen_links = set()
+
+    for url in ICAL_URLS:
+        try:
+            resp = requests.get(url, timeout=30)
+            resp.raise_for_status()
+            cal = Calendar(resp.text)
+
+            for ev in cal.events:
+                try:
+                    if not ev.begin:
+                        continue
+
+                    # Normalize datetimes to UTC for range filtering
+                    start_dt = ev.begin.datetime
+                    end_dt = ev.end.datetime if ev.end else None
+                    if not isinstance(start_dt, datetime):
+                        continue
+                    start_utc = start_dt.astimezone(timezone.utc)
+                    if not _within_range(start_utc, date_start, date_end):
+                        continue
+
+                    title = _clean_text(getattr(ev, "name", "") or "")
+                    description = _clean_text(getattr(ev, "description", "") or "")
+                    location = _clean_text(getattr(ev, "location", "") or "")
+                    uid = _clean_text(getattr(ev, "uid", "") or "")
+
+                    # Normalize location against constants
+                    vn_constants = LIBRARY_CONSTANTS.get("visitnorfolk", {})
+                    venue_map = vn_constants.get("venue_names", {})
+                    location = venue_map.get(location, location)
+
+                    # Build canonical link
+                    link = _canonical_link(description, uid)
+                    if not link:
+                        # If we truly can't get a canonical link, skip (uploader expects a link key)
+                        print(f"⏭️  Skipping (no link): {title}")
+                        continue
+
+                    if link in seen_links:
+                        continue
+                    seen_links.add(link)
+
+                    # Time & date parts
+                    time_str = _fmt_time_range(start_dt, end_dt)
+                    start_local = start_dt.astimezone(EASTERN)
+                    end_local = (end_dt.astimezone(EASTERN) if end_dt else start_local + timedelta(hours=1))
+
+                    month = start_local.strftime("%b")
+                    day = str(start_local.day)
+                    year = str(start_local.year)
+
+                    # Ages + categories
+                    ages = _infer_ages(f"{title} {description}")
+                    keyword_tags = _keyword_categories(title, description)
+                    age_tags = _age_to_categories(ages)
+                    base_tags = ALWAYS_ON_CATEGORIES[:]  # copy
+
+                    all_tags = _dedupe_preserve_order(base_tags + keyword_tags + age_tags)
+
+                    events.append({
+                        "Event Name": title,
+                        "Event Link": link,
+                        "Event Status": "Cancelled" if _is_cancelled(title, description) else "Available",
+                        "Time": time_str,
+                        "Ages": ages,                           # keep raw inferred ages; uploader augments categories too
+                        "Location": location,
+                        "Month": month,
+                        "Day": day,
+                        "Year": year,
+                        "Event Date": start_local.strftime("%Y-%m-%d"),
+                        "Event End Date": end_local.strftime("%Y-%m-%d"),
+                        "Event Description": description,
+                        "Series": "",
+                        "Program Type": "",
+                        "Categories": ", ".join(all_tags),
+                    })
+                except Exception as e:
+                    print(f"⚠️  Error parsing event in {url}: {e}")
+        except Exception as e:
+            print(f"❌ Failed to fetch iCal: {url} — {e}")
+
+    print(f"✅ Scraped {len(events)} VisitNorfolk events.")
+    return events
+
+if __name__ == "__main__":
+    # Quick local test
+    out = scrap_visitnorfolk_events(mode="weekly")
+    print(f"Sample: {out[0] if out else 'NO EVENTS'}")
