@@ -199,6 +199,7 @@ def scrap_visitnorfolk_events(mode="all"):
                     vn_constants = LIBRARY_CONSTANTS.get("visitnorfolk", {})
                     venue_map = vn_constants.get("venue_names", {})
                     location = venue_map.get(location, location)
+                    location = re.sub(r"^\s*-\s*", "", location)
 
                     # Build canonical link
                     link = _canonical_link(description, uid)
