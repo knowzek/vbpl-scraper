@@ -7,6 +7,8 @@ from bs4 import BeautifulSoup
 from zoneinfo import ZoneInfo
 from constants import TITLE_KEYWORD_TO_CATEGORY
 from constants import LIBRARY_CONSTANTS
+from constants import UNWANTED_TITLE_KEYWORDS
+
 
 EASTERN = ZoneInfo("America/New_York")
 
@@ -222,6 +224,11 @@ def scrap_visitnorfolk_events(mode="all"):
                     description = _clean_text(getattr(ev, "description", "") or "")
                     location = _clean_text(getattr(ev, "location", "") or "")
                     uid = _clean_text(getattr(ev, "uid", "") or "")
+
+                    # 🚫 Skip unwanted title keywords
+                    if any(bad_word.lower() in title.lower() for bad_word in UNWANTED_TITLE_KEYWORDS):
+                        print(f"⏭️ Skipping (unwanted title match): {title}")
+                        continue
 
                     # Normalize location against constants
                     vn_constants = LIBRARY_CONSTANTS.get("visitnorfolk", {})
