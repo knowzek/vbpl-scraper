@@ -43,11 +43,15 @@ def scrape_hpl_events(mode="all"):
 
     today = datetime.now(eastern)
     if mode == "weekly":
-        date_range_end = today + timedelta(days=7)
+        date_range_start = today
+        date_range_end   = today + timedelta(days=7)
     elif mode == "monthly":
-        date_range_end = today + timedelta(days=30)
+        date_range_start = today
+        date_range_end   = today + timedelta(days=30)   # rolling 30 days
     else:
-        date_range_end = today + timedelta(days=90)
+        date_range_start = today
+        date_range_end   = today + timedelta(days=90)
+
 
     resp = requests.get(ICAL_URL)
     calendar = Calendar(resp.text)
@@ -76,7 +80,7 @@ def scrape_hpl_events(mode="all"):
                 end_dt_local = end_raw.astimezone(eastern)
 
             # Use local time for range checks
-            if start_dt_local > date_range_end:
+            if start_dt_local < date_range_start or start_dt_local > date_range_end:
                 continue
                 
             name = event.name.strip() if event.name else ""
