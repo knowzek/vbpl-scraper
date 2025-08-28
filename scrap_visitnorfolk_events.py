@@ -24,7 +24,7 @@ TAG_RE = re.compile(r"<[^>]+>")
 
 ALWAYS_ON_CATEGORIES = [
     "Event Location - Norfolk",
-    "Event Location - Family Event",  # per your request (note: your other scrapers typically use "Audience - Family Event")
+    "Audience - Family Event", 
 ]
 
 def _clean_text(s: str) -> str:
@@ -149,13 +149,17 @@ def scrap_visitnorfolk_events(mode="all"):
     """
     print("🗓️  Scraping VisitNorfolk iCal feeds…")
 
-    today = datetime.now(timezone.utc)
+    today_utc = datetime.now(timezone.utc)
     if mode == "weekly":
-        date_range_end = today + timedelta(days=7)
+        date_start = today_utc
+        date_end   = today_utc + timedelta(days=7)
     elif mode == "monthly":
-        date_range_end = today + timedelta(days=30)   # rolling 30 days
+        date_start = today_utc
+        date_end   = today_utc + timedelta(days=30)   # rolling 30 days
     else:
-        date_range_end = today + timedelta(days=90)
+        date_start = today_utc
+        date_end   = today_utc + timedelta(days=90)
+
 
 
     events = []
