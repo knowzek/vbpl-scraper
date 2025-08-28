@@ -162,7 +162,7 @@ def get_library_config(library):
             }
         }
 
-    elif library == "visitsuffolk":
+    elif library == "visitnorfolk":
         return {
             "organizer_name": "City of Norfolk: Recreation",
             "spreadsheet_name": "VisitNorfolk Events",          
