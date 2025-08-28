@@ -10,8 +10,6 @@ base_url = "https://poquoson.librarycalendar.com"
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 MAX_PAGES = 50
 
-import re
-
 def _dedupe_keep_order(items):
     seen, out = set(), []
     for x in items:
@@ -147,6 +145,17 @@ def extract_description(soup):
     text = re.sub(r"\n{3,}", "\n\n", text).strip()
     return text
 
+def _abs(base: str, href: str) -> str:
+    if not href:
+        return base
+    href = href.strip()
+    if href.startswith("http://") or href.startswith("https://"):
+        return href
+    if href.startswith("/"):
+        return base + href
+    return base + "/" + href
+
+
 
 def scrape_poquosonpl_events(cutoff_date=None, mode="all"):
     
@@ -180,7 +189,7 @@ def scrape_poquosonpl_events(cutoff_date=None, mode="all"):
             try:
                 link_tag = card.select_one("a.lc-event__link")
                 name = link_tag.get_text(strip=True)
-                link = base_url + link_tag["href"]
+                link = _abs(base_url, link_tag["href"])
                 # 🚫 Skip unwanted titles
                 if any(bad_word in name.lower() for bad_word in UNWANTED_TITLE_KEYWORDS):
                     print(f"⏭️ Skipping: Unwanted title match → {name}")
@@ -236,8 +245,8 @@ def scrape_poquosonpl_events(cutoff_date=None, mode="all"):
                 description = extract_description(d_soup)
 
                 # Extract Program Type (used for category assignment)
-                program_type_tag = detail_soup.select_one(".lc-event__program-types span")
-                program_type = program_type_tag.get_text(strip=True) if program_type_tag else ""
+                program_type_tag = d_soup.select_one(".lc-event__program-types span")
+                series_block = d_soup.select_one(".lc-repeating-dates__details")
                 
                 # Detect if part of a series
                 series_block = detail_soup.select_one(".lc-repeating-dates__details")
