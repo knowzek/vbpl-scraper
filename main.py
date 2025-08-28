@@ -39,8 +39,9 @@ if __name__ == "__main__":
     if library == "vbpl":
         events = scrape_vbpl_events(cutoff_date=cutoff)
 
-    if library == "poquosonpl":
-        events = scrape_poquosonpl_events(cutoff_date=cutoff)
+    elif library == "poquosonpl":
+        from scrape_poquosonpl_events import scrape_poquosonpl_events
+        events = scrape_poquosonpl_events(cutoff_date=cutoff, mode=mode)
     
     elif library == "npl":
         events = scrape_npl_events(mode=mode)
