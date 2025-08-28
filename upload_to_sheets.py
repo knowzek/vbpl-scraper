@@ -9,6 +9,7 @@ import re
 from constants import LIBRARY_CONSTANTS, TITLE_KEYWORD_TO_CATEGORY, UNWANTED_TITLE_KEYWORDS
 from constants import COMBINED_KEYWORD_TO_CATEGORY
 import pandas as pd
+always_on = library_constants.get("always_on_categories", [])
 
 def has_audience_tag(tags):
     return any("Audience -" in tag for tag in tags)
@@ -186,7 +187,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                             matched_tags.extend([c.strip() for c in cat.split(",")])
                     categories = ", ".join(dict.fromkeys(matched_tags))  # remove duplicates, preserve order
                 
-                elif library in ("vbpr", "visithampton", "visitchesapeake", "visitnewportnews", "portsvaevents", "visitsuffolk"):
+                elif library in ("vbpr", "visithampton", "visitchesapeake", "visitnewportnews", "portsvaevents", "visitsuffolk", "visitnorfolk"):
                     # For VBPR, use the categories provided by the scraper
                     categories = event.get("Categories", "").strip()
                 else:
@@ -269,6 +270,9 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 
                 # 3) Add keyword categories
                 tag_list.extend(title_based_tags)
+
+                if always_on:
+                    tag_list.extend(always_on)
                 
                 # YPL: always add base tags
                 if library == "ypl":
