@@ -149,22 +149,14 @@ def scrap_visitnorfolk_events(mode="all"):
     """
     print("🗓️  Scraping VisitNorfolk iCal feeds…")
 
-    now_utc = datetime.now(timezone.utc)
+    today = datetime.now(timezone.utc)
     if mode == "weekly":
-        date_start = now_utc
-        date_end = now_utc + timedelta(days=7)
+        date_range_end = today + timedelta(days=7)
     elif mode == "monthly":
-        # current month window
-        first_of_month = datetime(now_utc.year, now_utc.month, 1, tzinfo=timezone.utc)
-        if now_utc.month == 12:
-            next_month = datetime(now_utc.year + 1, 1, 1, tzinfo=timezone.utc)
-        else:
-            next_month = datetime(now_utc.year, now_utc.month + 1, 1, tzinfo=timezone.utc)
-        date_start = first_of_month
-        date_end = next_month - timedelta(seconds=1)
+        date_range_end = today + timedelta(days=30)   # rolling 30 days
     else:
-        date_start = now_utc
-        date_end = now_utc + timedelta(days=90)
+        date_range_end = today + timedelta(days=90)
+
 
     events = []
     seen_links = set()
@@ -182,13 +174,18 @@ def scrap_visitnorfolk_events(mode="all"):
 
                     # Normalize datetimes to UTC for range filtering
                     start_dt = ev.begin.datetime
-                    end_dt = ev.end.datetime if ev.end else None
+                    end_dt   = ev.end.datetime if ev.end else None
                     if not isinstance(start_dt, datetime):
                         continue
+                    
+                    # guard against tz-naive (rare, but safe)
+                    if start_dt.tzinfo is None:
+                        start_dt = start_dt.replace(tzinfo=EASTERN)
+                    
                     start_utc = start_dt.astimezone(timezone.utc)
-                    if not _within_range(start_utc, date_start, date_end):
+                    if not (date_start <= start_utc <= date_end):
                         continue
-
+                        
                     title = _clean_text(getattr(ev, "name", "") or "")
                     description = _clean_text(getattr(ev, "description", "") or "")
                     location = _clean_text(getattr(ev, "location", "") or "")
