@@ -189,7 +189,7 @@ def get_library_config(library):
 
     elif library == "visityorktown":
         return {
-            "organizer_name": "City of Norfolk: Recreation",
+            "organizer_name": "Visit Yorktown",
             "spreadsheet_name": "VisitYorktown Events",          
             "worksheet_name": "VisitYorktown Events",             
             "log_worksheet_name": "VisitYorktown Log",            
