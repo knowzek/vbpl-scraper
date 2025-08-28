@@ -9,6 +9,48 @@ base_url = "https://poquoson.librarycalendar.com"
 headers = {"User-Agent": "Mozilla/5.0"}
 MAX_PAGES = 50
 
+import re
+
+def extract_description(soup):
+    """
+    Robustly extract description from LibraryCalendar (LibraryMarket) pages.
+    Handles both `.field--name-description` and `.field--name-body`,
+    preserves basic line breaks and bullet lists.
+    """
+    # Try the usual suspects, in order
+    sel = (
+        ".field--name-description .field-item, "
+        ".field--name-description, "
+        ".field--name-body .field-item, "
+        ".field--name-body, "
+        ".event-body"
+    )
+    node = soup.select_one(sel)
+
+    # Last-resort: meta description
+    if not node:
+        meta = soup.select_one('meta[name="description"]')
+        return (meta["content"].strip() if meta and meta.get("content") else "")
+
+    # Normalize HTML → text
+    # 1) <br> → newline
+    for br in node.find_all("br"):
+        br.replace_with("\n")
+    # 2) bullet lists → "- item" lines
+    for li in node.find_all("li"):
+        li.insert_before("\n- ")
+    # Ensure paragraphs create spacing
+    for p in node.find_all("p"):
+        if p.text and not p.text.endswith("\n"):
+            p.append("\n\n")
+
+    text = node.get_text(separator="\n", strip=True)
+
+    # Collapse excessive newlines
+    text = re.sub(r"\n{3,}", "\n\n", text).strip()
+    return text
+
+
 def scrape_poquosonpl_events(cutoff_date=None, mode="all"):
     
     events = []
@@ -92,9 +134,15 @@ def scrape_poquosonpl_events(cutoff_date=None, mode="all"):
                 detail_soup = BeautifulSoup(detail_response.text, "html.parser")
 
                 # Extract description
-                description_tag = detail_soup.select_one(".field--name-body .field-item") or \
-                                  detail_soup.select_one(".field--name-body")
+                # detail page
+                time.sleep(0.4)
+                d_resp = requests.get(link, headers=HEADERS, timeout=20)
+                d_resp.raise_for_status()
+                d_soup = BeautifulSoup(d_resp.text, "html.parser")
                 
+                # ✅ robust description extraction
+                description = extract_description(d_soup)
+
                 if description_tag:
                     # Convert HTML line breaks to actual line breaks
                     for br in description_tag.find_all("br"):
