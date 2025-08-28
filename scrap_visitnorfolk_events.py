@@ -27,6 +27,29 @@ ALWAYS_ON_CATEGORIES = [
     "Audience - Family Event", 
 ]
 
+# Put near the top with the other regexes/utilities
+ADDR_SPLIT_RE = re.compile(r"\s[-–]\s")   # "Venue - 123 St" or "Venue – 123 St"
+
+def _strip_address(loc: str) -> str:
+    """
+    Keep just the venue name:
+    - If there's a " - " or " – " separator, take the left side.
+    - Otherwise, if there's a street number (space + 2–5 digits), cut before it.
+      (Prevents chopping names like 'Studio 54' which have digits but not as an address.)
+    """
+    s = _clean_text(loc)
+    # Case 1: split on hyphen/en dash separators
+    parts = ADDR_SPLIT_RE.split(s, maxsplit=1)
+    if len(parts) == 2:
+        return parts[0].strip()
+
+    # Case 2: trim when an address number appears after a space (e.g., "Venue 4320 Hampton Blvd")
+    m = re.search(r"\s\d{2,5}\b", s)
+    if m:
+        return s[:m.start()].rstrip()
+
+    return s
+
 def _clean_text(s: str) -> str:
     if not s:
         return ""
@@ -199,6 +222,9 @@ def scrap_visitnorfolk_events(mode="all"):
                     vn_constants = LIBRARY_CONSTANTS.get("visitnorfolk", {})
                     venue_map = vn_constants.get("venue_names", {})
                     location = venue_map.get(location, location)
+                    
+                    # strip any appended address, then remove any leading stray hyphen
+                    location = _strip_address(location)
                     location = re.sub(r"^\s*-\s*", "", location)
 
                     # Build canonical link
