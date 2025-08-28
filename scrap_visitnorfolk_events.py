@@ -22,6 +22,7 @@ ICAL_URLS = [
     "https://www.norfolk.gov/common/modules/iCalendar/iCalendar.aspx?catID=152&feed=calendar",
     "https://www.norfolk.gov/common/modules/iCalendar/iCalendar.aspx?catID=75&feed=calendar",
     "https://www.norfolk.gov/common/modules/iCalendar/iCalendar.aspx?catID=145&feed=calendar",
+    "https://www.norfolk.gov/common/modules/iCalendar/iCalendar.aspx?catID=163&feed=calendar",
 ]
 
 # Prefer canonical event links like: https://www.norfolk.gov/calendar.aspx?EID=14902
