@@ -167,7 +167,7 @@ def scrape_poquosonpl_events(cutoff_date=None, mode="all"):
     while page < MAX_PAGES:
         print(f"🌐 Fetching page {page}...")
         url = f"{base_url}/events/upcoming?page={page}"
-        response = requests.get(url, headers=headers, timeout=30)
+        response = requests.get(url, headers=HEADERS, timeout=30)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, "html.parser")
