@@ -9,7 +9,6 @@ import re
 from constants import LIBRARY_CONSTANTS, TITLE_KEYWORD_TO_CATEGORY, UNWANTED_TITLE_KEYWORDS
 from constants import COMBINED_KEYWORD_TO_CATEGORY
 import pandas as pd
-always_on = library_constants.get("always_on_categories", [])
 
 def has_audience_tag(tags):
     return any("Audience -" in tag for tag in tags)
@@ -87,6 +86,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
     venue_names_map_lc = {k.lower(): v for k, v in library_constants.get("venue_names", {}).items()}
     age_to_categories = age_to_categories or library_constants.get("age_to_categories", {})
     name_suffix_map = name_suffix_map or library_constants.get("name_suffix_map", {})
+    always_on = library_constants.get("always_on_categories", [])
 
 
     PROGRAM_TYPE_TO_CATEGORIES = {
