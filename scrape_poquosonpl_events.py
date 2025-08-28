@@ -7,7 +7,7 @@ from constants import LIBRARY_CONSTANTS, TITLE_KEYWORD_TO_CATEGORY, COMBINED_KEY
 
 
 base_url = "https://poquoson.librarycalendar.com"
-headers = {"User-Agent": "Mozilla/5.0"}
+HEADERS = {"User-Agent": "Mozilla/5.0"}
 MAX_PAGES = 50
 
 import re
@@ -225,11 +225,6 @@ def scrape_poquosonpl_events(cutoff_date=None, mode="all"):
                 location_tag = card.select_one(".lc-event__branch")
                 location = location_tag.get_text(strip=True) if location_tag else ""
 
-                # Fetch detail page
-                time.sleep(0.5)
-                detail_response = requests.get(link, headers=headers, timeout=20)
-                detail_soup = BeautifulSoup(detail_response.text, "html.parser")
-
                 # Extract description
                 # detail page
                 time.sleep(0.4)
@@ -240,24 +235,9 @@ def scrape_poquosonpl_events(cutoff_date=None, mode="all"):
                 # ✅ robust description extraction
                 description = extract_description(d_soup)
 
-                if description_tag:
-                    # Convert HTML line breaks to actual line breaks
-                    for br in description_tag.find_all("br"):
-                        br.replace_with("\n")
-                
-                    # Extract text with paragraph spacing
-                    description = description_tag.get_text(separator="\n\n", strip=True)
-                
-                    # Clean excess spacing
-                    description = re.sub(r'\n{3,}', '\n\n', description)
-                else:
-                    description = ""
-
-
                 # Extract Program Type (used for category assignment)
                 program_type_tag = detail_soup.select_one(".lc-event__program-types span")
                 program_type = program_type_tag.get_text(strip=True) if program_type_tag else ""
-
                 
                 # Detect if part of a series
                 series_block = detail_soup.select_one(".lc-repeating-dates__details")
