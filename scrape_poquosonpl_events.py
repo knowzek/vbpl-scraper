@@ -3,13 +3,110 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import time
 import re
-from constants import UNWANTED_TITLE_KEYWORDS
+from constants import LIBRARY_CONSTANTS, TITLE_KEYWORD_TO_CATEGORY, COMBINED_KEYWORD_TO_CATEGORY, UNWANTED_TITLE_KEYWORDS
+
 
 base_url = "https://poquoson.librarycalendar.com"
 headers = {"User-Agent": "Mozilla/5.0"}
 MAX_PAGES = 50
 
 import re
+
+def _dedupe_keep_order(items):
+    seen, out = set(), []
+    for x in items:
+        if x and x not in seen:
+            out.append(x); seen.add(x)
+    return out
+
+def _kw_hit(text: str, kw: str) -> bool:
+    t = (text or "").lower()
+    k = (kw or "").lower()
+    return re.search(rf'(?<!\w){re.escape(k)}(?!\w)', t) is not None
+
+# Map LibraryCalendar “Age Group” text → audience tags
+def _age_groups_to_tags(ages_text: str, organizer="Poquoson"):
+    t = (ages_text or "").lower()
+    tags = []
+    # coarse buckets
+    if any(w in t for w in ["baby", "babies", "infant", "0-2"]):
+        tags += ["Audience - Toddler/Infant"]
+    if any(w in t for w in ["toddler", "preschool", "pre-k", "ages 3", "ages 4", "3-5"]):
+        tags += ["Audience - Preschool Age", "Audience - Parent & Me"]
+    if any(w in t for w in ["kids", "children", "school age", "elementary", "grades"]):
+        tags += ["Audience - School Age"]
+    if any(w in t for w in ["tween", "tweens", "middle school"]):
+        tags += ["Audience - School Age"]
+    if any(w in t for w in ["teen", "teens", "high school", "young adult"]):
+        tags += ["Audience - Teens"]
+    if "all ages" in t or "family" in t:
+        tags += ["Audience - Free Event"]  # keep “free” as a default audience tag
+    # Always include location tag
+    tags += [f"Event Location - {organizer}"]
+    return _dedupe_keep_order(tags)
+
+# Program Type → default tags (VBPL-style), fallback to constants override if present
+def _program_type_to_tags(program_type: str, organizer="Poquoson"):
+    base = {
+        "Storytimes & Early Learning": f"Event Location - {organizer}, Audience - Free Event, Audience - Family Event, List - Storytimes",
+        "STEAM": f"Event Location - {organizer}, List - STEM/STEAM, Audience - Free Event, Audience - Family Event",
+        "Computers & Technology": f"Event Location - {organizer}, Audience - Free Event, Audience - Teens, Audience - Family Event",
+        "Workshops & Lectures": f"Event Location - {organizer}, Audience - Free Event, Audience - Family Event",
+        "Discussion Groups": f"Event Location - {organizer}, Audience - Free Event, Audience - Family Event",
+        "Arts & Crafts": f"Event Location - {organizer}, Audience - Free Event, Audience - Family Event",
+        "Hobbies": f"Event Location - {organizer}, Audience - Free Event, Audience - Family Event",
+        "Books & Authors": f"Event Location - {organizer}, Audience - Free Event, Audience - Family Event",
+        "Culture": f"Event Location - {organizer}, Audience - Free Event, Audience - Family Event",
+        "History & Genealogy": f"Event Location - {organizer}, Audience - Teens, Audience - Free Event",
+    }
+    # constants override if provided
+    from_constants = (LIBRARY_CONSTANTS.get("poquosonpl", {}) or {}).get("program_type_to_categories")
+    mapping = {k.lower(): v for k, v in (from_constants or base).items()}
+    tags = []
+    for pt in [x.strip().lower() for x in (program_type or "").split(",") if x.strip()]:
+        if pt in mapping:
+            tags += [c.strip() for c in mapping[pt].split(",")]
+    return _dedupe_keep_order(tags)
+
+def _keyword_tags(title: str, description: str):
+    txt_title = (title or "").lower()
+    txt_full  = f"{title} {description}".lower()
+    tags = []
+    for kw, cats in TITLE_KEYWORD_TO_CATEGORY.items():
+        if _kw_hit(txt_title, kw) or _kw_hit(txt_full, kw):
+            tags += [c.strip() for c in cats.split(",")]
+    for (kw1, kw2), cats in COMBINED_KEYWORD_TO_CATEGORY.items():
+        if _kw_hit(txt_full, kw1) and _kw_hit(txt_full, kw2):
+            tags += [c.strip() for c in cats.split(",")]
+    return _dedupe_keep_order(tags)
+
+def _build_categories(title, description, program_type, ages_text):
+    organizer = "Poquoson"
+    always_on = (LIBRARY_CONSTANTS.get("poquosonpl", {}) or {}).get("always_on_categories", [])
+    age_map   = (LIBRARY_CONSTANTS.get("poquosonpl", {}) or {}).get("age_to_categories", {})
+    tags = []
+
+    # Program type tags
+    tags += _program_type_to_tags(program_type, organizer=organizer)
+
+    # Age tags: prefer explicit map (if ages_text already says Infant/Preschool/etc.), else coarse groups
+    if age_map and ages_text:
+        for token in [a.strip() for a in ages_text.split(",") if a.strip()]:
+            mapped = age_map.get(token)
+            if mapped:
+                tags += [c.strip() for c in mapped.split(",")]
+    if ages_text:
+        tags += _age_groups_to_tags(ages_text, organizer=organizer)
+
+    # Keyword tags (title + description)
+    tags += _keyword_tags(title, description)
+
+    # Always-on (e.g., Event Location - Poquoson, Audience - Family Event)
+    tags += always_on
+
+    # Final dedupe
+    return ", ".join(_dedupe_keep_order(tags))
+
 
 def extract_description(soup):
     """
@@ -166,6 +263,7 @@ def scrape_poquosonpl_events(cutoff_date=None, mode="all"):
                 series_block = detail_soup.select_one(".lc-repeating-dates__details")
                 is_series = "Yes" if series_block else ""
 
+                categories = _build_categories(name, description, program_type, ages)
                 # Append event to list
                 events.append({
                     "Event Name": name,
@@ -180,7 +278,8 @@ def scrape_poquosonpl_events(cutoff_date=None, mode="all"):
                     "Event Date": event_date.strftime("%Y-%m-%d"),
                     "Event Description": description,
                     "Series": is_series,
-                    "Program Type": program_type
+                    "Program Type": program_type,
+                    "Categories": categories
                 })
 
             except Exception as e:
