@@ -162,6 +162,17 @@ def get_library_config(library):
             }
         }
 
+    "visitnorfolk": {
+        "organizer_name": "Norfolk",
+        "spreadsheet_name": "VisitNorfolk Events",          
+        "worksheet_name": "VisitNorfolk Events",             
+        "log_worksheet_name": "VisitNorfolk Log",            
+        "drive_folder_id": "1WiGc5-sLQoacf3G2padQ_7-YyWouWyXW",   
+        "email_recipient": "knowzek@gmail.com",       
+        "email_subject": "VisitNorfolk CSV Export",
+        "event_name_suffix": " (Norfolk)"
+    }
+
     elif library == "ypl":
         return {
             "spreadsheet_name": "YPL Events",
