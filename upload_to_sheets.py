@@ -21,6 +21,17 @@ def _has_unwanted_title(title: str) -> bool:
             return True
     return False
 
+TIME_OK = re.compile(r"\b\d{1,2}(:\d{2})?\s*[ap]m\b", re.I)
+
+def _has_valid_time_str(t: str) -> bool:
+    t = (t or "").strip().lower()
+    if not t:
+        return False
+    # treat “All Day” style as valid
+    if t in ("all day", "all-day", "all day event", "all-day event"):
+        return True
+    # accept anything that contains at least one AM/PM time
+    return bool(TIME_OK.search(t))
 
 def _clean_link(url: str) -> str:
     cleaned = (
@@ -368,23 +379,24 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 existing_row = existing_data.get(link, [""] * 16)
                 existing_core = normalize(existing_row)
 
-                # Flag if required fields are missing
-                missing_fields = []
-                if not desc_value.strip():
-                    missing_fields.append("description")
-                if not (sheet_location or "").strip():
-                    missing_fields.append("location")
-                                
-                if missing_fields:
-                    site_sync_status = "REVIEW NEEDED - MISSING INFO"
-                    status = "review needed"
+                # --- Needs-Attention logic ---
+                time_str = (event.get("Time") or "").strip()
+                title    = (event.get("Event Name") or "")
+                
+                needs_attention = (
+                    not (desc_value or "").strip() or              # missing description
+                    not (sheet_location or "").strip() or          # missing location
+                    not _has_valid_time_str(time_str) or           # missing/invalid time
+                    ("exhibit" in title.lower())                   # exhibit keyword
+                )
+                
+                if needs_attention:
+                    site_sync_status = "NEEDS ATTENTION"
+                    status = "review needed"   # keep if you want this reflected in the Status column
                 else:
                     status = "new"
                     site_sync_status = existing_row[15] if link in existing_data else "new"
 
-                # === Flag "exhibit" events for attention ===
-                if "exhibit" in event.get("Event Name", "").lower():
-                    site_sync_status = "NEEDS ATTENTION"
 
                 if link in existing_data:
                     existing_vals = {
