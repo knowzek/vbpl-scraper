@@ -473,7 +473,7 @@ def export_events_to_csv(library="vbpl", return_df=False):
     return csv_path
 
 if __name__ == "__main__":
-    LIBRARIES = ["vbpl", "npl", "chpl", "nnpl", "hpl", "ppl", "spl", "vbpr", "visithampton", "visitchesapeake", "ypl", "visitnewportnews", "portsvaevents", "visitsuffolk"]
+    LIBRARIES = ["vbpl", "npl", "chpl", "nnpl", "hpl", "ppl", "spl", "vbpr", "visithampton", "visitchesapeake", "ypl", "visitnewportnews", "portsvaevents", "visitsuffolk", "visitnorfolk"]
     print("🧪 Running unified CSV export for LIBRARIES:", LIBRARIES)
 
     all_exports = []
