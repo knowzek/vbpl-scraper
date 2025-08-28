@@ -187,8 +187,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                             matched_tags.extend([c.strip() for c in cat.split(",")])
                     categories = ", ".join(dict.fromkeys(matched_tags))  # remove duplicates, preserve order
                 
-                elif library in ("vbpr", "visithampton", "visitchesapeake", "visitnewportnews", "portsvaevents", "visitsuffolk", "visitnorfolk"):
-                    # For VBPR, use the categories provided by the scraper
+                elif library in ("vbpr", "visithampton", "visitchesapeake", "visitnewportnews", "portsvaevents", "visitsuffolk", "visitnorfolk", "poquosonpl"):
+                    # use the categories provided by the scraper
                     categories = event.get("Categories", "").strip()
                 else:
                     # Default fallback for all other libraries
