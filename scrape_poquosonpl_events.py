@@ -84,10 +84,8 @@ def _build_categories(title, description, program_type, ages_text):
     age_map   = (LIBRARY_CONSTANTS.get("poquosonpl", {}) or {}).get("age_to_categories", {})
     tags = []
 
-    # Program type tags
+    # ... your existing tag building ...
     tags += _program_type_to_tags(program_type, organizer=organizer)
-
-    # Age tags: prefer explicit map (if ages_text already says Infant/Preschool/etc.), else coarse groups
     if age_map and ages_text:
         for token in [a.strip() for a in ages_text.split(",") if a.strip()]:
             mapped = age_map.get(token)
@@ -95,15 +93,17 @@ def _build_categories(title, description, program_type, ages_text):
                 tags += [c.strip() for c in mapped.split(",")]
     if ages_text:
         tags += _age_groups_to_tags(ages_text, organizer=organizer)
-
-    # Keyword tags (title + description)
     tags += _keyword_tags(title, description)
-
-    # Always-on (e.g., Event Location - Poquoson, Audience - Family Event)
     tags += always_on
 
-    # Final dedupe
+    # ✅ ensure both audience tags are always present
+    must_have = ["Audience - Free Event", "Audience - Family Event"]
+    for t in must_have:
+        if t not in tags:
+            tags.append(t)
+
     return ", ".join(_dedupe_keep_order(tags))
+
 
 
 def extract_description(soup):
