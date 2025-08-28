@@ -10,6 +10,19 @@ def get_library_config(library):
             "email_recipient": "knowzek@gmail.com",
             "email_subject": "New VBPL CSV export ready"
         }
+
+    elif library == "poquosonpl":
+        return {
+            "spreadsheet_name": "Poquoson Library Events",
+            "worksheet_name": "PoquosonPL Events",
+            "log_worksheet_name": "PoquosonPL Log",
+            "organizer_name": "Poquoson Public Library",
+            "event_name_suffix": " (Poquoson)",
+            "drive_folder_id": "1MBWqfA43ZthUziHgubT8rIvgokpVKLHL",
+            "email_recipient": "knowzek@gmail.com",
+            "email_subject": "New PoquosonPL CSV export ready"
+        }
+        
     elif library == "npl":
         return {
             "spreadsheet_name": "Norfolk Library Events",
