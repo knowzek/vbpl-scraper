@@ -215,7 +215,6 @@ LIBRARY_CONSTANTS = {
     },
 
     "visitnorfolk": {
-        # map the full location → shorter display name here.
         "name_suffix_map": {
             "Mary D. Pretlow Anchor Branch Library": "Pretlow Library",
             "Jordan-Newby Anchor Branch Library at Broad Creek": "Jordan-Newby Library",
@@ -227,7 +226,6 @@ LIBRARY_CONSTANTS = {
             "Park Place Branch Library": "Park Place Library",
             "Little Creek Branch Library": "Little Creek Library",
             "Janaf Branch Library": "Janaf Library",
-    
             "MacArthur Memorial": "MacArthur Memorial",
             "MacArthur Center Green": "MacArthur Center Green",
             "Wells Theater": "Wells Theatre",
@@ -241,7 +239,7 @@ LIBRARY_CONSTANTS = {
             "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks – Wards Corner"
         },
     
-        # Normalize raw ICS "Location" → preferred venue display.
+        # Raw ICS "Location" → preferred display name
         "venue_names": {
             "Mary D. Pretlow Anchor Branch Library": "Pretlow Branch Library",
             "Jordan-Newby Anchor Branch Library at Broad Creek": "Jordan-Newby Anchor Branch Library",
@@ -253,7 +251,6 @@ LIBRARY_CONSTANTS = {
             "Park Place Branch Library": "Park Place Branch Library",
             "Little Creek Branch Library": "Little Creek Branch Library",
             "Janaf Branch Library": "Janaf Branch Library",
-    
             "MacArthur Memorial": "MacArthur Memorial",
             "MacArthur Center Green": "MacArthur Center Green",
             "Wells Theater": "Wells Theatre",
@@ -269,7 +266,6 @@ LIBRARY_CONSTANTS = {
     
         "program_type_to_categories": {},
     
-        # Age bucket → category tags for Norfolk.
         "age_to_categories": {
             "Infant":     "Audience - Toddler/Infant, Audience - Free Event, Event Location - Norfolk",
             "Preschool":  "Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Event Location - Norfolk",
@@ -280,8 +276,14 @@ LIBRARY_CONSTANTS = {
             "Adults 18+": "Audience - Free Event, Event Location - Norfolk"
         },
     
+        "always_on_categories": [
+            "Event Location - Norfolk",
+            "Audience - Family Event",
+        ],
+    
         "event_name_suffix": " (Norfolk)"
     },
+
 
     "vbpl": {
         "program_type_to_categories": {
