@@ -12,7 +12,7 @@ EASTERN = ZoneInfo("America/New_York")
 
 ICAL_URLS = [
     "https://www.norfolk.gov/common/modules/iCalendar/iCalendar.aspx?catID=24&feed=calendar",
-    "https://www.norfolk.gov/common/modules/iCalendar/iCalendar.aspx?catID=73&feed=calendar",
+    "https://www.norfolk.gov/common/modules/iCalendar/iCalendar.aspx?catID=152&feed=calendar",
     "https://www.norfolk.gov/common/modules/iCalendar/iCalendar.aspx?catID=75&feed=calendar",
     "https://www.norfolk.gov/common/modules/iCalendar/iCalendar.aspx?catID=145&feed=calendar",
 ]
