@@ -324,6 +324,11 @@ LIBRARY_CONSTANTS = {
     },
 
     "poquosonpl": {
+        "always_on_categories": [
+        "Event Location - Poquoson",
+        "Audience - Free Event",
+        "Audience - Family Event",
+    ],
         "program_type_to_categories": {
             "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event, List - Storytimes",
             "STEAM": "Event Location - Virginia Beach, List - STEM/STEAM, Audience - Free Event, Audience - Family Event",
