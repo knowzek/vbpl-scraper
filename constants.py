@@ -243,17 +243,17 @@ LIBRARY_CONSTANTS = {
     
         # Raw ICS "Location" → preferred display name
         "venue_names": {
-            "MacArthur Memorial": "MacArthur Memorial", `
-            "Attucks Theatre": "Attucks Theatre",`
-            "Northside Park": "Northside Park",'
+            "MacArthur Memorial": "MacArthur Memorial", 
+            "Attucks Theatre": "Attucks Theatre",
+            "Northside Park": "Northside Park",
             "Chartway Arena": "Chartway Arena",
             "MacArthur Center Green": "MacArthur Center Green",
             "Wells Theater": "Wells Theatre",
             "Hugh R Copeland Center": "Hugh R. Copeland Center",
             "Booker T. Washington High School": "Booker T. Washington High School",
             "Lambert’s Point Community Center": "Lambert’s Point Recreation Center",
-            "Five Points Park/Plaza": "Five Points Park & Civic Plaza",`
-            "Lafayette Park": "Lafayette Park",`
+            "Five Points Park/Plaza": "Five Points Park & Civic Plaza",
+            "Lafayette Park": "Lafayette Park",
             "Naval Station Norfolk": "Naval Station Norfolk",
             "Starbucks at Wards Corner 7550 Granby St.  Norfolk VA 23505": "Starbucks – Wards Corner",
             "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks – Wards Corner"
@@ -287,20 +287,20 @@ LIBRARY_CONSTANTS = {
     
         # Raw ICS "Location" → preferred display name
         "venue_names": {
-            "MacArthur Memorial": "MacArthur Memorial", `
+            "MacArthur Memorial": "MacArthur Memorial", 
             "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks – Wards Corner"
         },
     
         "program_type_to_categories": {},
     
         "age_to_categories": {
-            "Infant":     "Audience - Toddler/Infant, Audience - Free Event, Event Location - Norfolk",
-            "Preschool":  "Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Event Location - Norfolk",
-            "School Age": "Audience - School Age, Audience - Free Event, Event Location - Norfolk",
-            "Tweens":     "Audience - School Age, Audience - Free Event, Event Location - Norfolk",
-            "Teens":      "Audience - Teens, Audience - Free Event, Event Location - Norfolk",
-            "All Ages":   "Audience - Free Event, Event Location - Norfolk",
-            "Adults 18+": "Audience - Free Event, Event Location - Norfolk"
+            "Infant":     "Audience - Toddler/Infant, Audience - Free Event, Event Location - Yorktown",
+            "Preschool":  "Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Event Location - Yorktown",
+            "School Age": "Audience - School Age, Audience - Free Event, Event Location - Yorktown",
+            "Tweens":     "Audience - School Age, Audience - Free Event, Event Location - Yorktown",
+            "Teens":      "Audience - Teens, Audience - Free Event, Event Location - Yorktown",
+            "All Ages":   "Audience - Free Event, Event Location - Yorktown",
+            "Adults 18+": "Audience - Free Event, Event Location - Yorktown"
         },
     
         "always_on_categories": [
