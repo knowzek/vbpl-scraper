@@ -214,6 +214,75 @@ LIBRARY_CONSTANTS = {
         "event_name_suffix": " (Portsmouth)"
     },
 
+    "visitnorfolk": {
+        # map the full location → shorter display name here.
+        "name_suffix_map": {
+            "Mary D. Pretlow Anchor Branch Library": "Pretlow Library",
+            "Jordan-Newby Anchor Branch Library at Broad Creek": "Jordan-Newby Library",
+            "Barron F. Black Branch Library": "Barron F. Black Library",
+            "Richard A. Tucker Memorial Library": "Tucker Library",
+            "Larchmont Branch Library": "Larchmont Library",
+            "Van Wyck Branch Library": "Van Wyck Library",
+            "Downtown Branch at Slover": "Slover / Downtown Library",
+            "Park Place Branch Library": "Park Place Library",
+            "Little Creek Branch Library": "Little Creek Library",
+            "Janaf Branch Library": "Janaf Library",
+    
+            "MacArthur Memorial": "MacArthur Memorial",
+            "MacArthur Center Green": "MacArthur Center Green",
+            "Wells Theater": "Wells Theatre",
+            "Hugh R Copeland Center": "Hugh R. Copeland Center",
+            "Booker T. Washington High School": "Booker T. Washington HS",
+            "Lambert's Point Community Center": "Lambert’s Point Community Center",
+            "Five Points Park/Plaza": "Five Points Park/Plaza",
+            "Lafayette Park": "Lafayette Park",
+            "Naval Station Norfolk": "Naval Station Norfolk",
+            "Starbucks at Wards Corner 7550 Granby St.  Norfolk VA 23505": "Starbucks – Wards Corner",
+            "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks – Wards Corner"
+        },
+    
+        # Normalize raw ICS "Location" → preferred venue display.
+        "venue_names": {
+            "Mary D. Pretlow Anchor Branch Library": "Pretlow Branch Library",
+            "Jordan-Newby Anchor Branch Library at Broad Creek": "Jordan-Newby Anchor Branch Library",
+            "Barron F. Black Branch Library": "Barron F. Black Branch Library",
+            "Richard A. Tucker Memorial Library": "Richard A. Tucker Memorial Library",
+            "Larchmont Branch Library": "Larchmont Branch Library",
+            "Van Wyck Branch Library": "Van Wyck Branch Library",
+            "Downtown Branch at Slover": "The Slover / Downtown Branch Library",
+            "Park Place Branch Library": "Park Place Branch Library",
+            "Little Creek Branch Library": "Little Creek Branch Library",
+            "Janaf Branch Library": "Janaf Branch Library",
+    
+            "MacArthur Memorial": "MacArthur Memorial",
+            "MacArthur Center Green": "MacArthur Center Green",
+            "Wells Theater": "Wells Theatre",
+            "Hugh R Copeland Center": "Hugh R. Copeland Center",
+            "Booker T. Washington High School": "Booker T. Washington High School",
+            "Lambert's Point Community Center": "Lambert’s Point Community Center",
+            "Five Points Park/Plaza": "Five Points Park/Plaza",
+            "Lafayette Park": "Lafayette Park",
+            "Naval Station Norfolk": "Naval Station Norfolk",
+            "Starbucks at Wards Corner 7550 Granby St.  Norfolk VA 23505": "Starbucks – Wards Corner",
+            "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks – Wards Corner"
+        },
+    
+        "program_type_to_categories": {},
+    
+        # Age bucket → category tags for Norfolk.
+        "age_to_categories": {
+            "Infant":     "Audience - Toddler/Infant, Audience - Free Event, Event Location - Norfolk",
+            "Preschool":  "Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Event Location - Norfolk",
+            "School Age": "Audience - School Age, Audience - Free Event, Event Location - Norfolk",
+            "Tweens":     "Audience - School Age, Audience - Free Event, Event Location - Norfolk",
+            "Teens":      "Audience - Teens, Audience - Free Event, Event Location - Norfolk",
+            "All Ages":   "Audience - Free Event, Event Location - Norfolk",
+            "Adults 18+": "Audience - Free Event, Event Location - Norfolk"
+        },
+    
+        "event_name_suffix": " (Norfolk)"
+    },
+
     "vbpl": {
         "program_type_to_categories": {
             "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event, List - Storytimes",
