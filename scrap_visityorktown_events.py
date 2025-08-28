@@ -9,12 +9,22 @@ from constants import TITLE_KEYWORD_TO_CATEGORY
 from constants import LIBRARY_CONSTANTS
 
 EASTERN = ZoneInfo("America/New_York")
+https://www.visityorktown.org/calendar.aspx?CID=36,25,37,26,27,28,29,30,31,40,14,32,33,39&showPastEvents=false
 
 ICAL_URLS = [
     "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=36&feed=calendar",
-    "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=36&feed=calendar",
-    "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=36&feed=calendar",
-    "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=36&feed=calendar",
+    "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=25&feed=calendar",
+    "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=37&feed=calendar",
+    "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=26&feed=calendar",
+    "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=28&feed=calendar",
+    "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=29&feed=calendar",
+    "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=30&feed=calendar",
+    "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=31&feed=calendar",
+    "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=40&feed=calendar",
+    "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=14&feed=calendar",
+    "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=32&feed=calendar",
+    "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=33&feed=calendar",
+    "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=39&feed=calendar",
 ]
 
 # Prefer canonical event links like: https://www.visityorktown.org/calendar.aspx?EID=14902
