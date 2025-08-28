@@ -234,6 +234,12 @@ def scrape_poquosonpl_events(cutoff_date=None, mode="all"):
                 location_tag = card.select_one(".lc-event__branch")
                 location = location_tag.get_text(strip=True) if location_tag else ""
 
+                # 🚫 Exclude this exact branch location (ignore spaces/case)
+                loc_key = re.sub(r"\s+", "", location).lower()
+                if loc_key in {"branches:poquosonpubliclibrary", "branch:poquosonpubliclibrary"}:
+                    print(f"⏭️ Skipping (branch-only location): {name}")
+                    continue
+
                 # Extract description
                 # detail page
                 time.sleep(0.4)
