@@ -187,6 +187,18 @@ def get_library_config(library):
             "event_name_suffix": " (Norfolk)"
         }
 
+    elif library == "visityorktown":
+        return {
+            "organizer_name": "City of Norfolk: Recreation",
+            "spreadsheet_name": "VisitYorktown Events",          
+            "worksheet_name": "VisitYorktown Events",             
+            "log_worksheet_name": "VisitYorktown Log",            
+            "drive_folder_id": "1lN0T4U2oM0HEnZJiXAPss1AZx6_Kw2vT",   
+            "email_recipient": "knowzek@gmail.com",       
+            "email_subject": "VisitYorktown CSV Export",
+            "event_name_suffix": " (Yorktown)"
+        }
+
     elif library == "ypl":
         return {
             "spreadsheet_name": "YPL Events",
