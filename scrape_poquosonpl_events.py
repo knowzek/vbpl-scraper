@@ -5,7 +5,7 @@ import time
 import re
 from constants import UNWANTED_TITLE_KEYWORDS
 
-BASE = "https://poquoson.librarycalendar.com"
+base_url = "https://poquoson.librarycalendar.com"
 headers = {"User-Agent": "Mozilla/5.0"}
 MAX_PAGES = 50
 
