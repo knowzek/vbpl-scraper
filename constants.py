@@ -287,8 +287,12 @@ LIBRARY_CONSTANTS = {
     
         # Raw ICS "Location" → preferred display name
         "venue_names": {
-            "MacArthur Memorial": "MacArthur Memorial", 
-            "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks – Wards Corner"
+            "American Revolution Museum at Yorktown": "American Revolution Museum", 
+            "Yorktown Battlefield Visitors Center": "Yorktown Battlefield Visitor Center",
+            "Riverwalk Landing": "Riverwalk Landing",
+            "Historic Main Street": "Historic Main Street Yorktown",
+            "York Hall": "York Hall",
+            "Watermen's Museum": "Watermen's Museum"
         },
     
         "program_type_to_categories": {},
