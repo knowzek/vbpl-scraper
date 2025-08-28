@@ -10,6 +10,11 @@ from constants import LIBRARY_CONSTANTS
 
 EASTERN = ZoneInfo("America/New_York")
 
+UNWANTED_LOCATIONS = {
+    "endtime united church of jesus",
+    "pretlow branch library",
+}
+
 ICAL_URLS = [
     "https://www.norfolk.gov/common/modules/iCalendar/iCalendar.aspx?catID=24&feed=calendar",
     "https://www.norfolk.gov/common/modules/iCalendar/iCalendar.aspx?catID=152&feed=calendar",
@@ -226,6 +231,11 @@ def scrap_visitnorfolk_events(mode="all"):
                     # strip any appended address, then remove any leading stray hyphen
                     location = _strip_address(location)
                     location = re.sub(r"^\s*-\s*", "", location)
+
+                    # 🚫 Skip events at unwanted locations
+                    if any(bad in location.lower() for bad in UNWANTED_LOCATIONS):
+                        print(f"⏭️ Skipping (unwanted location): {title} @ {location}")
+                        continue
 
                     # Build canonical link
                     link = _canonical_link(description, uid)
