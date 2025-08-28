@@ -5,19 +5,23 @@ import time
 import re
 from constants import UNWANTED_TITLE_KEYWORDS
 
-def scrape_poquosonpl_events(mode="all"):
-    base_url = "poquoson.librarycalendar.com"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    MAX_PAGES = 50
+BASE = "https://poquoson.librarycalendar.com"
+headers = {"User-Agent": "Mozilla/5.0"}
+MAX_PAGES = 50
 
+def scrape_poquosonpl_events(cutoff_date=None, mode="all"):
+    
     events = []
     today = datetime.today()
 
-    if mode in ["weekly", "monthly"]:
-        days = 7 if mode == "weekly" else 30
-        cutoff_date = today + timedelta(days=days)
-    else:
-        cutoff_date = None  # No cutoff
+    # allow main.py to pass cutoff_date; otherwise compute from mode
+    if cutoff_date is None:
+        if mode == "weekly":
+            cutoff_date = today + timedelta(days=7)
+        elif mode == "monthly":
+            cutoff_date = today + timedelta(days=30)
+        else:
+            cutoff_date = today + timedelta(days=90)
 
     page = 0
 
@@ -28,8 +32,7 @@ def scrape_poquosonpl_events(mode="all"):
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, "html.parser")
-        cards = soup.select("article.event-card")
-
+        cards = soup.select("article.lc-event-card, article.event-card, article.node--type-event")
         if not cards:
             print("✅ No more event cards found. Done scraping.")
             break
