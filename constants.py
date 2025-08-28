@@ -279,7 +279,38 @@ LIBRARY_CONSTANTS = {
         "event_name_suffix": " (Norfolk)"
     },
 
-
+    "visityorktown": {
+        "name_suffix_map": {
+            "Mary D. Pretlow Anchor Branch Library": "Pretlow Library",
+            "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks – Wards Corner"
+        },
+    
+        # Raw ICS "Location" → preferred display name
+        "venue_names": {
+            "MacArthur Memorial": "MacArthur Memorial", `
+            "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks – Wards Corner"
+        },
+    
+        "program_type_to_categories": {},
+    
+        "age_to_categories": {
+            "Infant":     "Audience - Toddler/Infant, Audience - Free Event, Event Location - Norfolk",
+            "Preschool":  "Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Event Location - Norfolk",
+            "School Age": "Audience - School Age, Audience - Free Event, Event Location - Norfolk",
+            "Tweens":     "Audience - School Age, Audience - Free Event, Event Location - Norfolk",
+            "Teens":      "Audience - Teens, Audience - Free Event, Event Location - Norfolk",
+            "All Ages":   "Audience - Free Event, Event Location - Norfolk",
+            "Adults 18+": "Audience - Free Event, Event Location - Norfolk"
+        },
+    
+        "always_on_categories": [
+            "Event Location - Yorktown",
+            "Audience - Family Event",
+        ],
+    
+        "event_name_suffix": " (Yorktown)"
+    },
+    
     "vbpl": {
         "program_type_to_categories": {
             "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event, List - Storytimes",
