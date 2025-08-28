@@ -9,7 +9,6 @@ from constants import TITLE_KEYWORD_TO_CATEGORY
 from constants import LIBRARY_CONSTANTS
 
 EASTERN = ZoneInfo("America/New_York")
-https://www.visityorktown.org/calendar.aspx?CID=36,25,37,26,27,28,29,30,31,40,14,32,33,39&showPastEvents=false
 
 ICAL_URLS = [
     "https://www.visityorktown.org/common/modules/iCalendar/iCalendar.aspx?catID=36&feed=calendar",
