@@ -121,7 +121,9 @@ UNWANTED_TITLE_KEYWORDS = [
     "first aid",
     "3D Printer Orientation",
     "museum closed",
-    "adult"
+    "adult",
+    "Community Engagement Street Team",
+    "senior"
 ]
 
 AGE_RANGE_TO_CATEGORY = [
