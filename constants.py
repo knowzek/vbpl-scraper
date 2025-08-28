@@ -323,6 +323,30 @@ LIBRARY_CONSTANTS = {
         "event_name_suffix": " (Virginia Beach)"
     },
 
+    "poquosonpl": {
+        "program_type_to_categories": {
+            "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event, List - Storytimes",
+            "STEAM": "Event Location - Virginia Beach, List - STEM/STEAM, Audience - Free Event, Audience - Family Event",
+            "Computers & Technology": "Event Location - Virginia Beach, Audience - Free Event, Audience - Teens, Audience - Family Event",
+            "Workshops & Lectures": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+            "Discussion Groups": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+            "Arts & Crafts": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+            "Hobbies": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+            "Books & Authors": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+            "Culture": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+            "History & Genealogy": "Event Location - Virginia Beach, Audience - Teens, Audience - Free Event"
+        },
+        "name_suffix_map": {
+            "Great Neck Area Library": "Great Neck Area Library",
+            "Kempsville Area Library": "Kempsville Area Library"
+        },
+        "venue_names": {
+        "Great Neck Area Library": "Great Neck Area Library",
+        "Kempsville Area Library": "Kempsville Area Library"
+    },
+        "event_name_suffix": " (Poquoson)"
+    },
+
     "ypl": {
         "name_suffix_map": {
             # "Yorktown Library": "Yorktown Library",
