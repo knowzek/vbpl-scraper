@@ -91,6 +91,10 @@ if __name__ == "__main__":
         from scrap_visitsuffolk_events import scrap_visitsuffolk
         events = scrap_visitsuffolk(mode=mode)
 
+    elif library == "visitnorfolk":
+        from scrap_visitnorfolk_events import scrap_visitnorfolk_events
+        events = scrap_visitnorfolk_events(mode=mode)
+
     
     else:
         raise ValueError(f"Unknown library: {library}")
