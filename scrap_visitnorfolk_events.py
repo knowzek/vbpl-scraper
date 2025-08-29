@@ -35,8 +35,14 @@ ALWAYS_ON_CATEGORIES = [
     "Audience - Family Event", 
 ]
 
-# Put near the top with the other regexes/utilities
 ADDR_SPLIT_RE = re.compile(r"\s[-–]\s")   # "Venue - 123 St" or "Venue – 123 St"
+
+def _starts_at_or_after_7pm_local(dt):
+    """Return True if the datetime (any tz) is 7:00 PM or later in EASTERN."""
+    if not isinstance(dt, datetime):
+        return False
+    local = dt.astimezone(EASTERN)
+    return (local.hour > 19) or (local.hour == 19 and local.minute >= 0)
 
 def _strip_address(loc: str) -> str:
     """
@@ -221,6 +227,23 @@ def scrap_visitnorfolk_events(mode="all"):
                     if not (date_start <= start_utc <= date_end):
                         continue
                         
+                    # 🚫 Skip events that start at 7:00 PM or later (keep true all-day events)
+                    is_all_day = bool(getattr(ev, "all_day", False))
+                    
+                    # Heuristic to treat all-day iCal (00:00 start and ~24h duration) as all-day
+                    if not is_all_day:
+                        try:
+                            if start_dt and end_dt:
+                                dur = (end_dt - start_dt)
+                                if start_dt.time().hour == 0 and start_dt.time().minute == 0 and dur >= timedelta(hours=23):
+                                    is_all_day = True
+                        except Exception:
+                            pass
+                    
+                    if not is_all_day and _starts_at_or_after_7pm_local(start_dt):
+                        print(f"⏭️ Skipping late event (>=7 PM): {getattr(ev, 'name', '')} @ {start_dt.astimezone(EASTERN).strftime('%-I:%M %p')}")
+                        continue
+    
                     title = _clean_text(getattr(ev, "name", "") or "")
                     description = _clean_text(getattr(ev, "description", "") or "")
                     location = _clean_text(getattr(ev, "location", "") or "")
