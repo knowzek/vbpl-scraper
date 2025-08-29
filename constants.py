@@ -189,6 +189,17 @@ LIBRARY_CONSTANTS = {
         "venue_names": {
             "Embroidery &amp; Print House / Gift Shop": "Embroidery & Print House / Gift Shop",
             "Kayak Ramp at Constant's Wharf Park &amp; Marina": "Constant's Wharf",
+            "Suffolk Art Gallery": "Suffolk Art Gallery",
+            "Downtown Festival Park": "Downtown Festival Park",
+            "Suffolk Center for Cultural Arts": "Suffolk Center for Cultural Arts",
+            "Hub 757": "Hub 757",
+            "Miss Lilly's Trading Post": "Miss Lilly's Trading Post",
+            "Knotts Coffee Company": "Knotts Coffee Company",
+            "Phillips Dawson House": "Phillips Dawson House",
+            "Suffolk Family YMCA and Camp Arrowhead Conference &amp; Outdoor Center": "Suffolk Family YMCA and Camp Arrowhead Conference & Outdoor Center",
+            "Riddick's Folly House Museum": "Riddicks Folly",
+            "The Silos": "The Silos & Westside Burgers",
+            "Holland Ballfield": "Holland Village Ball Field 3",
             
         },
         "event_name_suffix": " (Suffolk)"
