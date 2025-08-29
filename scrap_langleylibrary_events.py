@@ -8,8 +8,10 @@ from constants import UNWANTED_TITLE_KEYWORDS
 BASE_URL = "https://www.langleylibrary.org/teen-events"
 BASE_URL2 = "https://www.langleylibrary.org/kids-events"
 ALWAYS_ON_CATEGORIES = [
-    "Event Location - Bateman Library",
-    "Audience - Family Event", 
+    "Event Location - Hampton",
+    "Audience - Family Event",
+    "Audience - Free Event",
+    "Audience - Military Only"
 ]
 
 def filter_and_sort_events(events, date_start, date_end):
