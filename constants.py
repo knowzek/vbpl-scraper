@@ -131,7 +131,8 @@ UNWANTED_TITLE_KEYWORDS = [
     "exhibit",
     "exhibition",
     "collection",
-    "business"
+    "business",
+    "closed"
 ]
 
 AGE_RANGE_TO_CATEGORY = [
@@ -186,6 +187,7 @@ LIBRARY_CONSTANTS = {
             "Ferguson Center for the Arts": "Ferguson Center",
             "Mary M. Torggler Fine Arts Center": "Mary M. Torggler Fine Arts Center",
             "Endview Plantation / Historic Endview": "Endview Plantation / Historic Endview",
+            "Great Lawn": "Ferguson Center",
             "Tradition Brewing Company": "Tradition Brewing Company",
             
         },
