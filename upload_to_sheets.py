@@ -159,25 +159,18 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                         continue
                 
                 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                program_type = event.get("Program Type", "")
-                # Ensure categories always exists (prevents UnboundLocalError)
-                categories = ""
+                # --- NEW: always trust scraper's Categories, then append/dedupe ---
 
-                if library == "ppl":
-                    # Instead of using only precomputed tags, apply full logic
-                    categories = ""
-
-                # --- YPL pre-filtering and normalization ---
-                if library == "ypl":
-                    event["Location"] = event.get("Location", "").strip()
+                # 0) Start from what the scraper provided
+                scraper_cats = [c.strip() for c in (event.get("Categories", "") or "").split(",") if c.strip()]
                 
-                    # (3) Exclude if Ages is ONLY adult
-                    ages_only = re.sub(r"\s+", " ", (event.get("Ages", "") or "").strip().lower()).strip(", ")
-                    if ages_only in {"adult", "adults", "adults 18+", "18+"}:
-                        print(f"⏭️ Skipping YPL adult-only event: {event.get('Event Name')}")
-                        skipped += 1
-                        continue
-
+                # 1) Program-type based categories (keep this if you want those too)
+                program_type = event.get("Program Type", "")
+                if library == "ppl":
+                    # Use pre-tagged categories or fallback
+                    programtype_cats = [c.strip() for c in (event.get("Categories", "") or "").split(",") if c.strip()]
+                    if not programtype_cats:
+                        programtype_cats = [c.strip() for c in "Audience - Family Event, Audience - Free Event, Audience - Preschool Age, Audience - School Age, Event Location - Portsmouth".split(",")]
                 elif library == "hpl":
                     program_types = [pt.strip().lower() for pt in program_type.split(",") if pt.strip()]
                     matched_tags = []
@@ -185,30 +178,25 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                         cat = program_type_to_categories.get(pt)
                         if cat:
                             matched_tags.extend([c.strip() for c in cat.split(",")])
-                    categories = ", ".join(dict.fromkeys(matched_tags))  # remove duplicates, preserve order
-                
-                elif library in ("vbpr", "visithampton", "visitchesapeake", "visitnewportnews", "portsvaevents", "visitsuffolk", "visitnorfolk", "poquosonpl"):
-                    # use the categories provided by the scraper
-                    categories = event.get("Categories", "").strip()
+                    programtype_cats = list(dict.fromkeys(matched_tags))
                 else:
-                    # Default fallback for all other libraries
-                    categories = program_type_to_categories.get(program_type, "")
-
-
-                if library == "chpl" and age_to_categories:
-                    audience_keys = [a.strip() for a in event.get("Ages", "").split(",") if a.strip()]
-                    all_tags = []
+                    # Default mapping for libraries that still want program-type fallbacks
+                    base_pt = program_type_to_categories.get(program_type, "")
+                    programtype_cats = [c.strip() for c in base_pt.split(",") if c.strip()]
+                
+                # 2) Age-based categories (both structured + fuzzy)
+                ages_raw = event.get("Ages", "") or ""
+                audience_keys = [a.strip() for a in ages_raw.split(",") if a.strip()]
+                mapped_age_tags = []
+                if age_to_categories:
                     for tag in audience_keys:
                         tags = age_to_categories.get(tag)
                         if tags:
-                            all_tags.extend([t.strip() for t in tags.split(",")])
-                    if all_tags:
-                        categories = ", ".join(dict.fromkeys(all_tags))
-
-                ages_raw = event.get("Ages", "")
+                            mapped_age_tags.extend([t.strip() for t in tags.split(",")])
+                
+                # fuzzy 13–17 teens etc.
                 age_tags = []
                 nums = [int(n) for n in re.findall(r"\d+", ages_raw) if int(n) > 0]
-
                 if nums:
                     min_age, max_age = min(nums), max(nums)
                     if max_age <= 2:
@@ -221,22 +209,16 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                         age_tags.append("Audience - School Age")
                     if min_age >= 13:
                         age_tags.append("Audience - Teens")
-
-                # Age-based category tags
-                audience_keys = [a.strip() for a in ages_raw.split(",") if a.strip()]
-                all_tags = []
                 
-                if age_to_categories:
-                    for tag in audience_keys:
-                        tags = age_to_categories.get(tag)
-                        if tags:
-                            all_tags.extend([t.strip() for t in tags.split(",")])
+                # Only add fuzzy if not already covered by mapped audience tags
+                def _has_audience_tag(tags):
+                    return any((t or "").startswith("Audience -") for t in tags)
                 
-                # Only add fuzzy age tags if structured audience tags aren't already present
-                if age_tags and not has_audience_tag(all_tags):
-                    all_tags.extend(age_tags)
-
-                # Ensure description exists for keyword tagging and sheet column
+                age_combined = list(mapped_age_tags)
+                if age_tags and not _has_audience_tag(mapped_age_tags):
+                    age_combined.extend(age_tags)
+                
+                # 3) Keyword tags (single + paired)
                 desc_value = (
                     event.get("Event Description")
                     or event.get("Description")
@@ -244,6 +226,45 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     or event.get("Event Details")
                     or ""
                 )
+                title_text = (event.get("Event Name", "") or "").lower()
+                full_text = f"{event.get('Event Name', '')} {desc_value}".lower()
+                
+                title_based_tags = []
+                for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
+                    if _kw_hit(title_text, keyword) or _kw_hit(full_text, keyword):
+                        title_based_tags.extend([c.strip() for c in cat.split(",")])
+                
+                for (kw1, kw2), cat in COMBINED_KEYWORD_TO_CATEGORY.items():
+                    if _kw_hit(full_text, kw1) and _kw_hit(full_text, kw2):
+                        title_based_tags.extend([c.strip() for c in cat.split(",")])
+                
+                # 4) Always-on tags for this library (from constants)
+                tag_list = []
+                tag_list.extend(scraper_cats)           # trust the scraper first
+                tag_list.extend(programtype_cats)       # then program-type fallback (optional)
+                tag_list.extend(age_combined)           # age-based (mapped + fuzzy if needed)
+                tag_list.extend(title_based_tags)       # keywords
+                if always_on:
+                    tag_list.extend(always_on)
+                
+                # 5) Fallback if nothing at all
+                if not tag_list:
+                    raw_location = (event.get("Location", "") or "").strip()
+                    fallback_city = ""
+                    for city in ("Norfolk", "Virginia Beach", "Chesapeake", "Portsmouth", "Hampton", "Newport News", "Suffolk"):
+                        if city.lower() in raw_location.lower():
+                            fallback_city = city
+                            break
+                    tag_list.append(
+                        f"Event Location - {fallback_city}, Audience - Free Event"
+                        if fallback_city else "Audience - Free Event"
+                    )
+                
+                # 6) Final clean & dedupe (preserve order)
+                categories = ", ".join(dict.fromkeys([t.replace("\u00A0", " ").replace("Â", "").strip() for t in tag_list if t.strip()]))
+                
+                print(f"🧾 Final categories for {event.get('Event Name')}: {categories}")
+
 
                 # === Normalize title and description text
                 title_text = (event.get("Event Name", "") or "").lower()
