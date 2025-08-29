@@ -123,6 +123,7 @@ UNWANTED_TITLE_KEYWORDS = [
     "museum closed",
     "adult",
     "Community Engagement Street Team",
+    "wine",
     "senior"
 ]
 
