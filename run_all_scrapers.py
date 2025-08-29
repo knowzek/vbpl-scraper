@@ -17,6 +17,7 @@ from scrap_visitsuffolk_events import scrap_visitsuffolk
 from scrap_visitnorfolk_events import scrap_visitnorfolk_events
 from scrap_visityorktown_events import scrap_visityorktown_events
 from scrape_poquosonpl_events import scrape_poquosonpl_events
+from scrap_langleylibrary_events import scrap_langleylibrary
 from upload_to_sheets import upload_events_to_sheet
 from constants import LIBRARY_CONSTANTS
 
@@ -39,7 +40,8 @@ LIBRARIES = [
     "visitsuffolk",
     "visitnorfolk",
     "visityorktown",
-    "poquosonpl"
+    "poquosonpl",
+    "langleylibrary"
 ]
 MODE = "monthly"  # or "weekly", or "all"
 
@@ -100,6 +102,9 @@ def run_all_scrapers():
 
             elif library == "poquosonpl":
                 events = scrape_poquosonpl_events(mode=MODE)
+
+            elif library == "langleylibrary":
+                events = scrap_langleylibrary(mode=MODE)
             else:
                 print(f"⚠️ Unknown library: {library}")
                 continue
