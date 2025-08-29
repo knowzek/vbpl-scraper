@@ -11,10 +11,10 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Farmer's Market": "Audience - Outdoor Event",
     "Farmers Market": "Audience - Outdoor Event",
     "Hispanic Heritage Month": "List - Fall - Hispanic Heritage Month (Sept/Oct)",
-    "cars": "List – Car Shows & Events",
-    "anime": "List – Cosplay, Anime, Comics",
-    "cosplay": "List – Cosplay, Anime, Comics",
-    "comics": "List – Cosplay, Anime, Comics",
+    "cars": "List - Car Shows & Events",
+    "anime": "List - Cosplay, Anime, Comics",
+    "cosplay": "List - Cosplay, Anime, Comics",
+    "comics": "List - Cosplay, Anime, Comics",
     "walking tour": "List - Local Tours, Audience - Outdoor Event",
     "kayak": "Audience - Outdoor Event, Category - Fitness Events",
     "math": "List - STEM/STEAM",
@@ -254,8 +254,8 @@ LIBRARY_CONSTANTS = {
             "Five Points Park/Plaza": "Five Points Park/Plaza",
             "Lafayette Park": "Lafayette Park",
             "Naval Station Norfolk": "Naval Station Norfolk",
-            "Starbucks at Wards Corner 7550 Granby St.  Norfolk VA 23505": "Starbucks – Wards Corner",
-            "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks – Wards Corner"
+            "Starbucks at Wards Corner 7550 Granby St.  Norfolk VA 23505": "Starbucks - Wards Corner",
+            "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks - Wards Corner"
         },
     
         # Raw ICS "Location" → preferred display name
@@ -290,8 +290,8 @@ LIBRARY_CONSTANTS = {
             "Five Points Park/Plaza": "Five Points Park & Civic Plaza",
             "Lafayette Park": "Lafayette Park",
             "Naval Station Norfolk": "Naval Station Norfolk",
-            "Starbucks at Wards Corner 7550 Granby St.  Norfolk VA 23505": "Starbucks – Wards Corner",
-            "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks – Wards Corner"
+            "Starbucks at Wards Corner 7550 Granby St.  Norfolk VA 23505": "Starbucks - Wards Corner",
+            "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks - Wards Corner"
         },
     
         "program_type_to_categories": {},
@@ -317,7 +317,7 @@ LIBRARY_CONSTANTS = {
     "visityorktown": {
         "name_suffix_map": {
             "Mary D. Pretlow Anchor Branch Library": "Pretlow Library",
-            "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks – Wards Corner"
+            "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks - Wards Corner"
         },
     
         # Raw ICS "Location" → preferred display name
