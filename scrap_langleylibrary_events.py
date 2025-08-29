@@ -5,8 +5,9 @@ from datetime import datetime, timedelta, timezone
 from constants import TITLE_KEYWORD_TO_CATEGORY
 from constants import UNWANTED_TITLE_KEYWORDS
 
-BASE_URL = "https://www.langleylibrary.org/teen-events"
-BASE_URL2 = "https://www.langleylibrary.org/kids-events"
+BASE_URL = "https://www.langleylibrary.org"
+BASE_URL2 = "https://www.langleylibrary.org/teen-events"
+BASE_URL3 = "https://www.langleylibrary.org/kids-events"
 ALWAYS_ON_CATEGORIES = [
     "Event Location - Hampton",
     "Audience - Family Event",
@@ -120,7 +121,7 @@ def get_events_data(soup: BeautifulSoup, url: str):
         # Title
         title_tag = article.select_one(".eventlist-title a")
         title = title_tag.get_text(strip=True) if title_tag else None
-        link = url + title_tag["href"] if title_tag else None
+        link = BASE_URL + title_tag["href"] if title_tag else None
 
         # 🚫 Skip unwanted title keywords
         if any(bad_word.lower() in title.lower() for bad_word in UNWANTED_TITLE_KEYWORDS):
@@ -254,8 +255,8 @@ def scrap_langleylibrary(mode="all"):
         date_start = today_utc
         date_end   = today_utc + timedelta(days=90)
 
-    events = fetch_events(BASE_URL)
-    events2 = fetch_events(BASE_URL2)
+    events = fetch_events(BASE_URL2)
+    events2 = fetch_events(BASE_URL3)
     events.extend(events2)
     events = filter_and_sort_events(events, date_start, date_end)
 
