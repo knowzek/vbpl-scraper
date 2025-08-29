@@ -183,7 +183,7 @@ def get_events_data(soup: BeautifulSoup, url):
 
         events.append({
             "Event Name": title,
-            "Event link": link,
+            "Event Link": link,
             "Event Description": description,
             "Categories": ", ".join(all_tags),
             "date": date_iso,
