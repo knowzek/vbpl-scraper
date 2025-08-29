@@ -17,6 +17,7 @@ import unicodedata
 from email.mime.base import MIMEBase
 from email import encoders
 from email.mime.multipart import MIMEMultipart
+STRICT_VENUE_LIBS = {"vbpl", "npl", "chpl", "nnpl", "hpl", "spl", "ppl"}
 
 def send_notification_email_with_attachment(file_path, subject, recipient):
     smtp_user = os.environ["SMTP_USERNAME"]
@@ -356,12 +357,19 @@ def export_events_to_csv(library="vbpl", return_df=False):
               .map(venue_map)
               .fillna(df["Location"].str.replace(r"^Library Branch:", "", regex=True).str.strip())
         )
-        # Keep the non-visithampton filter
-        invalid_venue_mask = ~df["Venue"].isin((venue_map or {}).values())
-        if invalid_venue_mask.any():
-            print("⚠️ Skipping events due to invalid or unmapped venue names:")
-            print(df.loc[invalid_venue_mask, ["Event Name", "Venue"]])
-            df = df[~invalid_venue_mask]
+    
+        # ✅ Only enforce "known venues only" for selected libraries
+        accepted = {str(v).strip().lower() for v in (venue_map or {}).values() if str(v).strip()}
+        if library in STRICT_VENUE_LIBS and accepted:
+            invalid_venue_mask = ~df["Venue"].astype(str).str.strip().str.lower().isin(accepted)
+            if invalid_venue_mask.any():
+                print("⚠️ Skipping events due to invalid or unmapped venue names:")
+                print(df.loc[invalid_venue_mask, ["Event Name", "Venue"]])
+                df = df[~invalid_venue_mask]
+        else:
+            # Non-strict libraries (or no mapping provided): keep all venues
+            print(f"ℹ️ Non-strict venue filtering for '{library}' — keeping all venues.")
+
 
     def format_event_title(row):
         title = str(row.get("Event Name", "")).strip()
