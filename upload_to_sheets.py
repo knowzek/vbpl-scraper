@@ -287,7 +287,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 tag_list = [c.strip() for c in categories.split(",") if c.strip()]
                 
                 # 2) Add age-based categories
-                tag_list.extend(all_tags)
+                tag_list.extend(age_combined)
                 
                 # 3) Add keyword categories
                 tag_list.extend(title_based_tags)
