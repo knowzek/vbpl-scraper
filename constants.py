@@ -14,6 +14,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "cosplay": "List – Cosplay, Anime, Comics",
     "comics": "List – Cosplay, Anime, Comics",
     "walking tour": "List - Local Tours, Audience - Outdoor Event",
+    "kayak": "Audience - Outdoor Event, Category - Fitness Events",
     "math": "List - STEM/STEAM",
     "science": "List - STEM/STEAM",
     "nature": "List - STEM/STEAM",
