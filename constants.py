@@ -124,7 +124,8 @@ UNWANTED_TITLE_KEYWORDS = [
     "adult",
     "Community Engagement Street Team",
     "wine",
-    "senior"
+    "senior",
+    "business"
 ]
 
 AGE_RANGE_TO_CATEGORY = [
