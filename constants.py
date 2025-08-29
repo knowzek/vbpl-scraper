@@ -8,6 +8,8 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "babies in bloom": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
     "Pre-K": "Audience - Preschool Age",
     "Football Game": "Audience - Outdoor Event",
+    "Farmer's Market": "Audience - Outdoor Event",
+    "Farmers Market": "Audience - Outdoor Event",
     "Hispanic Heritage Month": "List - Fall - Hispanic Heritage Month (Sept/Oct)",
     "cars": "List – Car Shows & Events",
     "anime": "List – Cosplay, Anime, Comics",
