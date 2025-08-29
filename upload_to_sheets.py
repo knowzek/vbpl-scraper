@@ -415,7 +415,21 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     ("exhibit" in title.lower())                   # exhibit keyword
                 )
                 
-                if needs_attention:
+                # --- Time integrity check: if NOT all-day and end time is missing → NEEDS ATTENTION
+                time_raw = (event.get("Time", "") or "").strip()
+                t = time_raw.lower()
+                
+                # Consider these as all-day markers
+                is_all_day = ("all day" in t) or ("ongoing" in t)
+                
+                # Detect a start time and an explicit end time (e.g., "2 PM - 3 PM" or "2:15 pm – 3:00 pm")
+                start_present = bool(re.search(r"\b\d{1,2}(:\d{2})?\s*[ap]m\b", t, re.I))
+                has_end = bool(re.search(r"\b\d{1,2}(:\d{2})?\s*[ap]m\b\s*[-–—]\s*\d{1,2}(:\d{2})?\s*[ap]m\b", t, re.I))
+                
+                # If it's not all-day, and we do have a start but no end → flag for attention
+                missing_end_time = (not is_all_day) and start_present and (not has_end)
+
+                if needs_attention or missing_end_time:
                     site_sync_status = "NEEDS ATTENTION"
                     status = "review needed"   # keep if you want this reflected in the Status column
                 else:
