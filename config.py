@@ -94,6 +94,18 @@ def get_library_config(library):
             "email_recipient": "knowzek@gmail.com",
             "email_subject": "New PPL CSV export ready"
         }
+
+    elif library == "langleylibrary":
+        return {
+            "spreadsheet_name": "Langley Library Events",
+            "worksheet_name": "Langley Library Events",
+            "log_worksheet_name": "Langley Library Log",
+            "organizer_name": "Hampton Public Library",
+            "event_name_suffix": " (Hampton)",
+            "drive_folder_id": "1MIrTmB5cS8JDmx8XsHCaFGdaTUkkmTmx",
+            "email_recipient": "knowzek@gmail.com",
+            "email_subject": "New Langley Library CSV export ready"
+        }
         
     elif library == "vbpr":
         return {
