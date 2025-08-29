@@ -128,6 +128,9 @@ UNWANTED_TITLE_KEYWORDS = [
     "Community Engagement Street Team",
     "wine",
     "senior",
+    "exhibit",
+    "exhibition",
+    "collection",
     "business"
 ]
 
