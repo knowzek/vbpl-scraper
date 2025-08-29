@@ -81,15 +81,15 @@ def _infer_ages(text: str) -> str:
     return ", ".join(sorted(buckets))
 
 def _age_to_categories(ages_str: str):
-    """Map inferred age buckets to category tags (Bateman Library-specific)."""
+    """Map inferred age buckets to category tags (Hampton-specific)."""
     age_map = {
-        "Infant":       "Audience - Toddler/Infant, Audience - Free Event, Event Location - Bateman Library",
-        "Preschool":    "Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Event Location - Bateman Library",
-        "School Age":   "Audience - School Age, Audience - Free Event, Event Location - Bateman Library",
-        "Tweens":       "Audience - School Age, Audience - Free Event, Event Location - Bateman Library",
-        "Teens":        "Audience - Teens, Audience - Free Event, Event Location - Bateman Library",
-        "All Ages":     "Audience - Free Event, Event Location - Bateman Library",
-        "Adults 18+":   "Audience - Free Event, Event Location - Bateman Library",
+        "Infant":       "Audience - Toddler/Infant, Audience - Free Event, Event Location - Hampton",
+        "Preschool":    "Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Event Location - Hampton",
+        "School Age":   "Audience - School Age, Audience - Free Event, Event Location - Hampton",
+        "Tweens":       "Audience - School Age, Audience - Free Event, Event Location - Hampton",
+        "Teens":        "Audience - Teens, Audience - Free Event, Event Location - Hampton",
+        "All Ages":     "Audience - Free Event, Event Location - Hampton",
+        "Adults 18+":   "Audience - Free Event, Event Location - Hampton",
     }
     out = []
     for a in [x.strip() for x in (ages_str or "").split(",") if x.strip()]:
@@ -155,6 +155,8 @@ def get_events_data(soup: BeautifulSoup, url: str):
         # Location
         location_tag = article.select_one(".eventlist-meta-address")
         location = location_tag.get_text(strip=True).replace("(map)","") if location_tag else None
+        if location == "Bateman Library":
+            location = "Langley AFB Bateman Library"
         map_link = None
         if location_tag:
             map_link_tag = location_tag.select_one("a")
