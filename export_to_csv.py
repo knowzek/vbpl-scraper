@@ -17,7 +17,24 @@ import unicodedata
 from email.mime.base import MIMEBase
 from email import encoders
 from email.mime.multipart import MIMEMultipart
+import time
+from gspread.exceptions import APIError
 STRICT_VENUE_LIBS = {"vbpl", "npl", "chpl", "nnpl", "hpl", "spl", "ppl"}
+
+def _retry(fn, *args, **kwargs):
+    delay = 6
+    for attempt in range(6):
+        try:
+            return fn(*args, **kwargs)
+        except APIError as e:
+            if "429" in str(e):
+                sleep_for = delay * (attempt + 1)
+                print(f"⏳ Sheets 429 rate limit; retrying in {sleep_for}s...")
+                time.sleep(sleep_for)
+                continue
+            raise
+    raise
+
 
 def send_notification_email_with_attachment(file_path, subject, recipient):
     smtp_user = os.environ["SMTP_USERNAME"]
@@ -182,8 +199,8 @@ def export_events_to_csv(library="vbpl", return_df=False):
     )
 
     client = gspread.authorize(creds)
-    sheet = client.open(config["spreadsheet_name"]).worksheet(config["worksheet_name"])
-    df = pd.DataFrame(sheet.get_all_records())
+    sheet = _retry(client.open, config["spreadsheet_name"]).worksheet(config["worksheet_name"])
+    df = pd.DataFrame(_retry(sheet.get_all_records))
 
     # 🔧 Convert all columns to string safely
     for col in df.columns:
@@ -448,9 +465,12 @@ def export_events_to_csv(library="vbpl", return_df=False):
 
     send_notification_email_with_attachment(csv_path, config["email_subject"], config["email_recipient"])
 
+    # 🔧 Force-mark everything we just exported as on site (in-memory)
+    df.loc[:, "Site Sync Status"] = "on site"
+
     # ✅ Mark exported rows as "on site" in the sheet
     site_sync_col = df.columns.get_loc("Site Sync Status")
-    values = sheet.get_all_values()
+    values = _retry(sheet.get_all_values)
 
     # Build a map from Event Link → Sheet Row Number
     link_col_idx = df.columns.get_loc("Event Link")
@@ -484,6 +504,11 @@ if __name__ == "__main__":
     LIBRARIES = ["vbpl", "npl", "chpl", "nnpl", "hpl", "ppl", "spl", "vbpr", "visithampton", "visitchesapeake", "ypl", "visitnewportnews", "portsvaevents", "visitsuffolk", "visitnorfolk", "poquosonpl", "visityorktown"]
     print("🧪 Running unified CSV export for LIBRARIES:", LIBRARIES)
 
+    for lib in LIBRARIES:
+        print(f"🚀 Exporting {lib} …")
+        df = export_events_to_csv(lib, return_df=True)
+        time.sleep(8)  # smooth out per-minute read bursts
+        
     all_exports = []
     for lib in LIBRARIES:
         print(f"🚀 Exporting {lib} …")
