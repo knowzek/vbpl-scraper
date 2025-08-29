@@ -8,6 +8,7 @@ import json
 import re
 from constants import LIBRARY_CONSTANTS, TITLE_KEYWORD_TO_CATEGORY, UNWANTED_TITLE_KEYWORDS
 from constants import COMBINED_KEYWORD_TO_CATEGORY
+
 import pandas as pd
 
 def has_audience_tag(tags):
@@ -166,6 +167,14 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 
                 # 1) Program-type based categories (keep this if you want those too)
                 program_type = event.get("Program Type", "")
+                
+                # 🚫 Central unwanted-title filter (title only)
+                title_for_filter = (event.get("Event Name") or "").strip()
+                if any(bad.lower() in title_for_filter.lower() for bad in UNWANTED_TITLE_KEYWORDS):
+                    print(f"⏭️ Skipping (unwanted title match): {title_for_filter}")
+                    skipped += 1
+                    continue
+
                 if library == "ppl":
                     # Use pre-tagged categories or fallback
                     programtype_cats = [c.strip() for c in (event.get("Categories", "") or "").split(",") if c.strip()]
