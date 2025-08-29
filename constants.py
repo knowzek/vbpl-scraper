@@ -412,8 +412,8 @@ LIBRARY_CONSTANTS = {
             # "Tabb Library": "Tabb Library"
         },
         "venue_names": {
-            "Tabb Meeting Room": "Tabb Library",
-            "Yorktown Meeting Room": "Yorktown Library",
+            # "Tabb Meeting Room": "Tabb Library",
+            # "Yorktown Meeting Room": "Yorktown Library",
         },
         "always_on_categories": [
             "Event Location - Hampton",
@@ -423,13 +423,6 @@ LIBRARY_CONSTANTS = {
         ],
         "event_name_suffix": " (Hampton)",
         "age_to_categories": {
-            "Families": "Audience - Family Event",
-            "Infants - Preschool": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Preschool Age",
-            "Elementary": "Audience - School Age",
-            "Children": "Audience - School Age",
-            "All Ages": "Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Family Event",
-            "Middle & High School": "Audience - Teens",
-            "Adults & Teens": "Audience - Teens"
         },
     },
 
