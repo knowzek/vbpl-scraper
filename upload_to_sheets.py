@@ -508,7 +508,8 @@ def export_all_events_to_csv_and_email():
         "visitchesapeake",
         "visitnewportnews",
         "portsvaevents",
-        "visitsuffolk"
+        "visitsuffolk",
+        "langleylibrary"
     ]
     all_rows = []
     for lib in LIBRARIES:

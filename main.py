@@ -12,6 +12,7 @@ from scrap_visithampton_events import scrap_visithampton
 from scrap_visitnewportnews_events import scrap_visitnewportnews
 from scrap_portsvaevents_events import scrap_portsvaevents
 from scrap_visitsuffolk_events import scrap_visitsuffolk
+from scrap_langleylibrary_events import scrap_langleylibrary
 
 
 if __name__ == "__main__":
@@ -102,6 +103,10 @@ if __name__ == "__main__":
     elif library == "visityorktown":
         from scrap_visityorktown_events import scrap_visityorktown_events
         events = scrap_visityorktown_events(mode=mode)
+    
+    elif library == "langleylibrary":
+        from scrap_langleylibrary_events import scrap_langleylibrary
+        events = scrap_langleylibrary(mode=mode)
 
     
     else:
