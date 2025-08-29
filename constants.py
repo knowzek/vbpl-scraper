@@ -406,7 +406,7 @@ LIBRARY_CONSTANTS = {
         },
     },
 
-    "langley library": {
+    "langleylibrary": {
         "name_suffix_map": {
             # "Yorktown Library": "Yorktown Library",
             # "Tabb Library": "Tabb Library"
