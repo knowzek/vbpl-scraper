@@ -406,6 +406,33 @@ LIBRARY_CONSTANTS = {
         },
     },
 
+    "langley library": {
+        "name_suffix_map": {
+            # "Yorktown Library": "Yorktown Library",
+            # "Tabb Library": "Tabb Library"
+        },
+        "venue_names": {
+            "Tabb Meeting Room": "Tabb Library",
+            "Yorktown Meeting Room": "Yorktown Library",
+        },
+        "always_on_categories": [
+            "Event Location - Hampton",
+            "Audience - Free Event",
+            "Audience - Family Event",
+            "Audience - Military Only"
+        ],
+        "event_name_suffix": " (Hampton)",
+        "age_to_categories": {
+            "Families": "Audience - Family Event",
+            "Infants - Preschool": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Preschool Age",
+            "Elementary": "Audience - School Age",
+            "Children": "Audience - School Age",
+            "All Ages": "Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Family Event",
+            "Middle & High School": "Audience - Teens",
+            "Adults & Teens": "Audience - Teens"
+        },
+    },
+
     
     "npl": {
         "age_to_categories": {
