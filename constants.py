@@ -226,6 +226,7 @@ LIBRARY_CONSTANTS = {
             "Hoffler Creek Wildlife Preserve": "Hoffler Creek Wildlife Preserve",
             "High Street Landing": "High Street Landing",
             "4 Prints Sake": "4 Prints Sake",
+            "The Hill House Museum": "Hill House Museum",
             "That Art Store": "That Art Store",
             
         },
