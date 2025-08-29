@@ -5,6 +5,23 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from helpers import rJson, wJson, infer_age_categories_from_description
 from constants import TITLE_KEYWORD_TO_CATEGORY_RAW
 
+# Adult/18+ style filters (word-boundary matches)
+ADULT_KEYWORDS = [
+    "adult", "adults", "18+", "21+",
+    "resume", "job help", "tax help", "yogi", "lecture"
+]
+
+def is_likely_adult_event(title: str, description: str) -> bool:
+    """
+    Returns True if any adult-coded keyword appears in title or description.
+    Uses word-boundary regex so 'yoga' doesn't match 'yogurt', etc.
+    """
+    txt = f"{title or ''} {description or ''}".lower()
+    for kw in ADULT_KEYWORDS:
+        if re.search(rf"(?<!\w){re.escape(kw)}(?!\w)", txt):
+            return True
+    return False
+
 def get_next_month(month):
     next_month = month % 12 + 1
     return f"{next_month:02}"
@@ -111,7 +128,6 @@ def extract_event_json(script_tag):
     except Exception:
         return None
 
-
 def get_events(html_content):
     soup = BeautifulSoup(html_content, "html.parser")
     events = []
@@ -175,6 +191,10 @@ def get_events(html_content):
             else:
                 cats_toadd = []
 
+            if is_likely_adult_event(event_json['Event Name'], event_json['Event Description']):
+                print(f"⏭️ Skipping: Adult/flagged → {event_json['Event Name']}")
+                continue
+                
             get_categories(event_json, cats_toadd)
             events_final.append(event_json)
             # events[i]['events'].append(event_json)
