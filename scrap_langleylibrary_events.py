@@ -112,7 +112,7 @@ def _dedupe_preserve_order(items):
             out.append(x); seen.add(x)
     return out
 
-def get_events_data(soup: BeautifulSoup, url):
+def get_events_data(soup: BeautifulSoup, url: str):
 
     events = []
 
@@ -177,6 +177,8 @@ def get_events_data(soup: BeautifulSoup, url):
         keyword_tags = _keyword_categories(title, description, ' '.join(cats))
         age_tags = _age_to_categories(ages)
         base_tags = ALWAYS_ON_CATEGORIES[:]  # copy
+        if url.endswith("teen-events"):
+            base_tags.append("Audience - Teens")
 
         all_tags = _dedupe_preserve_order(base_tags + keyword_tags + age_tags)
 
