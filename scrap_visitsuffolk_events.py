@@ -8,7 +8,7 @@ from constants import TITLE_KEYWORD_TO_CATEGORY_RAW
 # Adult/18+ style filters (word-boundary matches)
 ADULT_KEYWORDS = [
     "adult", "adults", "18+", "21+",
-    "resume", "job help", "tax help", "yogi", "lecture"
+    "resume", "job help", "tax help", "yogi", "lecture", "conversations"
 ]
 
 def is_likely_adult_event(title: str, description: str) -> bool:
