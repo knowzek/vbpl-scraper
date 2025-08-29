@@ -8,19 +8,33 @@ from constants import TITLE_KEYWORD_TO_CATEGORY_RAW
 # Adult/18+ style filters (word-boundary matches)
 ADULT_KEYWORDS = [
     "adult", "adults", "18+", "21+",
-    "resume", "job help", "tax help", "yogi", "lecture", "conversations"
+    "resume", "job help", "tax help", "yogi", "lecture", "conversations", "yoga"
 ]
 
-def is_likely_adult_event(title: str, description: str) -> bool:
+def is_likely_adult_event(title: str, desc: str) -> bool:
     """
-    Returns True if any adult-coded keyword appears in title or description.
-    Uses word-boundary regex so 'yoga' doesn't match 'yogurt', etc.
+    Flag adult-oriented events by keywords, but allow exceptions
+    for family/kid/teen yoga.
     """
-    txt = f"{title or ''} {description or ''}".lower()
-    for kw in ADULT_KEYWORDS:
-        if re.search(rf"(?<!\w){re.escape(kw)}(?!\w)", txt):
-            return True
+    t = f"{title} {desc}".lower()
+
+    # Adult-focused keywords
+    adult_keywords = [
+        "adult", "adults", "18+", "21+", "resume", "job help", "tax help", "yogi", "lecture", "conversations", "yoga"
+    ]
+
+    # Exception terms: if any of these appear alongside, don't skip
+    kid_friendly_terms = [
+        "kid", "kids", "family", "families", "child", "children", "teen", "teens", "youth"
+    ]
+
+    if any(kw in t for kw in adult_keywords):
+        if any(exc in t for exc in kid_friendly_terms):
+            return False   # family/kid yoga gets through
+        return True
+
     return False
+
 
 def get_next_month(month):
     next_month = month % 12 + 1
