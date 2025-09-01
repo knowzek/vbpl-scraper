@@ -9,7 +9,6 @@ FEED = f"{BASE}/events/feed/html"
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0",
-    "Referer": f"{BASE}/events/month/{datetime.now().year}/{datetime.now().month:02d}",
     "X-Requested-With": "XMLHttpRequest",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 }
@@ -23,15 +22,10 @@ def _month_bounds(today):
     return first, last
 
 def _sundays_between(start_date, end_date):
-    # Find the Sunday on or before start_date
-    sunday = start_date - timedelta(days=start_date.weekday() + 1 if start_date.weekday() != 6 else 0)
-    # If start_date is Monday(0)→ add 1 day to go back to Sunday(6)
-    if start_date.weekday() != 6:
-        sunday = start_date - timedelta(days=start_date.weekday() + 1)
-    else:
-        sunday = start_date  # already Sunday
-    # But if that put us before the month too far, it’s fine; backend adjusts with adjust_range=1
-    cur = sunday
+    # Sunday = 6 (Mon=0 ... Sun=6)
+    offset = (start_date.weekday() + 1) % 7
+    first_sunday = start_date - timedelta(days=offset) if offset else start_date
+    cur = first_sunday
     while cur <= end_date:
         yield cur
         cur += timedelta(days=7)
@@ -43,7 +37,8 @@ def scrape_YPL_events(mode="all"):
         start_range = today
         end_range = today + timedelta(days=7)
     elif mode == "monthly":
-        start_range, end_range = _month_bounds(today)
+        start_range = today
+        end_range = today + timedelta(days=30)
     else:
         start_range = today
         end_range = today + timedelta(days=90)
@@ -66,7 +61,11 @@ def scrape_YPL_events(mode="all"):
             "adjust_range": "1",
         }
         print(f"📄 Fetching week feed: {current_week} (month {current_month})")
-        r = requests.get(FEED, params=params, headers=HEADERS, timeout=30)
+
+        headers = dict(HEADERS)  # copy base headers
+        headers["Referer"] = f"{BASE}/events/month/{week_sunday.year}/{week_sunday.month:02d}"
+        r = requests.get(FEED, params=params, headers=headers, timeout=30)
+
         if r.status_code == 400:
             print(f"⚠️ 400 for week {current_week}; skipping this week.")
             continue
