@@ -52,7 +52,6 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "sensory": "Audience - Special Needs, List - Special Needs Events",
     "sensory-friendly": "Audience - Special Needs, List - Special Needs Events",
     "LGBTQ+": "List - PRIDE Events",
-    "Trans": "List - PRIDE Events",
     "Rainbow Family": "List - PRIDE Events",
     "Rainbow Families": "List - PRIDE Events",
     "theater": "Audience - Special Events",
