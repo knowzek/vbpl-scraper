@@ -19,7 +19,6 @@ eastern = ZoneInfo("America/New_York")
 BASE = "https://www.portsmouthpubliclibrary.org"
 
 # Pull from BOTH calendars
-CIDS = ["24", "23"]
 # Try combined first (both orders), then singles
 CID_VARIANTS = ["24,23", "23,24", "24", "23"]
 
@@ -214,10 +213,8 @@ def _parse_event_detail(url: str) -> dict:
     # B1) CivicPlus date+description container first
     desc_div = soup.select_one(".detailDateDesc")
     if desc_div:
-        # try to grab the date header inside the block, e.g. <h3 id="...eventDate">
-        h = desc_div.find(["h3", "h2", "h4"], id=re.compile("eventDate", re.IGNORECASE))
-        if not h:  # fallback: first heading in the block
-            h = desc_div.find(["h3", "h2", "h4"])
+        h = desc_div.find(["h3", "h2", "h4"], id=re.compile("eventDate", re.IGNORECASE)) or \
+            desc_div.find(["h3", "h2", "h4"])
         if h:
             date_txt = h.get_text(" ", strip=True)
             mdate = re.search(r"([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})", date_txt)
@@ -229,15 +226,32 @@ def _parse_event_detail(url: str) -> dict:
                     ).replace(tzinfo=eastern)
                 except Exception:
                     pass
-            h.extract()  # remove the date header so only the narrative remains
+            h.extract()
     
-        # whatever text remains is the description
-        cand = desc_div.get_text(" ", strip=True)
+        # Clean &nbsp;/whitespace before accepting
+        cand = desc_div.get_text(" ", strip=True).replace("\xa0", " ")
+        cand = re.sub(r"\s+", " ", cand).strip()
         if len(cand) >= 5:
             description = cand
 
-
-    # Description (only from likely event containers)
+    # --- Description fallbacks (Froala + containers + meta + print) ---
+    def _clean_desc(txt: str) -> str:
+        txt = (txt or "").replace("\xa0", " ").replace("&nbsp;", " ")
+        txt = re.sub(r"\s+", " ", txt).strip()
+        return txt
+    
+    # B2) Froala editor container: <div itemprop="description" class="fr-view">...</div>
+    if not description:
+        fr = soup.select_one('div[itemprop="description"].fr-view')
+        if fr:
+            # remove inline images (QR codes / blobs) so we just keep text
+            for img in fr.find_all("img"):
+                img.decompose()
+            cand = _clean_desc(fr.get_text(" ", strip=True))
+            if len(cand) >= 5:
+                description = cand
+    
+    # B3) Other common containers
     if not description:
         for selector in [
             "#EventDescription", ".eventDetailDescription", ".cp-event-description",
@@ -245,24 +259,28 @@ def _parse_event_detail(url: str) -> dict:
         ]:
             el = soup.select_one(selector)
             if el:
-                description = el.get_text(" ", strip=True)
-                if len(description) >= 5:
+                cand = _clean_desc(el.get_text(" ", strip=True))
+                if len(cand) >= 5:
+                    description = cand
                     break
     
-    # Meta description fallback
+    # B4) Meta description
     if not description:
         meta = soup.find("meta", attrs={"property": "og:description"}) \
             or soup.find("meta", attrs={"name": "description"})
         if meta and meta.get("content"):
-            mtxt = meta["content"].strip()
-            if len(mtxt) >= 5:
-                description = mtxt
+            cand = _clean_desc(meta["content"])
+            if len(cand) >= 5:
+                description = cand
     
-    # Print-page fallback (grab clean text even if the detail template is sparse)
+    # B5) Print-page fallback
     if not description:
         m_eid = re.search(r"[?&]EID=(\d+)", url, re.IGNORECASE)
         if m_eid:
-            description = _fetch_print_description(m_eid.group(1))
+            cand = _clean_desc(_fetch_print_description(m_eid.group(1)))
+            if len(cand) >= 5:
+                description = cand
+
 
 
     # Location via labeled block
