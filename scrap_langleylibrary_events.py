@@ -81,14 +81,14 @@ def _infer_ages(text: str) -> str:
     return ", ".join(sorted(buckets))
 
 def _age_to_categories(ages_str: str):
-    """Map inferred age buckets to category tags (Hampton-specific)."""
+    """Map inferred age buckets to category tags"""
     age_map = {
         "Infant":       "Audience - Toddler/Infant, Audience - Free Event, Event Location - Hampton",
         "Preschool":    "Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Event Location - Hampton",
         "School Age":   "Audience - School Age, Audience - Free Event, Event Location - Hampton",
         "Tweens":       "Audience - School Age, Audience - Free Event, Event Location - Hampton",
         "Teens":        "Audience - Teens, Audience - Free Event, Event Location - Hampton",
-        "All Ages":     "Audience - Free Event, Event Location - Hampton",
+        "All Ages":     "Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Family Event, Audience - Free Event, Event Location - Hampton",
         "Adults 18+":   "Audience - Free Event, Event Location - Hampton",
     }
     out = []
@@ -180,7 +180,7 @@ def get_events_data(soup: BeautifulSoup, url: str):
         keyword_tags = _keyword_categories(title, description, ' '.join(cats))
         age_tags = _age_to_categories(ages)
         base_tags = ALWAYS_ON_CATEGORIES[:]  # copy
-        if url.endswith("teen-events"):
+        if url.endswith("teen-events") and "All Ages" not in (ages or ""):
             base_tags.append("Audience - Teens")
 
         all_tags = _dedupe_preserve_order(base_tags + keyword_tags + age_tags)
