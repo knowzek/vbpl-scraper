@@ -43,6 +43,34 @@ def is_likely_adult_event(text: str) -> bool:
     ]
     return any(kw in t for kw in keywords)
 
+def _fetch_print_description(eid: str) -> str:
+    """
+    CivicPlus print detail page often contains the clean description even
+    when the standard detail template is sparse/protected.
+    """
+    print_url = f"{BASE}/Common/Components/Calendar/Event-Details-Print.aspx?EID={eid}"
+    try:
+        headers = dict(HEADERS)
+        headers["Referer"] = f"{BASE}/calendar.aspx"
+        resp = SESSION.get(print_url, headers=headers, timeout=30)
+        if resp.status_code >= 400:
+            return ""
+        soup = BeautifulSoup(resp.text, "html.parser")
+        for selector in [
+            "#EventDescription", ".cp-event-description", ".Description",
+            ".eventDetailDescription", ".itemDescription"
+        ]:
+            el = soup.select_one(selector)
+            if el:
+                txt = el.get_text(" ", strip=True)
+                if len(txt) >= 5:
+                    return txt
+        body = soup.find("body")
+        return body.get_text(" ", strip=True) if body else ""
+    except Exception:
+        return ""
+
+
 def extract_ages(text: str) -> str:
     """Lightweight age bucket extraction."""
     text = (text or "").lower()
@@ -163,6 +191,9 @@ def _parse_event_detail(url: str) -> dict:
         resp = SESSION.get(url, headers=headers, timeout=30, allow_redirects=True)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
+        # init for date/description so we can safely set them early
+        date_obj = None
+        description = ""
     except Exception:
         return {}
 
@@ -180,17 +211,59 @@ def _parse_event_detail(url: str) -> dict:
             if t2 and t2.lower() != "calendar":
                 title = t2
 
+    # B1) CivicPlus date+description container first
+    desc_div = soup.select_one(".detailDateDesc")
+    if desc_div:
+        # try to grab the date header inside the block, e.g. <h3 id="...eventDate">
+        h = desc_div.find(["h3", "h2", "h4"], id=re.compile("eventDate", re.IGNORECASE))
+        if not h:  # fallback: first heading in the block
+            h = desc_div.find(["h3", "h2", "h4"])
+        if h:
+            date_txt = h.get_text(" ", strip=True)
+            mdate = re.search(r"([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})", date_txt)
+            if mdate and not date_obj:
+                try:
+                    date_obj = datetime.strptime(
+                        f"{mdate.group(1)} {mdate.group(2)} {mdate.group(3)}",
+                        "%B %d %Y"
+                    ).replace(tzinfo=eastern)
+                except Exception:
+                    pass
+            h.extract()  # remove the date header so only the narrative remains
+    
+        # whatever text remains is the description
+        cand = desc_div.get_text(" ", strip=True)
+        if len(cand) >= 5:
+            description = cand
+
+
     # Description (only from likely event containers)
-    description = ""
-    for selector in [
-        "#EventDescription", ".eventDetailDescription", ".cp-event-description",
-        ".Description", "#EventBody",
-    ]:
-        el = soup.select_one(selector)
-        if el:
-            description = el.get_text(" ", strip=True)
-            if len(description) >= 5:
-                break
+    if not description:
+        for selector in [
+            "#EventDescription", ".eventDetailDescription", ".cp-event-description",
+            ".Description", "#EventBody", ".itemDescription", ".event_desc",
+        ]:
+            el = soup.select_one(selector)
+            if el:
+                description = el.get_text(" ", strip=True)
+                if len(description) >= 5:
+                    break
+    
+    # Meta description fallback
+    if not description:
+        meta = soup.find("meta", attrs={"property": "og:description"}) \
+            or soup.find("meta", attrs={"name": "description"})
+        if meta and meta.get("content"):
+            mtxt = meta["content"].strip()
+            if len(mtxt) >= 5:
+                description = mtxt
+    
+    # Print-page fallback (grab clean text even if the detail template is sparse)
+    if not description:
+        m_eid = re.search(r"[?&]EID=(\d+)", url, re.IGNORECASE)
+        if m_eid:
+            description = _fetch_print_description(m_eid.group(1))
+
 
     # Location via labeled block
     location = ""
@@ -203,21 +276,23 @@ def _parse_event_detail(url: str) -> dict:
             location = loc.strip()
             break
 
-    # Date from page text, else URL fallbacks
-    date_obj = None
+    # Date from page text, else URL fallbacks (only if not already set)
     full_text = soup.get_text(" ", strip=True)
-    mdate = re.search(
-        r"(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})",
-        full_text, re.IGNORECASE
-    )
-    if mdate:
-        month_name = mdate.group(2)
-        day = int(mdate.group(3))
-        year = int(mdate.group(4))
-        try:
-            date_obj = datetime.strptime(f"{month_name} {day} {year}", "%B %d %Y").replace(tzinfo=eastern)
-        except Exception:
-            date_obj = None
+    
+    if not date_obj:
+        mdate = re.search(
+            r"(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})",
+            full_text, re.IGNORECASE
+        )
+        if mdate:
+            month_name = mdate.group(2)
+            day = int(mdate.group(3))
+            year = int(mdate.group(4))
+            try:
+                date_obj = datetime.strptime(f"{month_name} {day} {year}", "%B %d %Y").replace(tzinfo=eastern)
+            except Exception:
+                date_obj = None
+    
     if not date_obj:
         m1 = re.search(r"(EventDate|date)=(\d{1,2})/(\d{1,2})/(\d{4})", url, re.IGNORECASE)
         if m1:
@@ -226,6 +301,7 @@ def _parse_event_detail(url: str) -> dict:
                 date_obj = datetime(year, mon, day, tzinfo=eastern)
             except Exception:
                 pass
+    
     if not date_obj:
         m2 = re.search(r"[?&]month=(\d{1,2}).*?[&]day=(\d{1,2}).*?[&]year=(\d{4})", url, re.IGNORECASE)
         if m2:
