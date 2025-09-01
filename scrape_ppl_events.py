@@ -21,6 +21,7 @@ CATEGORY_ID = 24
 HEADERS = {
     "User-Agent": "Mozilla/5.0",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.8",
 }
 
 # -------------------------
@@ -89,37 +90,45 @@ def is_cancelled(name: str, description: str) -> bool:
 
 def _candidate_month_urls(year: int, month: int) -> list[str]:
     """
-    CivicPlus calendar month/list pages usually support CID+curm/cury,
-    sometimes with view=list. We'll try several variants and stop at the
-    first one that returns event links.
+    Try several CivicPlus variants. The plain category URL is a reliable
+    fallback (it shows the current month). Others may or may not work
+    depending on site config.
     """
-    m2 = f"{month:02d}"
     return [
-        f"{BASE}/Calendar.aspx?CID={CATEGORY_ID}&curm={month}&cury={year}&view=list",
-        f"{BASE}/Calendar.aspx?CID={CATEGORY_ID}&curm={month}&cury={year}",
-        # fallback variants (some sites use Calendar.aspx?view=list&CID=… first)
-        f"{BASE}/Calendar.aspx?view=list&CID={CATEGORY_ID}&curm={month}&cury={year}",
+        # ✅ reliable: current month for the category (works on Portsmouth)
+        f"{BASE}/calendar.aspx?CID={CATEGORY_ID}",
+        # Attempt explicit month/year (some CivicPlus configs respect these):
+        f"{BASE}/calendar.aspx?CID={CATEGORY_ID}&curm={month}&cury={year}",
+        f"{BASE}/calendar.aspx?CID={CATEGORY_ID}&month={month}&year={year}",
+        # Some sites use a trailing comma in CID to denote a list of calendars:
+        f"{BASE}/calendar.aspx?CID={CATEGORY_ID}%2C&curm={month}&cury={year}",
+        f"{BASE}/calendar.aspx?CID={CATEGORY_ID}%2C&month={month}&year={year}",
+        # Date-range form params (works on some CivicPlus builds):
+        f"{BASE}/calendar.aspx?CID={CATEGORY_ID}&startDate={month}%2F1%2F{year}",
     ]
 
 def _fetch_month_event_links(year: int, month: int) -> list[str]:
-    """Return absolute detail URLs for the month that contain '?EID='."""
     links = set()
     for url in _candidate_month_urls(year, month):
         try:
-            resp = requests.get(url, headers=HEADERS, timeout=30)
+            headers = dict(HEADERS)
+            headers["Referer"] = f"{BASE}/calendar.aspx"
+            resp = requests.get(url, headers=headers, timeout=30)
             if resp.status_code >= 400:
                 continue
             soup = BeautifulSoup(resp.text, "html.parser")
+
+            # find any anchor that contains ?EID= (case-insensitive)
             for a in soup.find_all("a", href=True):
                 href = a["href"]
-                if "calendar.aspx?EID=" in href.lower():
+                if "calendar.aspx?eid=" in href.lower():
                     links.add(urljoin(BASE, href))
-            # if we found any, stop trying alternates
             if links:
                 return sorted(links)
         except Exception:
             continue
     return sorted(links)
+
 
 def _parse_event_detail(url: str) -> dict:
     """
