@@ -4,7 +4,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from zoneinfo import ZoneInfo
-from urllib.parse import urljoin
+from urllib.parse import urljoin, quote
 
 from constants import (
     LIBRARY_CONSTANTS,
@@ -12,12 +12,18 @@ from constants import (
     UNWANTED_TITLE_KEYWORDS,
 )
 
+# -------------------------
+# Config
+# -------------------------
 eastern = ZoneInfo("America/New_York")
-
 BASE = "https://www.portsmouthpubliclibrary.org"
-# Category/Calendar ID: taken from your ICS catID=24; CivicPlus list pages usually use CID
-CATEGORY_ID = 24
 
+# Pull from BOTH calendars
+CIDS = ["24", "23"]
+# Try combined first (both orders), then singles
+CID_VARIANTS = ["24,23", "23,24", "24", "23"]
+
+SESSION = requests.Session()
 HEADERS = {
     "User-Agent": "Mozilla/5.0",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -38,7 +44,7 @@ def is_likely_adult_event(text: str) -> bool:
     return any(kw in t for kw in keywords)
 
 def extract_ages(text: str) -> str:
-    """Lightweight age bucket extraction (same intent as your ICS version)."""
+    """Lightweight age bucket extraction."""
     text = (text or "").lower()
     matches = set()
 
@@ -88,142 +94,48 @@ def is_cancelled(name: str, description: str) -> bool:
     t2 = (description or "").lower()
     return ("cancelled" in t1) or ("canceled" in t1) or ("cancelled" in t2) or ("canceled" in t2)
 
-def _candidate_month_urls(year: int, month: int) -> list[str]:
+def _candidate_month_urls(cid: str, year: int, month: int) -> list[str]:
     """
-    Try several CivicPlus variants. The plain category URL is a reliable
-    fallback (it shows the current month). Others may or may not work
-    depending on site config.
+    Try several CivicPlus variants for a given CID string (e.g., "24", "23", "24,23").
     """
+    m = str(month)
+    y = str(year)
+    cid_encoded = quote(cid)  # encodes the comma if present (24%2C23)
     return [
-        # ✅ reliable: current month for the category (works on Portsmouth)
-        f"{BASE}/calendar.aspx?CID={CATEGORY_ID}",
-        # Attempt explicit month/year (some CivicPlus configs respect these):
-        f"{BASE}/calendar.aspx?CID={CATEGORY_ID}&curm={month}&cury={year}",
-        f"{BASE}/calendar.aspx?CID={CATEGORY_ID}&month={month}&year={year}",
-        # Some sites use a trailing comma in CID to denote a list of calendars:
-        f"{BASE}/calendar.aspx?CID={CATEGORY_ID}%2C&curm={month}&cury={year}",
-        f"{BASE}/calendar.aspx?CID={CATEGORY_ID}%2C&month={month}&year={year}",
-        # Date-range form params (works on some CivicPlus builds):
-        f"{BASE}/calendar.aspx?CID={CATEGORY_ID}&startDate={month}%2F1%2F{year}",
+        # Reliable for many sites: base category page (usually current month)
+        f"{BASE}/calendar.aspx?CID={cid}",
+        f"{BASE}/calendar.aspx?CID={cid_encoded}",
+        # Explicit month/year variants:
+        f"{BASE}/calendar.aspx?CID={cid}&curm={m}&cury={y}",
+        f"{BASE}/calendar.aspx?CID={cid_encoded}&curm={m}&cury={y}",
+        f"{BASE}/calendar.aspx?CID={cid}&month={m}&year={y}",
+        f"{BASE}/calendar.aspx?CID={cid_encoded}&month={m}&year={y}",
+        # Date-form param used by some configs:
+        f"{BASE}/calendar.aspx?CID={cid}&startDate={m}%2F1%2F{y}",
+        f"{BASE}/calendar.aspx?CID={cid_encoded}&startDate={m}%2F1%2F{y}",
     ]
 
 def _fetch_month_event_links(year: int, month: int) -> list[str]:
+    """
+    Union of ?EID= links across combined + individual CIDs.
+    """
     links = set()
-    for url in _candidate_month_urls(year, month):
-        try:
-            headers = dict(HEADERS)
-            headers["Referer"] = f"{BASE}/calendar.aspx"
-            resp = requests.get(url, headers=headers, timeout=30)
-            if resp.status_code >= 400:
+    for cid in CID_VARIANTS:
+        for url in _candidate_month_urls(cid, year, month):
+            try:
+                headers = dict(HEADERS)
+                headers["Referer"] = f"{BASE}/calendar.aspx"
+                resp = SESSION.get(url, headers=headers, timeout=30)
+                if resp.status_code >= 400:
+                    continue
+                soup = BeautifulSoup(resp.text, "html.parser")
+                for a in soup.find_all("a", href=True):
+                    href = a["href"]
+                    if "calendar.aspx?eid=" in href.lower():
+                        links.add(urljoin(BASE, href))
+            except Exception:
                 continue
-            soup = BeautifulSoup(resp.text, "html.parser")
-
-            # find any anchor that contains ?EID= (case-insensitive)
-            for a in soup.find_all("a", href=True):
-                href = a["href"]
-                if "calendar.aspx?eid=" in href.lower():
-                    links.add(urljoin(BASE, href))
-            if links:
-                return sorted(links)
-        except Exception:
-            continue
     return sorted(links)
-
-
-def _parse_event_detail(url: str) -> dict:
-    """
-    Parse a CivicPlus event detail page and extract:
-    title, date (YYYY-MM-DD), start/end times (if found), location, description.
-    We use several heuristics to tolerate template differences.
-    """
-    try:
-        resp = requests.get(url, headers=HEADERS, timeout=30)
-        resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, "html.parser")
-    except Exception:
-        return {}
-
-    # Title
-    title = ""
-    for sel in ["h1", "h2", ".itemTitle", "#lblEventName"]:
-        el = soup.select_one(sel)
-        if el:
-            title = el.get_text(strip=True)
-            break
-
-    # Description (try common containers; fallback to main content)
-    desc_selectors = [
-        ".Description, #EventDescription, #EventBody, .eventDetailDescription, .cp-event-description",
-        ".page-content, #divMain, #content, .content, .main-content",
-    ]
-    description = ""
-    for selector in desc_selectors:
-        el = soup.select_one(selector)
-        if el:
-            description = el.get_text(" ", strip=True)
-            if len(description) >= 10:
-                break
-    if not description:
-        description = soup.get_text(" ", strip=True)
-
-    # Location: look for label 'Location' nearby or a known field
-    location = ""
-    # CivicPlus often has dl/dt/dd pairs with labels
-    for row in soup.select("dl, .cp-details, .detail_list"):
-        text = row.get_text(" ", strip=True)
-        m = re.search(r"Location\s*:?\s*(.+)", text, re.IGNORECASE)
-        if m:
-            # stop at next label if present
-            loc = m.group(1)
-            loc = re.split(r"\b(Date|Time|Cost|Contact|Phone|Email)\b\s*:?", loc, 1, flags=re.IGNORECASE)[0]
-            location = loc.strip()
-            break
-    # fallback simple search
-    if not location:
-        text = soup.get_text(" ", strip=True)
-        m = re.search(r"Location\s*:?\s*(.+?)\s{2,}", text, re.IGNORECASE)
-        if m:
-            location = m.group(1).strip()
-
-    # Date: first try structured patterns (e.g., "Monday, September 9, 2025")
-    full_text = soup.get_text(" ", strip=True)
-    date_obj = None
-    date_match = re.search(
-        r"(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})",
-        full_text, re.IGNORECASE
-    )
-    if date_match:
-        month_name = date_match.group(2)
-        day = int(date_match.group(3))
-        year = int(date_match.group(4))
-        try:
-            date_obj = datetime.strptime(f"{month_name} {day} {year}", "%B %d %Y").replace(tzinfo=eastern)
-        except Exception:
-            date_obj = None
-
-    # Time: try to find a range "H:MM AM - H:MM PM" or single time
-    start_time, end_time = "", ""
-    time_match = re.search(
-        r"(\d{1,2}:\d{2}\s*[AP]M)\s*[-–—]\s*(\d{1,2}:\d{2}\s*[AP]M)",
-        full_text, re.IGNORECASE
-    )
-    if time_match:
-        start_time = _fmt_time12(_parse_time12(time_match.group(1)))
-        end_time = _fmt_time12(_parse_time12(time_match.group(2)))
-    else:
-        # look for "Time: 10:00 AM" or "at 2:00 PM"
-        one_time = re.search(r"(?:Time\s*:?\s*|at\s+)(\d{1,2}:\d{2}\s*[AP]M)", full_text, re.IGNORECASE)
-        if one_time:
-            start_time = _fmt_time12(_parse_time12(one_time.group(1)))
-
-    return {
-        "title": title,
-        "description": description,
-        "location": location,
-        "date_obj": date_obj,  # datetime in America/New_York (or None)
-        "start_time": start_time,
-        "end_time": end_time,
-    }
 
 def _parse_time12(t: str):
     t = (t or "").upper().replace(".", "").strip()
@@ -237,15 +149,117 @@ def _parse_time12(t: str):
 def _fmt_time12(dt: datetime | None) -> str:
     if not dt:
         return ""
-    # Keep minutes only if present in original pattern (best-effort)
     return dt.strftime("%-I:%M %p")
+
+def _parse_event_detail(url: str) -> dict:
+    """
+    Parse a CivicPlus event detail page and extract title, description,
+    location, date, and times. Tolerant to template differences / redirects.
+    """
+    headers = dict(HEADERS)
+    headers["Referer"] = f"{BASE}/calendar.aspx"
+
+    try:
+        resp = SESSION.get(url, headers=headers, timeout=30, allow_redirects=True)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+    except Exception:
+        return {}
+
+    # Title (avoid generic "Calendar")
+    title = ""
+    for sel in ["#lblEventName", ".itemTitle", "h1#lblEventName", "h1", "h2"]:
+        el = soup.select_one(sel)
+        if el:
+            title = el.get_text(strip=True)
+            break
+    if (not title) or (title.strip().lower() == "calendar"):
+        meta = soup.find("meta", attrs={"property": "og:title"})
+        if meta and meta.get("content"):
+            t2 = meta["content"].strip()
+            if t2 and t2.lower() != "calendar":
+                title = t2
+
+    # Description (only from likely event containers)
+    description = ""
+    for selector in [
+        "#EventDescription", ".eventDetailDescription", ".cp-event-description",
+        ".Description", "#EventBody",
+    ]:
+        el = soup.select_one(selector)
+        if el:
+            description = el.get_text(" ", strip=True)
+            if len(description) >= 5:
+                break
+
+    # Location via labeled block
+    location = ""
+    for row in soup.select("dl, .cp-details, .detail_list"):
+        text = row.get_text(" ", strip=True)
+        m = re.search(r"Location\s*:?\s*(.+)", text, re.IGNORECASE)
+        if m:
+            loc = m.group(1)
+            loc = re.split(r"\b(Date|Time|Cost|Contact|Phone|Email)\b\s*:?", loc, 1, flags=re.IGNORECASE)[0]
+            location = loc.strip()
+            break
+
+    # Date from page text, else URL fallbacks
+    date_obj = None
+    full_text = soup.get_text(" ", strip=True)
+    mdate = re.search(
+        r"(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})",
+        full_text, re.IGNORECASE
+    )
+    if mdate:
+        month_name = mdate.group(2)
+        day = int(mdate.group(3))
+        year = int(mdate.group(4))
+        try:
+            date_obj = datetime.strptime(f"{month_name} {day} {year}", "%B %d %Y").replace(tzinfo=eastern)
+        except Exception:
+            date_obj = None
+    if not date_obj:
+        m1 = re.search(r"(EventDate|date)=(\d{1,2})/(\d{1,2})/(\d{4})", url, re.IGNORECASE)
+        if m1:
+            mon = int(m1.group(2)); day = int(m1.group(3)); year = int(m1.group(4))
+            try:
+                date_obj = datetime(year, mon, day, tzinfo=eastern)
+            except Exception:
+                pass
+    if not date_obj:
+        m2 = re.search(r"[?&]month=(\d{1,2}).*?[&]day=(\d{1,2}).*?[&]year=(\d{4})", url, re.IGNORECASE)
+        if m2:
+            mon = int(m2.group(1)); day = int(m2.group(2)); year = int(m2.group(3))
+            try:
+                date_obj = datetime(year, mon, day, tzinfo=eastern)
+            except Exception:
+                pass
+
+    # Time range (range or single)
+    start_time = end_time = ""
+    mt = re.search(r"(\d{1,2}:\d{2}\s*[AP]M)\s*[-–—]\s*(\d{1,2}:\d{2}\s*[AP]M)", full_text, re.IGNORECASE)
+    if mt:
+        start_time = _fmt_time12(_parse_time12(mt.group(1)))
+        end_time   = _fmt_time12(_parse_time12(mt.group(2)))
+    else:
+        one = re.search(r"(?:Time\s*:?\s*|at\s+)(\d{1,2}:\d{2}\s*[AP]M)", full_text, re.IGNORECASE)
+        if one:
+            start_time = _fmt_time12(_parse_time12(one.group(1)))
+
+    return {
+        "title": title,
+        "description": description,
+        "location": location,
+        "date_obj": date_obj,
+        "start_time": start_time,
+        "end_time": end_time,
+    }
 
 def _dedupe_keep_order(items):
     seen, out = set(), []
     for x in items:
         if x and x not in seen:
-            out.append(x)
-            seen.add(x)
+            out.append(x); seen.add(x)
     return out
 
 # -------------------------
@@ -253,7 +267,7 @@ def _dedupe_keep_order(items):
 # -------------------------
 
 def scrape_ppl_events(mode="all"):
-    print("📚 Scraping Portsmouth Public Library (HTML month iterator)…")
+    print("📚 Scraping Portsmouth Public Library (HTML month iterator, CIDs: 24 & 23)…")
 
     today = datetime.now(timezone.utc).astimezone(eastern).replace(hour=0, minute=0, second=0, microsecond=0)
     if mode == "weekly":
@@ -264,11 +278,9 @@ def scrape_ppl_events(mode="all"):
         end_cutoff = today + timedelta(days=90)
 
     # months to fetch: current + next
-    this_month = today.month
-    this_year = today.year
-    next_dt = (today + timedelta(days=32))
-    next_month = next_dt.month
-    next_year = next_dt.year
+    this_year, this_month = today.year, today.month
+    next_dt = today + timedelta(days=32)
+    next_year, next_month = next_dt.year, next_dt.month
 
     month_links = []
     for (y, m) in [(this_year, this_month), (next_year, next_month)]:
@@ -276,7 +288,6 @@ def scrape_ppl_events(mode="all"):
         print(f"🗓 Found {len(links)} event links for {y}-{m:02d}")
         month_links.extend(links)
 
-    # De-dupe detail links
     detail_links = _dedupe_keep_order(month_links)
 
     ppl_constants = LIBRARY_CONSTANTS.get("ppl", {})
@@ -291,51 +302,39 @@ def scrape_ppl_events(mode="all"):
     events = []
     for link in detail_links:
         try:
-            # Detail parse
             data = _parse_event_detail(link)
             if not data:
                 continue
 
-            name = data["title"].strip()
-            description = (data["description"] or "").strip()
-            raw_location = (data["location"] or "").strip()
-            event_date_obj = data["date_obj"]
+            name = (data.get("title") or "").strip()
+            description = (data.get("description") or "").strip()
+            raw_location = (data.get("location") or "").strip()
+            event_date_obj = data.get("date_obj")
 
-            # If date wasn't found in detail, skip (we need date to filter window)
             if not event_date_obj:
-                # last resort: try to infer from URL fragment like ".../EventDate=9/10/2025"
-                m = re.search(r"(EventDate|day|date)=(\d{1,2})/(\d{1,2})/(\d{4})", link, re.IGNORECASE)
-                if m:
-                    month = int(m.group(2)); day = int(m.group(3)); year = int(m.group(4))
-                    try:
-                        event_date_obj = datetime(year, month, day, tzinfo=eastern)
-                    except Exception:
-                        pass
-            if not event_date_obj:
+                print(f"⚠️ No date on detail; skipping: {link}")
                 continue
 
-            # Apply date window: today → end_cutoff
+            # Date window: today → end_cutoff
             if event_date_obj < today or event_date_obj > end_cutoff:
                 continue
 
-            # 🚫 Skip unwanted titles
+            # Skip unwanted titles
             if any(bad_word in name.lower() for bad_word in UNWANTED_TITLE_KEYWORDS):
                 print(f"⏭️ Skipping (unwanted title): {name}")
                 continue
 
-            # Skip likely adult events
+            # Adult filter AFTER we know it's a real event
             if is_likely_adult_event(name) or is_likely_adult_event(description):
                 print(f"⏭️ Skipping (adult): {name}")
                 continue
 
-            # Normalize location
-            location = venue_map.get(raw_location, raw_location)
-            if not location:
-                location = "Portsmouth Main Library"  # gentle fallback
+            # Normalize location via map
+            location = venue_map.get(raw_location, raw_location) or "Portsmouth Main Library"
 
-            start_time = data["start_time"]
-            end_time = data["end_time"]
-            time_str = f"{start_time} - {end_time}" if start_time and end_time else (start_time or "")
+            start_time = data.get("start_time") or ""
+            end_time   = data.get("end_time") or ""
+            time_str = f"{start_time} - {end_time}" if (start_time and end_time) else (start_time or "")
 
             ages = extract_ages(name + " " + description)
 
@@ -359,7 +358,7 @@ def scrape_ppl_events(mode="all"):
             categories = ", ".join(dict.fromkeys(all_tags)) or DEFAULT_CATEGORIES
 
             events.append({
-                "Event Name": name,
+                "Event Name": name or "Library Event",
                 "Event Link": link,
                 "Event Status": "Cancelled" if is_cancelled(name, description) else "Available",
                 "Time": time_str,
@@ -379,5 +378,5 @@ def scrape_ppl_events(mode="all"):
         except Exception as e:
             print(f"⚠️ Error parsing detail: {link} → {e}")
 
-    print(f"✅ Scraped {len(events)} events from PPL (HTML).")
+    print(f"✅ Scraped {len(events)} events from PPL (HTML, multi-CID).")
     return events
