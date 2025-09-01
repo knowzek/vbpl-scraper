@@ -659,6 +659,7 @@ LIBRARY_CONSTANTS = {
             "Churchland Branch Library > Children's Programming Room": "Churchland Library",
             "Children's Event Room - Main": "Portsmouth Main Library",
             "Children's Event Room": "Portsmouth Main Library",
+            "Manor Library - 1401 Elmhurst Ln, Portsmouth, VA  Portsmouth VA 23704": "Manor Branch Library",
             "Manor Branch": "Manor Branch Library"
         },
         "age_to_categories": {
