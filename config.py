@@ -112,7 +112,7 @@ def get_library_config(library):
             "spreadsheet_name": "Virginia Beach Parks & Rec Events",
             "worksheet_name": "VBPR Events",
             "log_worksheet_name": "VBPR Log",
-            "organizer_name": "Virginia Beach Parks & Rec",
+            "organizer_name": "Virginia Beach Parks and Recreation",
             "event_name_suffix": " (Virginia Beach)",
             "drive_folder_id": "1fuDkdt6MVydRKQfmyUVabVCboctCDtQ6",  # or use a new one
             "email_recipient": "knowzek@gmail.com",
