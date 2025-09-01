@@ -159,6 +159,12 @@ def scrape_vbpr_events(mode="all"):
 
                 time = item.get("time_range_landing_page", "") or item.get("time_range", "")
                 site = item.get("site", "").strip()
+                
+                # 🚫 Skip unwanted venue
+                if site.lower() == "princess anne recreation center":
+                    print(f"⏭️ Skipping event at excluded venue: {name} ({site})")
+                    continue
+                    
                 link = item.get("detail_url", "").strip()
                 category = item.get("category", "").strip()
                 age_text = item.get("age_description", "") or ""
