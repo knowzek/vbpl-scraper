@@ -92,7 +92,6 @@ TITLE_KEYWORD_TO_AGE_CATEGORIES_PPL = {
     "music": "Audience - Family Event, Audience - Free Event",
     "dance": "Audience - Family Event, Audience - Free Event",
     "sensory": "Audience - Toddler/Infant, Audience - Family Event",
-    "kids": "Audience - School Age",
     "toddlers": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Parent & Me, Audience - Free Event",
     "toddler": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Parent & Me, Audience - Free Event",
     "preschool": "Audience - Preschool Age, Audience - Free Event",
@@ -108,7 +107,9 @@ COMBINED_KEYWORD_TO_CATEGORY_RAW = {
     ("storytime", "infant"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event",
     ("story time", "toddler"): "List - Toddler Time Events, Audience - Family Event, Audience - Toddler/Infant, List - Storytimes",
     ("story time", "baby"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event",
-    ("story time", "infant"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event"
+    ("story time", "infant"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event",
+    ("kids", "elementary"): "Audience - School Age",
+    ("kids", "grades"): "Audience - School Age"
 }
 
 COMBINED_KEYWORD_TO_CATEGORY = {
