@@ -214,7 +214,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                         age_tags.append("Audience - Parent & Me")
                     if any(a in (3, 4) for a in nums):
                         age_tags.append("Audience - Preschool Age")
-                    if max_age >= 5 and min_age <= 12:
+                    if max_age >= 5 and min_age <= 11:
                         age_tags.append("Audience - School Age")
                     if min_age >= 13:
                         age_tags.append("Audience - Teens")
