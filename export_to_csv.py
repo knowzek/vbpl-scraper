@@ -428,8 +428,8 @@ def export_events_to_csv(library="vbpl", return_df=False):
         
     # ✅ Final safeguard: bail out if nothing survived filters
     if df.empty:
-    print("🚫 Nothing left to export after post-filters.")
-    return None if return_df else ""
+        print("🚫 Nothing left to export after post-filters.")
+        return None if return_df else ""
 
     export_df = pd.DataFrame({
         "EVENT NAME": df["Event Name"],
