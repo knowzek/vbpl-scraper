@@ -97,7 +97,7 @@ def scrape_ppl_events(mode="all"):
                 continue
 
             event_date = event.begin.datetime.astimezone(eastern)
-            if event_date > date_range_end:
+            if event_date < today or event_date > date_range_end:
                 continue
 
             name = event.name.strip() if event.name else ""
