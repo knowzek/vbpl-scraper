@@ -20,6 +20,7 @@ from email.mime.multipart import MIMEMultipart
 import time
 from gspread.exceptions import APIError
 STRICT_VENUE_LIBS = {"vbpl", "npl", "chpl", "nnpl", "hpl", "spl", "ppl"}
+NEEDS_ATTENTION_EMAIL = os.environ.get("NEEDS_ATTENTION_EMAIL")  # set in Render
 
 def _retry(fn, *args, **kwargs):
     delay = 6
@@ -183,7 +184,7 @@ def send_notification_email(file_url, subject, recipient):
 
     print(f"📬 Email sent to {recipient}")
 
-def export_events_to_csv(library="vbpl", return_df=False):
+def export_events_to_csv(library="vbpl", return_df=False, needs_bucket=None):
     config = get_library_config(library)
     constants = LIBRARY_CONSTANTS.get(library, {})
     name_suffix_map = constants.get("name_suffix_map", {})
@@ -220,6 +221,25 @@ def export_events_to_csv(library="vbpl", return_df=False):
         else:
             df[col] = df[col].fillna("").astype(str)
             
+     # --- Collect NEEDS ATTENTION rows BEFORE any 'new' filtering ---
+    needs_mask = df["Site Sync Status"].fillna("").str.contains(r"\bNEEDS ATTENTION\b", case=False)
+    
+    # pick a stable subset of sheet columns (raw + useful for triage)
+    needs_cols = [
+        "Event Name","Venue","Location","Time","Month","Day","Year",
+        "Event Link","Event Status","Program Type","Ages","Site Sync Status"
+    ]
+    for c in needs_cols:
+        if c not in df.columns:
+            df[c] = ""  # ensure columns exist
+    
+    needs_df = df.loc[needs_mask, needs_cols].copy()
+    if not needs_df.empty:
+        needs_df.insert(0, "Library", library)  # keep provenance
+        if needs_bucket is not None:
+            needs_bucket.append(needs_df)
+            
+    df = df[df["Site Sync Status"].fillna("").str.strip().str.lower() == "new"]  
 
     print("\n🔎 Column counts before filtering:")
     for col in [
@@ -240,7 +260,6 @@ def export_events_to_csv(library="vbpl", return_df=False):
     print(df[~df["Event Name"].apply(lambda x: isinstance(x, str))])
     
     # ✅ Filter and exclude
-    df = df[df["Site Sync Status"].fillna("").str.strip().str.lower() == "new"]
     df = df[~df["Event Name"].str.lower().str.contains("artist of the month")]
     
     if df.empty:
@@ -499,7 +518,7 @@ def export_events_to_csv(library="vbpl", return_df=False):
 
     # Perform batch update
     if updates:
-        sheet.batch_update([{"range": u["range"], "values": u["values"]} for u in updates])
+        _retry(sheet.batch_update, [{"range": u["range"], "values": u["values"]} for u in updates])
 
     if return_df:
         return export_df
@@ -509,18 +528,17 @@ if __name__ == "__main__":
     LIBRARIES = ["vbpl", "ppl", "ypl"]
     print("🧪 Running unified CSV export for LIBRARIES:", LIBRARIES)
 
+    needs_bucket = []   # collect NEEDS ATTENTION across libs
+    all_exports  = []   # collect per-lib upload CSV DataFrames
+
     for lib in LIBRARIES:
         print(f"🚀 Exporting {lib} …")
-        df = export_events_to_csv(lib, return_df=True)
-        time.sleep(8)  # smooth out per-minute read bursts
-        
-    all_exports = []
-    for lib in LIBRARIES:
-        print(f"🚀 Exporting {lib} …")
-        df = export_events_to_csv(lib, return_df=True)
+        df = export_events_to_csv(lib, return_df=True, needs_bucket=needs_bucket)
         if df is not None and not df.empty:
             all_exports.append(df)
+        time.sleep(8)  # smooth out per-minute read bursts
 
+    # --- Combined events export (from all per-lib upload CSVs) ---
     if all_exports:
         master_df = pd.concat(all_exports, ignore_index=True)
         csv_path = "combined_events_export.csv"
@@ -533,4 +551,25 @@ if __name__ == "__main__":
     else:
         print("🚫 No events to export across all libraries.")
 
+    # --- Write & email NEEDS ATTENTION roll-up ---
+    if needs_bucket:
+        na_df = pd.concat(needs_bucket, ignore_index=True)
+        sort_cols = [c for c in ["Year","Month","Day","Library","Event Name"] if c in na_df.columns]
+        if sort_cols:
+            na_df = na_df.sort_values(sort_cols, kind="stable")
 
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        na_csv_path = f"needs_attention_{today_str}.csv"
+        na_df.to_csv(na_csv_path, index=False, encoding="utf-8")
+        print(f"✅ Wrote NEEDS ATTENTION CSV with {len(na_df)} rows → {na_csv_path}")
+
+        if NEEDS_ATTENTION_EMAIL:
+            send_notification_email_with_attachment(
+                na_csv_path,
+                subject=f"NEEDS ATTENTION Roll-up — {today_str}",
+                recipient=NEEDS_ATTENTION_EMAIL
+            )
+        else:
+            print("⚠️ NEEDS_ATTENTION_EMAIL not set; file saved only:", na_csv_path)
+    else:
+        print("✅ No rows marked 'NEEDS ATTENTION' across libraries.")
