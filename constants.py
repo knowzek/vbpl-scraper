@@ -168,6 +168,7 @@ LIBRARY_CONSTANTS = {
             "Dismal Swamp Canal Trail": "Great Dismal Swamp Canal Trail - Ches.",
             "Northwest River Park Equestrian Area": "Northwest River Park",
             "Elizabeth River Park": "Elizabeth River Boat Landing and Park",
+            "Great Bridge Battlefield & Waterways Museum": "Great Bridge Battlefield and Waterways Museum",
             "Elizabeth River Park near Osprey Shelter": "Elizabeth River Boat Landing and Park"
         },
         "event_name_suffix": " (Chesapeake)"
@@ -214,6 +215,8 @@ LIBRARY_CONSTANTS = {
             "Suffolk Family YMCA and Camp Arrowhead Conference &amp; Outdoor Center": "Suffolk Family YMCA and Camp Arrowhead Conference & Outdoor Center",
             "Riddick's Folly House Museum": "Riddicks Folly",
             "The Silos": "The Silos & Westside Burgers",
+            "Constant's Wharf Park &amp; Marina": "Constant’s Wharf",
+            "Constant's Wharf Park & Marina": "Constant’s Wharf",
             "Holland Ballfield": "Holland Village Ball Field 3",
             
         },
