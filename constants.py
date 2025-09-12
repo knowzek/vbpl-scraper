@@ -627,6 +627,8 @@ LIBRARY_CONSTANTS = {
             "North Suffolk Library": "North Suffolk Library",
             "Chuckatuck Library": "Chuckatuck Library",
             "King's Landing Apartments: 1000 Linton Ln, Outreach": "Library2Go",
+            "Constant's Wharf Park &amp; Marina": "Constant’s Wharf",
+            "Constant's Wharf Park & Marina": "Constant’s Wharf",
             "Online (See Description for Details)": "Online"
         },
         "venue_names": {
