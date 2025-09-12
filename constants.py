@@ -303,6 +303,7 @@ LIBRARY_CONSTANTS = {
             "Five Points Park/Plaza": "Five Points Park & Civic Plaza",
             "Lafayette Park": "Lafayette Park",
             "Naval Station Norfolk": "Naval Station Norfolk",
+            "Hermitage Museum and Gardens": "Hermitage Museum & Gardens",
             "Starbucks at Wards Corner 7550 Granby St.  Norfolk VA 23505": "Starbucks - Wards Corner",
             "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks - Wards Corner"
         },
