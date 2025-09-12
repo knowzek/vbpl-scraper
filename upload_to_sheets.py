@@ -22,6 +22,17 @@ def _restore_special_labels(text: str) -> str:
     return (text or "").replace(PLACEHOLDER, SPECIAL_MULTIWORD)
 
 
+def _strip_preschool_for_just2s(title: str, tags: list[str]) -> list[str]:
+    """
+    If the event title contains 'Just 2s' or 'Just 2's' (any spacing/case),
+    remove preschool audience tags.
+    """
+    t = (title or "").lower()
+    if re.search(r"\bjust\s*2'?s\b", t):
+        return [c for c in tags if c not in {"Audience - Preschool Age", "Audience - Preschool"}]
+    return tags
+
+
 def has_audience_tag(tags):
     return any("Audience -" in tag for tag in tags)
 
@@ -353,7 +364,10 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                             if fallback_city else
                             "Audience - Free Event"
                         )
-                
+
+                # Remove preschool tag for "Just 2s / Just 2's" titles
+                tag_list = _strip_preschool_for_just2s(event.get("Event Name", ""), tag_list)
+
                 # Final dedupe to string
                 categories = ", ".join(dict.fromkeys(tag_list))
                 print(f"🧾 Final categories for {event.get('Event Name')}: {categories}")
