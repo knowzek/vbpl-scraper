@@ -705,8 +705,7 @@ LIBRARY_CONSTANTS = {
             "Tweens": "Event Location - Newport News, Audience - Free Event",
             "Children": "Audience - Family Event, Event Location - Newport News, Audience - Free Event",
             "Adults": "Event Location - Newport News, Audience - Free Event",
-            "Book": "List - Books & Authors, Event Location - Newport News, Audience - Free Event",
-            "Reading": "List - Books & Authors, Event Location - Newport News, Audience - Free Event",
+            "author": "List - Books & Authors, Event Location - Newport News, Audience - Free Event",
             "STEAM": "List - STEM/STEAM, Event Location - Newport News, Audience - Free Event",
             "Science": "List - STEM/STEAM, Event Location - Newport News, Audience - Free Event"
         },
