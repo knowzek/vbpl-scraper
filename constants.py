@@ -442,6 +442,9 @@ LIBRARY_CONSTANTS = {
             "Yorktown Children's Wing": "Yorktown Library",
             "Tabb Program Room": "Tabb Library",
             "Tabb Fireplace": "Tabb Library",
+            "Tabb Group Study Room #1": "Tabb Library",
+            "Tabb Patio": "Tabb Library",
+            "Tabb Youth Services": "Tabb Library",
             "Yorktown Youth Programs Room": "Yorktown Library"
         },
         "event_name_suffix": " (York County)",
