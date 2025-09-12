@@ -11,6 +11,17 @@ from constants import COMBINED_KEYWORD_TO_CATEGORY
 
 import pandas as pd
 
+# --- protect a single label that contains commas so we don't split it ---
+SPECIAL_MULTIWORD = "List - Cosplay, Anime, Comics"
+PLACEHOLDER = "LIST_COSPLAY_ANIME_COMICS"  # something that will never appear naturally
+
+def _protect_special_labels(text: str) -> str:
+    return (text or "").replace(SPECIAL_MULTIWORD, PLACEHOLDER)
+
+def _restore_special_labels(text: str) -> str:
+    return (text or "").replace(PLACEHOLDER, SPECIAL_MULTIWORD)
+
+
 def has_audience_tag(tags):
     return any("Audience -" in tag for tag in tags)
 
@@ -186,7 +197,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     for pt in program_types:
                         cat = program_type_to_categories.get(pt)
                         if cat:
-                            matched_tags.extend([c.strip() for c in cat.split(",")])
+                            safe_cat = _protect_special_labels(cat)
+                            matched_tags.extend([_restore_special_labels(c.strip()) for c in safe_cat.split(",")])
                     programtype_cats = list(dict.fromkeys(matched_tags))
                 else:
                     # Default mapping for libraries that still want program-type fallbacks
@@ -241,11 +253,13 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 title_based_tags = []
                 for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
                     if _kw_hit(title_text, keyword) or _kw_hit(full_text, keyword):
-                        title_based_tags.extend([c.strip() for c in cat.split(",")])
+                        safe_cat = _protect_special_labels(cat)
+                        title_based_tags.extend([_restore_special_labels(c.strip()) for c in safe_cat.split(",")])
                 
                 for (kw1, kw2), cat in COMBINED_KEYWORD_TO_CATEGORY.items():
                     if _kw_hit(full_text, kw1) and _kw_hit(full_text, kw2):
-                        title_based_tags.extend([c.strip() for c in cat.split(",")])
+                        safe_cat = _protect_special_labels(cat)
+                        title_based_tags.extend([_restore_special_labels(c.strip()) for c in safe_cat.split(",")])
                 
                 # 4) Always-on tags for this library (from constants)
                 tag_list = []
@@ -284,16 +298,19 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 # Single keywords: title OR description, with word boundaries
                 for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
                     if _kw_hit(title_text, keyword) or _kw_hit(full_text, keyword):
-                        title_based_tags.extend([c.strip() for c in cat.split(",")])
+                        safe_cat = _protect_special_labels(cat)
+                        title_based_tags.extend([_restore_special_labels(c.strip()) for c in safe_cat.split(",")])
                 
                 # Combined keyword pairs: both must hit with word boundaries
                 for (kw1, kw2), cat in COMBINED_KEYWORD_TO_CATEGORY.items():
                     if _kw_hit(full_text, kw1) and _kw_hit(full_text, kw2):
-                        title_based_tags.extend([c.strip() for c in cat.split(",")])
+                        safe_cat = _protect_special_labels(cat)
+                        title_based_tags.extend([_restore_special_labels(c.strip()) for c in safe_cat.split(",")])
                 
                 # Build the tag list from the three sources
                 # 1) Start from program-type/default categories
-                tag_list = [c.strip() for c in categories.split(",") if c.strip()]
+                safe_categories = _protect_special_labels(categories)
+                tag_list = [ _restore_special_labels(c.strip()) for c in safe_categories.split(",") if c.strip() ]
                 
                 # 2) Add age-based categories
                 tag_list.extend(age_combined)
