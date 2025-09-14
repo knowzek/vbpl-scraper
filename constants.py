@@ -297,7 +297,7 @@ LIBRARY_CONSTANTS = {
             "Northside Park": "Northside Park",
             "Chartway Arena": "Chartway Arena",
             "MacArthur Center Green": "MacArthur Center Green",
-            "Wells Theater": "Wells Theatre",
+            "Wells Theatre": "Wells Theater",
             "Hugh R Copeland Center": "Hugh R. Copeland Center",
             "Booker T. Washington High School": "Booker T. Washington High School",
             "Lambert’s Point Community Center": "Lambert’s Point Recreation Center",
