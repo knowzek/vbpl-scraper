@@ -3,6 +3,7 @@ import requests
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+import re
 
 BASE = "https://yorkcountyva.librarycalendar.com"
 FEED = f"{BASE}/events/feed/html"
@@ -48,6 +49,11 @@ def scrape_YPL_events(mode="all"):
 
     events = []
     seen = set()  # (date_str, link)
+
+    def _strip_disclaimer(text: str) -> str:
+    # Remove anything starting at a "Disclaimer(s)" heading if it appears
+    parts = re.split(r"\bDisclaimer\(s\)\b", text, flags=re.I)
+    return parts[0].strip() if parts else text
 
     # Loop Sundays across the window; site expects once=calendar-week + current_week
     for week_sunday in _sundays_between(start_range, end_range):
@@ -104,8 +110,42 @@ def scrape_YPL_events(mode="all"):
                 loc_el = card.select_one(".lc-event-info__item--categories")
                 location = loc_el.get_text(" ", strip=True) if loc_el else ""
 
-                desc_el = card.select_one(".field--name-description")
+                # Prefer the teaser/description on the card (not the disclaimer)
+                desc_el = (
+                    card.select_one(".lc-event__teaser")
+                    or card.select_one(".lc-event__description")
+                    or card.select_one(".field--name-body")
+                    or card.select_one(".field--name-description")
+                )
                 description = desc_el.get_text(" ", strip=True) if desc_el else ""
+                description = _strip_disclaimer(description)
+                
+                # If empty or still looks like a disclaimer, fetch detail page and pull body
+                looks_like_disclaimer = (
+                    bool(re.search(r"\bDisclaimer\(s\)\b", description, flags=re.I))
+                    or description.lower().startswith(("we cannot guarantee", "this program is designed"))
+                )
+                
+                if (not description) or looks_like_disclaimer:
+                    try:
+                        detail_headers = dict(HEADERS)
+                        # give the detail request a sane referer to mimic browser flow
+                        detail_headers["Referer"] = f"{BASE}/events"
+                        dr = requests.get(link, headers=detail_headers, timeout=30)
+                        if dr.ok:
+                            dsoup = BeautifulSoup(dr.text, "html.parser")
+                            body_el = (
+                                dsoup.select_one(".field--name-body")
+                                or dsoup.select_one(".lc-event__description")
+                                or dsoup.select_one(".node--type-event .field--name-body")
+                            )
+                            if body_el:
+                                description = _strip_disclaimer(body_el.get_text(" ", strip=True))
+                    except Exception:
+                        pass
+                
+                clean_description = description
+
 
                 events.append({
                     "Event Name": name,
@@ -119,7 +159,7 @@ def scrape_YPL_events(mode="all"):
                     "Year": str(event_date.year),
                     "Event Date": date_str,
                     "Event End Date": date_str,
-                    "Event Description": description,
+                    "Event Description": clean_description,
                     "Series": "",
                     "Program Type": "",
                     "Categories": "",
