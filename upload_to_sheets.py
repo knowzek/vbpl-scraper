@@ -99,6 +99,86 @@ def _kw_hit(text: str, kw: str) -> bool:
     # match kw as a whole word/phrase (no letter/number touching it)
     return re.search(rf'(?<!\w){re.escape(k)}(?!\w)', t) is not None
 
+# --- Units-aware age & grade parsing helpers ---
+
+MONTH_WORDS = r"(?:months?|mos?|mths?|mo|m)"
+YEAR_WORDS  = r"(?:years?|yrs?|y)"
+
+def _grade_to_year_range(g: int):
+    # crude but reliable mapping: K≈5-5.99 (we’ll treat 'K' separately), Grade N ≈ (N+5) to (N+5.99)
+    start = g + 5
+    return (start, start + 0.99)
+
+def _extract_year_spans(text: str):
+    """
+    Returns a list of (min_years, max_years) tuples derived from months/years/grades in text.
+    Months are converted to years. Also recognizes Pre-K/K/Grades and school level phrases.
+    """
+    t = (text or "").lower()
+    spans = []
+
+    # --- explicit month ranges/single
+    for m in re.finditer(rf"(\d{{1,2}})\s*[-–]\s*(\d{{1,2}})\s*{MONTH_WORDS}\b", t, flags=re.I):
+        a, b = int(m.group(1))/12.0, int(m.group(2))/12.0
+        spans.append((a, b))
+    for m in re.finditer(rf"(\d{{1,2}})\s*{MONTH_WORDS}\b", t, flags=re.I):
+        v = int(m.group(1))/12.0
+        spans.append((v, v))
+
+    # --- explicit year ranges/single/plus
+    for m in re.finditer(rf"(\d{{1,2}})\s*[-–]\s*(\d{{1,2}})\s*{YEAR_WORDS}\b", t, flags=re.I):
+        a, b = int(m.group(1)), int(m.group(2))
+        spans.append((a, b))
+    for m in re.finditer(r"ages?\s*(\d{1,2})(?:\s*[-–]\s*(\d{1,2}))?\b", t, flags=re.I):
+        a = int(m.group(1)); b = int(m.group(2) or a)
+        spans.append((a, b))
+    for m in re.finditer(r"(\d{1,2})\s*\+\s*(?:years?|yrs?)?\b", t, flags=re.I):
+        a = int(m.group(1)); spans.append((a, 99))
+
+    # --- grades & school levels
+    if re.search(r"\b(pre[-\s]?k|prek|prekinder(?:garten)?)\b", t): spans.append((3.0, 4.99))
+    if re.search(r"\bkindergarten|\bk\b", t): spans.append((5.0, 5.99))
+    for m in re.finditer(r"grades?\s*(\d{1,2})(?:\s*[-–]\s*(\d{1,2}))?\b", t):
+        g1 = int(m.group(1)); g2 = int(m.group(2) or g1)
+        a1, b1 = _grade_to_year_range(g1); a2, b2 = _grade_to_year_range(g2)
+        spans.append((min(a1, a2), max(b1, b2)))
+    if re.search(r"\belementary\b", t):   spans.append((5.0, 10.99))
+    if re.search(r"\bmiddle\s+school\b", t): spans.append((11.0, 13.99))
+    if re.search(r"\bhigh\s+school\b", t):   spans.append((14.0, 17.99))
+    if re.search(r"\btween[s]?\b", t):    spans.append((9.0, 12.99))
+    if re.search(r"\bteen[s]?\b", t):     spans.append((12.0, 17.99))
+
+    return spans
+
+def _spans_to_audience_tags(spans):
+    """Map aggregated year spans into audience tags using our policy cutoffs."""
+    if not spans:
+        return []
+
+    mn = min(a for a, _ in spans)
+    mx = max(b for _, b in spans)
+
+    tags = []
+    # toddler/infant if any months present OR mx <= 2.5
+    if mx <= 2.5:
+        tags.append("Audience - Toddler/Infant")
+        tags.append("Audience - Parent & Me")  # most sub-2.5y are caregiver events
+
+    # preschool overlap
+    if mx >= 3.0 and mn <= 4.99:
+        tags.append("Audience - Preschool Age")
+
+    # school-age overlap
+    if mx >= 5.0 and mn <= 11.99:
+        tags.append("Audience - School Age")
+
+    # teens overlap
+    if mx >= 12.0 and mn <= 17.99 and not (mx <= 2.5):
+        tags.append("Audience - Teens")
+
+    return list(dict.fromkeys(tags))
+
+
 def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_to_categories={}, name_suffix_map={}):
     config = get_library_config(library)
     SPREADSHEET_NAME = config["spreadsheet_name"]
@@ -219,6 +299,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 # 2) Age-based categories (both structured + fuzzy)
                 ages_raw = event.get("Ages", "") or ""
                 audience_keys = [a.strip() for a in ages_raw.split(",") if a.strip()]
+                
                 mapped_age_tags = []
                 if age_to_categories:
                     for tag in audience_keys:
@@ -226,29 +307,25 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                         if tags:
                             mapped_age_tags.extend([t.strip() for t in tags.split(",")])
                 
-                # fuzzy 13–17 teens etc.
-                age_tags = []
-                nums = [int(n) for n in re.findall(r"\d+", ages_raw) if int(n) > 0]
-                if nums:
-                    min_age, max_age = min(nums), max(nums)
-                    if max_age <= 2:
-                        age_tags.append("Audience - Toddler/Infant")
-                    if max_age <= 4:
-                        age_tags.append("Audience - Parent & Me")
-                    if any(a in (3, 4) for a in nums):
-                        age_tags.append("Audience - Preschool Age")
-                    if max_age >= 5 and min_age <= 11:
-                        age_tags.append("Audience - School Age")
-                    if min_age >= 12:
-                        age_tags.append("Audience - Teens")
+                # NEW: units-aware parse across ages/title/desc
+                desc_value = (
+                    event.get("Event Description")
+                    or event.get("Description")
+                    or event.get("Desc")
+                    or event.get("Event Details")
+                    or ""
+                )
+                title_text = (event.get("Event Name", "") or "")
+                age_haystack = f"{title_text} {desc_value} {ages_raw}"
+                age_tags = _spans_to_audience_tags(_extract_year_spans(age_haystack))
                 
-                # Only add fuzzy if not already covered by mapped audience tags
                 def _has_audience_tag(tags):
                     return any((t or "").startswith("Audience -") for t in tags)
                 
                 age_combined = list(mapped_age_tags)
                 if age_tags and not _has_audience_tag(mapped_age_tags):
                     age_combined.extend(age_tags)
+
                 
                 # 3) Keyword tags (single + paired)
                 desc_value = (
@@ -259,8 +336,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     or ""
                 )
                 title_text = (event.get("Event Name", "") or "").lower()
-                full_text = f"{event.get('Event Name', '')} {desc_value}".lower()
-                
+                full_text  = f"{event.get('Event Name', '')} {desc_value} {ages_raw}".lower()
+
                 title_based_tags = []
                 for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
                     if _kw_hit(title_text, keyword) or _kw_hit(full_text, keyword):
@@ -302,7 +379,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 # === Normalize title and description text
                 title_text = (event.get("Event Name", "") or "").lower()
-                full_text = f"{event.get('Event Name', '')} {desc_value}".lower()
+                full_text  = f"{event.get('Event Name', '')} {desc_value} {ages_raw}".lower()
 
                 title_based_tags = []
                 
