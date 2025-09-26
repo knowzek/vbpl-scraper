@@ -51,9 +51,9 @@ def scrape_YPL_events(mode="all"):
     seen = set()  # (date_str, link)
 
     def _strip_disclaimer(text: str) -> str:
-    # Remove anything starting at a "Disclaimer(s)" heading if it appears
-    parts = re.split(r"\bDisclaimer\(s\)\b", text, flags=re.I)
-    return parts[0].strip() if parts else text
+        # Remove anything starting at a "Disclaimer(s)" heading if it appears
+        parts = re.split(r"\bDisclaimer\(s\)\b", text, flags=re.I)
+        return parts[0].strip() if parts else text
 
     # Loop Sundays across the window; site expects once=calendar-week + current_week
     for week_sunday in _sundays_between(start_range, end_range):
