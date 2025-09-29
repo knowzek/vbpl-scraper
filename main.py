@@ -38,7 +38,7 @@ if __name__ == "__main__":
         cutoff = following_month - timedelta(days=1)
 
     if library == "vbpl":
-        events = scrape_vbpl_events(cutoff_date=cutoff)
+        events = scrape_vbpl_events()
 
     elif library == "poquosonpl":
         from scrape_poquosonpl_events import scrape_poquosonpl_events
