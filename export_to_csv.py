@@ -525,7 +525,7 @@ def export_events_to_csv(library="vbpl", return_df=False, needs_bucket=None):
     return csv_path
 
 if __name__ == "__main__":
-    LIBRARIES = ["chpl"]
+    LIBRARIES = ["vbpl", "npl", "chpl", "nnpl", "hpl", "ppl", "spl", "vbpr", "visithampton", "visitchesapeake", "ypl", "visitnewportnews", "portsvaevents", "visitsuffolk", "visitnorfolk", "poquosonpl", "visityorktown", "langleylibrary"]
     print("🧪 Running unified CSV export for LIBRARIES:", LIBRARIES)
 
     needs_bucket = []   # collect NEEDS ATTENTION across libs
