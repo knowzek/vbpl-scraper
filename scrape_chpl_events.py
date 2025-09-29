@@ -4,6 +4,47 @@ import json
 from bs4 import BeautifulSoup
 from constants import UNWANTED_TITLE_KEYWORDS, TITLE_KEYWORD_TO_CATEGORY, LIBRARY_CONSTANTS
 
+def _get_full_desc_from_chpl_detail(url, headers):
+    """
+    Fetch a long, cleaned description from the CHPL event detail page.
+    Tries several common containers and falls back to meta description.
+    """
+    try:
+        r = requests.get(url, headers=headers, timeout=12)
+        r.raise_for_status()
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        candidates = []
+
+        # Try likely description containers (covers LibraryMarket/LibNet patterns)
+        for sel in [
+            ".field--name-body",
+            ".event-description",
+            ".lm-event-description",
+            ".eelist-description",
+            ".content",
+            "article"
+        ]:
+            node = soup.select_one(sel)
+            if node:
+                chunks = [t.get_text(" ", strip=True) for t in node.select("p, li")]
+                if not chunks:
+                    chunks = [node.get_text(" ", strip=True)]
+                txt = "\n\n".join([c for c in chunks if c]).strip()
+                if txt:
+                    candidates.append(txt)
+
+        # Meta fallback
+        if not candidates:
+            m = soup.find("meta", attrs={"name": "description"})
+            if m and m.get("content"):
+                candidates.append(m["content"].strip())
+
+        return max(candidates, key=len) if candidates else ""
+    except Exception:
+        return ""
+
+
 
 def scrape_chpl_events(mode="all"):
     print("✨ Scraping Chesapeake Public Library events...")
@@ -93,7 +134,17 @@ def scrape_chpl_events(mode="all"):
                     age_tags.extend([t.strip() for t in tags.split(",")])
             
             all_categories = ", ".join(dict.fromkeys(keyword_tags + age_tags))  # dedupe while preserving order
+
+            api_desc = (item.get("description", "") or "").strip()
+            event_url = (item.get("url", "") or "").replace("\\/", "/")
             
+            # If the API blurb looks short, fetch the full body from the detail page
+            full_desc = api_desc
+            if not api_desc or len(api_desc) < 140 or ("\n" not in api_desc and api_desc.count(".") <= 1):
+                long_txt = _get_full_desc_from_chpl_detail(event_url, headers)
+                if long_txt and len(long_txt) > len(api_desc):
+                    full_desc = long_txt
+
             # ✅ Final event append
             events.append({
                 "Event Name": title,
@@ -106,7 +157,7 @@ def scrape_chpl_events(mode="all"):
                 "Day": str(dt.day),
                 "Year": str(dt.year),
                 "Event Date": dt.strftime("%Y-%m-%d"),
-                "Event Description": item.get("description", "").strip(),
+                "Event Description": full_desc,
                 "Series": "Yes" if item.get("recurring_id") else "",
                 "Program Type": item.get("tags", ""),
                 "Categories": all_categories
