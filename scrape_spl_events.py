@@ -12,6 +12,35 @@ UNWANTED_PROGRAM_TYPES = {
     "Child Care Providers"
 }
 
+def _get_full_desc_from_spl_detail(context, url):
+    """Return the long, real description from the SPL (LibCal) event page."""
+    page2 = context.new_page()
+    try:
+        page2.goto(url, timeout=30000)
+        # LibCal uses one of these containers for the full description
+        page2.wait_for_selector("#s-lc-event-desc, .s-lc-event-desc, .s-lc-event-description, .s-lc-event-content", timeout=7000)
+        html2 = page2.content()
+    finally:
+        page2.close()
+
+    soup2 = BeautifulSoup(html2, "html.parser")
+    container = soup2.select_one("#s-lc-event-desc, .s-lc-event-desc, .s-lc-event-description, .s-lc-event-content")
+    if not container:
+        return ""
+
+    # Prefer only meaningful text (paragraphs / list items)
+    bits = []
+    for sel in ("p", "li"):
+        for node in container.select(sel):
+            txt = node.get_text(" ", strip=True)
+            if txt:
+                bits.append(txt)
+
+    desc = "\n".join(bits) or container.get_text(" ", strip=True)
+    # Light cleanup
+    desc = re.sub(r"[ \t]+", " ", desc).strip()
+    return desc
+
 def is_likely_adult_event(text):
     text = text.lower()
     keywords = [
@@ -103,18 +132,18 @@ def scrape_spl_events(mode="all"):
                     url_tag = title_tag.find("a") if title_tag else None
                     url = url_tag["href"] if url_tag and url_tag.has_attr("href") else ""
                     
+                    # Try full description from detail page; fall back to card teaser if needed
                     desc_tag = listing.find("div", class_="s-lc-c-evt-des")
-                    desc = desc_tag.get_text(strip=True) if desc_tag else ""
+                    card_teaser = desc_tag.get_text(" ", strip=True) if desc_tag else ""
                     
-                    # ✅ Clean up truncated descriptions
-                    if desc.endswith("...") or desc.endswith("…"):
-                        # Remove the trailing dots
-                        desc = desc.rstrip(".… ").strip()
-                        
-                        # Try to truncate to the last full sentence
-                        last_punct = max(desc.rfind("."), desc.rfind("!"), desc.rfind("?"))
-                        if last_punct != -1:
-                            desc = desc[:last_punct + 1].strip()
+                    desc = card_teaser
+                    if url:
+                        try:
+                            full_desc = _get_full_desc_from_spl_detail(context, url)
+                            if full_desc:
+                                desc = full_desc
+                        except Exception as e:
+                            print(f"⚠️ SPL detail fetch failed, using teaser: {e}")
 
                     dl = listing.find("dl", class_="dl-horizontal")
                     info = {}
