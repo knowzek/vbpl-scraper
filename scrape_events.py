@@ -94,14 +94,24 @@ def scrape_vbpl_events(mode="all"):
                 
                 if description_tag:
                     # Convert HTML line breaks to actual line breaks
+                    # Normalize <br> to spaces so we don't split words mid-title
                     for br in description_tag.find_all("br"):
-                        br.replace_with("\n")
-                
-                    # Extract text with paragraph spacing
-                    description = description_tag.get_text(separator="\n\n", strip=True)
-                
-                    # Clean excess spacing
-                    description = re.sub(r'\n{3,}', '\n\n', description)
+                        br.replace_with(" ")
+                    
+                    # Prefer paragraph-structured text; fall back to flat text
+                    paras = [p.get_text(" ", strip=True)
+                             for p in description_tag.find_all(["p", "li"])
+                             if p.get_text(strip=True)]
+                    
+                    if paras:
+                        description = "\n\n".join(paras)   # keep real paragraph breaks
+                    else:
+                        description = description_tag.get_text(" ", strip=True)
+                    
+                    # Tidy whitespace (collapse runs of spaces/newlines)
+                    description = re.sub(r"[ \t]{2,}", " ", description)
+                    description = re.sub(r"\s*\n\s*\n\s*", "\n\n", description).strip()
+
                 else:
                     description = ""
 
