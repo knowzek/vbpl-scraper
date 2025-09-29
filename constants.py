@@ -1,9 +1,15 @@
 # constants.py
 
 TITLE_KEYWORD_TO_CATEGORY_RAW = {
-    "storytime": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
-    "Story Time": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
-    "Storytime": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
+    "storytime": "List - Storytimes",
+    "Story Time": "List - Storytimes",
+    "Storytime": "List - Storytimes",
+    "baby storytime": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me",
+    "baby Story Time": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me",
+    "preschool storytime": "List - Storytimes, Audience - Preschool Age",
+    "preschool Story Time": "List - Storytimes, Audience - Preschool Age",
+    "toddler storytime": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
+    "toddler Story Time": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
     "babygarten": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
     "babies in bloom": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
     "teen": "Audience - Teens",
