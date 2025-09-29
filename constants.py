@@ -84,7 +84,16 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Harry Potter": "List - Wizard Events",
     "outdoor": "Audience - Outdoor Event",
     "outdoors": "Audience - Outdoor Event",
-    "high school": "Audience - Teens"
+    "halloween": "List - Fall - Family Halloween Events",
+    "pumpkin": "List - Fall - Family Halloween Events",
+    "October 31st": "List - Fall - Halloween Day Events",
+    "October 31": "List - Fall - Halloween Day Events",
+    "Oct 31st": "List - Fall - Halloween Day Events",
+    "Trick or Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
+    "Trick-or-Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
+    "Trunk or Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
+    "Trunk-or-Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events"
+    
 }
 
 TITLE_KEYWORD_TO_AGE_CATEGORIES_PPL = {
