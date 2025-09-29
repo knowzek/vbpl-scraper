@@ -342,7 +342,7 @@ LIBRARY_CONSTANTS = {
             "School Age": "Audience - School Age, Audience - Free Event, Event Location - Norfolk",
             "Tweens":     "Audience - School Age, Audience - Free Event, Event Location - Norfolk",
             "Teens":      "Audience - Teens, Audience - Free Event, Event Location - Norfolk",
-            "All Ages":   "Audience - Free Event, Event Location - Norfolk",
+            "All Ages":   "Audience - Free Event, Event Location - Norfolk, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Family Event, Audience - Teens",
             "Adults 18+": "Audience - Free Event, Event Location - Norfolk"
         },
     
@@ -560,7 +560,7 @@ LIBRARY_CONSTANTS = {
     },
     "chpl": {
         "age_to_categories": {
-            "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Chesapeake",
+            #"Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Chesapeake",
             "Elementary School": "Audience - School Age, Audience - Free Event, Event Location - Chesapeake",
             "Middle School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Chesapeake",
             "High School": "Audience - Teens, Audience - Free Event, Event Location - Chesapeake",
