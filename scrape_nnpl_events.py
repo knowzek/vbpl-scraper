@@ -64,21 +64,34 @@ def extract_ages(text):
     if "children of all ages" in text:
         matches.add("Children")
 
-    # === Range Detection: "ages 6–11" or "ages 6 to 11" ===
-    range_match = re.search(r"ages?\s*(\d{1,2})\s*(?:[-–to]+)\s*(\d{1,2})", text)
+    # === Range Detection: "ages 6–11" or "ages 6 to 11" (add overlapping groups)
+    range_match = re.search(r"ages?\s*(\d{1,2})\s*(?:[-–to]+\s*)(\d{1,2})", text)
     if range_match:
         low = int(range_match.group(1))
         high = int(range_match.group(2))
-        if high <= 3:
+        if low > high:
+            low, high = high, low  # normalize if reversed
+    
+        # Infant (0–2)
+        if low <= 2:
             matches.add("Infant")
-        elif high <= 5:
+    
+        # Preschool (3–5 overlap)
+        if low <= 5 and high >= 3:
             matches.add("Preschool")
-        elif high <= 12:
+    
+        # School Age (6–12 overlap)
+        if low <= 12 and high >= 6:
             matches.add("School Age")
-        elif high <= 17:
+    
+        # Teens (13–17 overlap)
+        if high >= 13 and low <= 17:
             matches.add("Teens")
-        else:
+    
+        # Adults (18+ overlap)
+        if high >= 18:
             matches.add("Adults 18+")
+
 
     # === "under X" pattern: "children 5 and under" ===
     under_match = re.search(r"(?:under|younger than|and under)\s*(\d{1,2})", text)
