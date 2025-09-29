@@ -3,51 +3,80 @@ from datetime import datetime, timedelta
 import json
 from bs4 import BeautifulSoup
 from constants import UNWANTED_TITLE_KEYWORDS, TITLE_KEYWORD_TO_CATEGORY, LIBRARY_CONSTANTS
+from calendar import monthrange
+
+def _end_of_next_month(dt):
+    y = dt.year + (1 if dt.month == 12 else 0)
+    m = 1 if dt.month == 12 else dt.month + 1
+    last = monthrange(y, m)[1]
+    # 23:59:59 so an all-day event on the last day is included
+    return datetime(y, m, last, 23, 59, 59)
+
 
 def _get_full_desc_from_chpl_detail(url, headers):
     """
-    Fetch a long, cleaned description from a CHPL event detail page.
-    - Targets only AMH text blocks that contain real <p> text
-    - Skips blocks that are just headers, locations, or dates
+    Return the long, real description from CHPL event pages.
+    - Only reads AMH text blocks that contain <p>/<li> (not headers/branch/location)
+    - Skips any block that contains H1–H4, branch anchors, or looks like a menu
+    - No meta-description fallback (to avoid nav text)
     """
     try:
         r = requests.get(url, headers=headers, timeout=12)
         r.raise_for_status()
         soup = BeautifulSoup(r.text, "html.parser")
 
-        candidates = []
+        # Hard remove obvious non-content areas
+        for sel in [
+            "nav", "header", "footer", "aside",
+            ".breadcrumb", ".breadcrumbs", ".site-nav", ".menu",
+            ".sr-only", ".visually-hidden", "[aria-hidden='true']",
+            ".skip-links", ".skiplink", ".offcanvas", "#global-nav"
+        ]:
+            for n in soup.select(sel):
+                n.decompose()
 
-        # Only look inside AMH blocks that actually have <p> with text
-        for node in soup.select(".amh-block.amh-text .amh-content"):
-            parts = [t.get_text(" ", strip=True) for t in node.select("p, li") if t.get_text(strip=True)]
+        root = soup.select_one("main, #main, #main-content, .l-main, .page-content, .region-content") or soup
+
+        # Very specific: AMH text blocks that actually have P/LI and NO headers or branch links
+        blocks = root.select(
+            '.amh-block.amh-text[data-block-type="text"]:has(p), '
+            '.amh-block.amh-text[data-block-type="text"]:has(ul li)'
+        )
+
+        candidates = []
+        nav_vocab = {"home", "about us", "library", "online resources", "how do i", "catalog"}
+
+        for b in blocks:
+            # Skip if this block contains any headers (H1–H4) or branch/location anchors
+            if b.select("h1, h2, h3, h4, a[href^='#branch'], a[href*='branch']"):
+                continue
+
+            # Collect paragraph/list text only
+            parts = [t.get_text(" ", strip=True) for t in b.select("p, li") if t.get_text(strip=True)]
             if not parts:
                 continue
 
             txt = "\n\n".join(parts).strip()
 
-            # --- Filter out junk blocks (dates, location headers, etc.) ---
-            if any(x in txt.lower() for x in [
-                "central library", "major hillard library", "greenbrier library",
-                "russell memorial library", "indian river library",
-                "south norfolk memorial library", "cuffee library",
-                "wednesday", "thursday", "friday", "monday", "tuesday", "saturday", "sunday"
-            ]):
+            # Drop very short blobs
+            if len(txt) < 40:
                 continue
 
-            if len(txt) < 40:  # very short = likely not a real description
+            tlow = txt.lower()
+
+            # Heuristic: nav-ish if it contains multiple menu words OR almost no punctuation
+            punct = tlow.count(".") + tlow.count("!") + tlow.count("?")
+            hits = sum(1 for w in nav_vocab if w in tlow)
+            if hits >= 2 or (punct == 0 and len(txt) < 200):
                 continue
 
             candidates.append(txt)
 
-        # Fall back to meta description if nothing
-        if not candidates:
-            meta = soup.find("meta", attrs={"name": "description"})
-            if meta and meta.get("content"):
-                return meta["content"].strip()
-
+        # Choose the longest remaining block (most complete description)
         return max(candidates, key=len).strip() if candidates else ""
     except Exception:
         return ""
+
 
 def scrape_chpl_events(mode="all"):
     print("✨ Scraping Chesapeake Public Library events...")
@@ -55,12 +84,17 @@ def scrape_chpl_events(mode="all"):
     today = datetime.today()
     base_url = "https://events.chesapeakelibrary.org/eeventcaldata"
 
+    start_date = today
+
     if mode == "weekly":
-        days = 7
+        end_date = today + timedelta(days=7)
     elif mode == "monthly":
-        days = 30
+        end_date = _end_of_next_month(today)     # 👈 end of the following month
     else:
-        days = 90  # Default fetch 90 days if no filter
+        end_date = today + timedelta(days=90)
+    
+    days = (end_date - start_date).days + 1  # inclusive span
+
 
     payload = {
         "private": False,
@@ -91,7 +125,11 @@ def scrape_chpl_events(mode="all"):
     for item in data:
         try:
             dt = datetime.strptime(item["event_start"], "%Y-%m-%d %H:%M:%S")
-
+            
+            # ⛔ absolute guardrail so over-delivered series don’t leak through
+            if not (start_date <= dt <= end_date):
+                continue
+                
             if mode == "weekly" and dt > today + timedelta(days=7):
                 continue
 
@@ -115,7 +153,7 @@ def scrape_chpl_events(mode="all"):
             # ✅ Check for cancellation
             if item.get("changed") == "1":
                 try:
-                    detail_resp = requests.get(event_url, timeout=10)
+                    detail_resp = requests.get(event_url, headers=headers, timeout=10)
                     detail_soup = BeautifulSoup(detail_resp.text, "html.parser")
                     cancelled_msg = detail_soup.select_one(".eelist-changed-message")
                     if cancelled_msg and "cancelled" in cancelled_msg.get_text(strip=True).lower():
