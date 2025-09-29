@@ -120,8 +120,8 @@ TITLE_KEYWORD_TO_AGE_CATEGORIES_PPL = {
     "music": "Audience - Family Event, Audience - Free Event",
     "dance": "Audience - Family Event, Audience - Free Event",
     "sensory": "Audience - Toddler/Infant, Audience - Family Event",
-    "toddlers": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Parent & Me, Audience - Free Event",
-    "toddler": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Parent & Me, Audience - Free Event",
+    "toddlers": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Free Event",
+    "toddler": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Free Event",
     "preschool": "Audience - Preschool Age, Audience - Free Event",
     "baby": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Free Event",
 }
@@ -337,7 +337,7 @@ LIBRARY_CONSTANTS = {
     
         "age_to_categories": {
             "Infant":     "Audience - Toddler/Infant, Audience - Free Event, Event Location - Norfolk",
-            "Preschool":  "Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Event Location - Norfolk",
+            "Preschool":  "Audience - Preschool Age, Audience - Free Event, Event Location - Norfolk",
             "School Age": "Audience - School Age, Audience - Free Event, Event Location - Norfolk",
             "Tweens":     "Audience - School Age, Audience - Free Event, Event Location - Norfolk",
             "Teens":      "Audience - Teens, Audience - Free Event, Event Location - Norfolk",
@@ -373,7 +373,7 @@ LIBRARY_CONSTANTS = {
     
         "age_to_categories": {
             "Infant":     "Audience - Toddler/Infant, Audience - Free Event, Event Location - Yorktown",
-            "Preschool":  "Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Event Location - Yorktown",
+            "Preschool":  "Audience - Preschool Age, Audience - Free Event, Event Location - Yorktown",
             "School Age": "Audience - School Age, Audience - Free Event, Event Location - Yorktown",
             "Tweens":     "Audience - School Age, Audience - Free Event, Event Location - Yorktown",
             "Teens":      "Audience - Teens, Audience - Free Event, Event Location - Yorktown",
@@ -508,10 +508,10 @@ LIBRARY_CONSTANTS = {
     "npl": {
         "age_to_categories": {
             "Family": "Audience - Free Event, Event Location - Norfolk, Audience - Family Event",
-            "All Ages": "Audience - Free Event, Event Location - Norfolk, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me, Audience - Family Event", 
+            "All Ages": "Audience - Free Event, Event Location - Norfolk, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Family Event", 
             "Babies (0-2)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events",
-            "Toddlers (2-3)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events",
-            "Preschool (3-5)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Preschool Age",
+            "Toddlers (2-3)": "Audience - Free Event, Event Location - Norfolk, Audience - Toddler/Infant, List - Toddler Time Events",
+            "Preschool (3-5)": "Audience - Free Event, Event Location - Norfolk, Audience - Preschool Age",
             "Elementary School Age (5-9)": "Audience - Free Event, Event Location - Norfolk, Audience - School Age",
             "Tweens (9-13)": "Event Location - Norfolk, Audience - School Age, Audience - Free Event",
             "Teens (12-17)": "Audience - Teens, Event Location - Norfolk, Audience - Free Event"
@@ -559,12 +559,12 @@ LIBRARY_CONSTANTS = {
     },
     "chpl": {
         "age_to_categories": {
-            "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Chesapeake, Audience - Parent & Me",
+            "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Chesapeake",
             "Elementary School": "Audience - School Age, Audience - Free Event, Event Location - Chesapeake",
             "Middle School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Chesapeake",
-            "High School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Chesapeake",
+            "High School": "Audience - Teens, Audience - Free Event, Event Location - Chesapeake",
             "Families": "Audience - Family Event, Audience - Free Event, Event Location - Chesapeake",
-            "All Ages": "Audience - Free Event, Event Location - Chesapeake, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me, Audience - Family Event",
+            "All Ages": "Audience - Free Event, Event Location - Chesapeake, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Family Event, Audience - Teens",
             "Adult": "Audience - Free Event, Event Location - Chesapeake"
         },
         "name_suffix_map": {
@@ -675,7 +675,7 @@ LIBRARY_CONSTANTS = {
             "Family": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk",
             "High School": "Audience - Teens, Audience - Free Event, Event Location - Suffolk",
             "Middle School": "Audience - Teens, Audience - Free Event, Event Location - Suffolk",
-            "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me"
+            "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age"
         },
         "event_name_suffix": " (Suffolk)",
         "age_to_categories": {}
@@ -704,11 +704,11 @@ LIBRARY_CONSTANTS = {
         },
         "age_to_categories": {
             "Infant": "Audience - Toddler/Infant, Audience - Free Event, Event Location - Portsmouth",
-            "Preschool": "Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Event Location - Portsmouth",
+            "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Portsmouth",
             "School Age": "Audience - School Age, Audience - Free Event, Event Location - Portsmouth",
             "Tweens": "Audience - School Age, Audience - Free Event, Event Location - Portsmouth",
             "Teens": "Audience - Teens, Audience - Free Event, Event Location - Portsmouth",
-            "All Ages": "Audience - Free Event, Event Location - Portsmouth, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me, Audience - Family Event"
+            "All Ages": "Audience - Free Event, Event Location - Portsmouth, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Family Event"
         },
         "program_type_to_categories": {
             # leave blank for now unless you want to map specific phrases like "STEAM", "craft", etc.
@@ -758,7 +758,7 @@ LIBRARY_CONSTANTS = {
             "21+": "Audience - Free Event, Event Location - Newport News",
             "Seniors": "Audience - Seniors, Audience - Free Event, Event Location - Newport News",
             "School Age": "Audience - Family Event, Audience - Free Event, Event Location - Newport News, Audience - School Age",
-            "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Newport News, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Parent & Me",
+            "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Newport News, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age",
             "Infant": "Audience - Toddler/Infant, Audience - Free Event, Event Location - Newport News, Audience - Parent & Me, List - Toddler Time Events",
             "Family": "Audience - Family Event, Audience - Free Event, Event Location - Newport News"
         }
