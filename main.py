@@ -1,5 +1,5 @@
 import sys
-from datetime import datetime, timedelta
+import asyncio
 from scrape_events import scrape_vbpl_events
 from scrape_npl_events import scrape_npl_events
 from upload_to_sheets import upload_events_to_sheet
@@ -83,60 +83,58 @@ if __name__ == "__main__":
         cutoff = following_month - timedelta(days=1)
 
     if library == "vbpl":
-        events = scrape_vbpl_events()
-
+        events = _call_scraper(scrape_vbpl_events, mode=mode, cutoff_date=cutoff)
+    
     elif library == "poquosonpl":
-        events = scrape_poquosonpl_events(cutoff_date=cutoff, mode=mode)
+        events = _call_scraper(scratch := scrape_poquosonpl_events, mode=mode, cutoff_date=cutoff)
     
     elif library == "npl":
-        events = scrape_npl_events(mode=mode)
+        events = _call_scraper(scrape_npl_events, mode=mode, cutoff_date=cutoff)
     
     elif library == "chpl":
-        events = scrape_chpl_events(mode=mode)
+        events = _call_scraper(scrape_chpl_events, mode=mode, cutoff_date=cutoff)
     
     elif library == "hpl":
-        events = scrape_hpl_events(mode=mode)
+        events = _call_scraper(scrape_hpl_events, mode=mode, cutoff_date=cutoff)
     
     elif library == "nnpl":
-        import asyncio
-        events = scrape_nnpl_events(mode=mode)
-
+        events = _call_scraper(scrape_nnpl_events, mode=mode, cutoff_date=cutoff)
+    
     elif library == "spl":
-        events = scrape_spl_events(mode=mode)
+        events = _call_scraper(scrape_spl_events, mode=mode, cutoff_date=cutoff)
     
     elif library == "ppl":
-        events = scrape_ppl_events(mode=mode)
-
+        events = _call_scraper(scrape_ppl_events, mode=mode, cutoff_date=cutoff)
+    
     elif library == "vbpr":
-        events = scrape_vbpr_events(mode=mode)
-
+        events = _call_scraper(scrape_vbpr_events, mode=mode, cutoff_date=cutoff)
+    
     elif library == "visitchesapeake":
-        events = scrap_visitchesapeake(mode=mode)
+        events = _call_scraper(scap := scrap_visitchesapeake, mode=mode, cutoff_date=cutoff)
     
     elif library == "visithampton":
-        events = scrap_visithampton(mode=mode)
-
+        events = _call_scraper(scap := scrap_visithampton, mode=mode, cutoff_date=cutoff)
+    
     elif library == "visitnewportnews":
-        events = scrap_visitnewportnews(mode=mode)
-
+        events = _call_scraper(scap := scrap_visitnewportnews, mode=mode, cutoff_date=cutoff)
+    
     elif library == "portsvaevents":
-        events = scrap_portsvaevents(mode=mode)
-
+        events = _call_scraper(scap := scrap_portsvaevents, mode=mode, cutoff_date=cutoff)
+    
     elif library == "ypl":
-        events = scrape_YPL_events(mode=mode)
+        events = _call_scraper(scrape_YPL_events, mode=mode, cutoff_date=cutoff)
     
     elif library == "visitsuffolk":
-        events = scrap_visitsuffolk(mode=mode)
-
+        events = _call_scraper(scap := scrap_visitsuffolk, mode=mode, cutoff_date=cutoff)
+    
     elif library == "visitnorfolk":
-        events = scrap_visitnorfolk_events(mode=mode)
-
+        events = _call_scraper(scap := scrap_visitnorfolk_events, mode=mode, cutoff_date=cutoff)
+    
     elif library == "visityorktown":
-        events = scrap_visityorktown_events(mode=mode)
+        events = _call_scraper(scap := scrap_visityorktown_events, mode=mode, cutoff_date=cutoff)
     
     elif library == "langleylibrary":
-        events = scrap_langleylibrary(mode=mode)
-
+        events = _call_scraper(scap := scrap_langleylibrary, mode=mode, cutoff_date=cutoff)
     
     else:
         raise ValueError(f"Unknown library: {library}")
