@@ -7,87 +7,47 @@ from constants import UNWANTED_TITLE_KEYWORDS, TITLE_KEYWORD_TO_CATEGORY, LIBRAR
 def _get_full_desc_from_chpl_detail(url, headers):
     """
     Fetch a long, cleaned description from a CHPL event detail page.
-    - Removes header/nav/footer/breadcrumbs
-    - Scopes to <main> if present
-    - Pulls paragraphs/lists from AMH text blocks and standard body fields
-    - Ignores menu-like text
+    - Targets only AMH text blocks that contain real <p> text
+    - Skips blocks that are just headers, locations, or dates
     """
     try:
         r = requests.get(url, headers=headers, timeout=12)
         r.raise_for_status()
         soup = BeautifulSoup(r.text, "html.parser")
 
-        # --- Strip obvious non-content regions ---
-        for sel in [
-            "nav", "header", "footer", "aside",
-            ".breadcrumb", ".breadcrumbs", ".site-nav", ".menu",
-            ".sr-only", ".visually-hidden", "[aria-hidden='true']",
-            ".skip-links", ".skiplink", ".offcanvas", "#global-nav"
-        ]:
-            for n in soup.select(sel):
-                n.decompose()
-
-        # --- Prefer the main content container if it exists ---
-        root = soup.select_one("main, #main, #main-content, .l-main, .page-content, .region-content") or soup
-
         candidates = []
 
-        def collect_text(node):
-            # paragraphs + list items; fallback to node text
-            parts = [t.get_text(" ", strip=True) for t in node.select("p, li")]
+        # Only look inside AMH blocks that actually have <p> with text
+        for node in soup.select(".amh-block.amh-text .amh-content"):
+            parts = [t.get_text(" ", strip=True) for t in node.select("p, li") if t.get_text(strip=True)]
             if not parts:
-                parts = [node.get_text(" ", strip=True)]
-            txt = "\n\n".join(p for p in parts if p).strip()
-            return txt
+                continue
 
-        # --- 1) AMH blocks (the structure you pasted) ---
-        # <div class="amh-block amh-text"><div class="amh-content"><span>... <p> / <ul> ...</span></div></div>
-        for node in root.select(".amh-block.amh-text .amh-content, .amh-block.amh-text"):
-            txt = collect_text(node)
-            if txt:
-                candidates.append(txt)
+            txt = "\n\n".join(parts).strip()
 
-        # --- 2) Standard LibraryMarket / LibNet containers ---
-        for sel in [
-            ".eelist-description",
-            ".event-detail__description",
-            ".event-description",
-            ".lm-event-description",
-            ".node__content .field--name-body",
-            ".field--name-body",
-            ".event-body",
-        ]:
-            for node in root.select(sel):
-                txt = collect_text(node)
-                if txt:
-                    candidates.append(txt)
+            # --- Filter out junk blocks (dates, location headers, etc.) ---
+            if any(x in txt.lower() for x in [
+                "central library", "major hillard library", "greenbrier library",
+                "russell memorial library", "indian river library",
+                "south norfolk memorial library", "cuffee library",
+                "wednesday", "thursday", "friday", "monday", "tuesday", "saturday", "sunday"
+            ]):
+                continue
 
-        # --- Heuristic: filter out menu/breadcrumb-y blobs ---
-        def looks_like_nav(text: str) -> bool:
-            t = (text or "").lower()
-            nav_hits = sum(kw in t for kw in [
-                "home (hidden)", "about us", "online resources", "how do i", "library", "catalog"
-            ])
-            punct = t.count(".") + t.count("!") + t.count("?")
-            # multiple nav keywords OR short/no punctuation → likely nav
-            return nav_hits >= 2 or (len(t) < 160 and punct == 0)
+            if len(txt) < 40:  # very short = likely not a real description
+                continue
 
-        candidates = [c for c in candidates if c and not looks_like_nav(c)]
+            candidates.append(txt)
 
-        # --- 3) Meta fallback if nothing usable found ---
+        # Fall back to meta description if nothing
         if not candidates:
-            meta = root.find("meta", attrs={"name": "description"})
+            meta = soup.find("meta", attrs={"name": "description"})
             if meta and meta.get("content"):
-                cand = meta["content"].strip()
-                if cand and not looks_like_nav(cand):
-                    candidates.append(cand)
+                return meta["content"].strip()
 
         return max(candidates, key=len).strip() if candidates else ""
     except Exception:
         return ""
-
-
-
 
 def scrape_chpl_events(mode="all"):
     print("✨ Scraping Chesapeake Public Library events...")
