@@ -101,7 +101,10 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Trunk-or-Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
     "christmas": "Audience - Holiday Events",
     "christmas in july": "List - Summer - Christmas In July!",
-    "santa": "List - Winter - Santa All"
+    "santa": "List - Winter - Santa All",
+    "thanksgiving": "List - Fall - Thanksgiving",
+    "veterans day": "List - Fall - Veterans Day",
+    "veteran's day": "List - Fall - Veterans Day"
     
 }
 
