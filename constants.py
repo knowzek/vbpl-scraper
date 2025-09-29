@@ -91,6 +91,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "outdoor": "Audience - Outdoor Event",
     "outdoors": "Audience - Outdoor Event",
     "halloween": "List - Fall - Family Halloween Events",
+    "haunted": "List - Fall - Family Halloween Events",
     "pumpkin": "List - Fall - Family Halloween Events",
     "October 31st": "List - Fall - Halloween Day Events",
     "October 31": "List - Fall - Halloween Day Events",
