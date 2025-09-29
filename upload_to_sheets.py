@@ -205,12 +205,12 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
 
     PROGRAM_TYPE_TO_CATEGORIES = {
-        "Storytimes & Early Learning": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event, List - Storytimes",
-        "STEAM": f"Event Location - {config['organizer_name']}, List - STEM/STEAM, Audience - Free Event, Audience - Family Event",
+        "Storytimes & Early Learning": f"Event Location - {config['organizer_name']}, Audience - Free Event, List - Storytimes",
+        "STEAM": f"Event Location - {config['organizer_name']}, List - STEM/STEAM, Audience - Free Event",
         "Computers & Technology": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Teens, Audience - Family Event",
         "Workshops & Lectures": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
         "Discussion Groups": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
-        "Arts & Crafts": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
+        "Arts & Crafts": f"Event Location - {config['organizer_name']}, Audience - Free Event",
         "Hobbies": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
         "Books & Authors": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
         "Culture": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
