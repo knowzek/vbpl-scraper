@@ -32,6 +32,9 @@ def _strip_preschool_for_just2s(title: str, tags: list[str]) -> list[str]:
         return [c for c in tags if c not in {"Audience - Preschool Age", "Audience - Preschool"}]
     return tags
 
+def _ensure(lst, item):
+    if item not in lst:
+        lst.append(item)
 
 def has_audience_tag(tags):
     return any("Audience -" in tag for tag in tags)
@@ -117,36 +120,45 @@ def _extract_year_spans(text: str):
     t = (text or "").lower()
     spans = []
 
-    # --- explicit month ranges/single
+    # --- MONTHS FIRST (ranges, then singles) ---
     for m in re.finditer(rf"(\d{{1,2}})\s*[-–]\s*(\d{{1,2}})\s*{MONTH_WORDS}\b", t, flags=re.I):
         a, b = int(m.group(1))/12.0, int(m.group(2))/12.0
         spans.append((a, b))
+
     for m in re.finditer(rf"(\d{{1,2}})\s*{MONTH_WORDS}\b", t, flags=re.I):
         v = int(m.group(1))/12.0
         spans.append((v, v))
 
-    # --- explicit year ranges/single/plus
+    # --- EXPLICIT YEARS ---
+    # (1) year range like "3–5 years"
     for m in re.finditer(rf"(\d{{1,2}})\s*[-–]\s*(\d{{1,2}})\s*{YEAR_WORDS}\b", t, flags=re.I):
         a, b = int(m.group(1)), int(m.group(2))
         spans.append((a, b))
-    for m in re.finditer(r"ages?\s*(\d{1,2})(?:\s*[-–]\s*(\d{1,2}))?\b", t, flags=re.I):
+
+    # (2) generic "ages X[-Y]" WITHOUT units — but NOT when followed by months
+    for m in re.finditer(
+        rf"ages?\s*(\d{{1,2}})(?:\s*[-–]\s*(\d{{1,2}}))?(?!\s*{MONTH_WORDS})\b",
+        t, flags=re.I
+    ):
         a = int(m.group(1)); b = int(m.group(2) or a)
         spans.append((a, b))
-    for m in re.finditer(r"(\d{1,2})\s*\+\s*(?:years?|yrs?)?\b", t, flags=re.I):
+
+    # (3) "X+ years" — also guard against "X+ months"
+    for m in re.finditer(rf"(\d{{1,2}})\s*\+\s*(?:{YEAR_WORDS})?(?!\s*{MONTH_WORDS})\b", t, flags=re.I):
         a = int(m.group(1)); spans.append((a, 99))
 
-    # --- grades & school levels
+    # --- GRADES & SCHOOL LEVELS ---
     if re.search(r"\b(pre[-\s]?k|prek|prekinder(?:garten)?)\b", t): spans.append((3.0, 4.99))
-    if re.search(r"\bkindergarten|\bk\b", t): spans.append((5.0, 5.99))
-    for m in re.finditer(r"grades?\s*(\d{1,2})(?:\s*[-–]\s*(\d{1,2}))?\b", t):
+    if re.search(r"\bkindergarten\b|\bK\b", t, re.I): spans.append((5.0, 5.99))
+    for m in re.finditer(r"grades?\s*(\d{1,2})(?:\s*[-–]\s*(\d{1,2}))?\b", t, flags=re.I):
         g1 = int(m.group(1)); g2 = int(m.group(2) or g1)
         a1, b1 = _grade_to_year_range(g1); a2, b2 = _grade_to_year_range(g2)
         spans.append((min(a1, a2), max(b1, b2)))
-    if re.search(r"\belementary\b", t):   spans.append((5.0, 10.99))
+    if re.search(r"\belementary\b", t):      spans.append((5.0, 10.99))
     if re.search(r"\bmiddle\s+school\b", t): spans.append((11.0, 13.99))
     if re.search(r"\bhigh\s+school\b", t):   spans.append((14.0, 17.99))
-    if re.search(r"\btween[s]?\b", t):    spans.append((9.0, 12.99))
-    if re.search(r"\bteen[s]?\b", t):     spans.append((12.0, 17.99))
+    if re.search(r"\btween[s]?\b", t):       spans.append((9.0, 12.99))
+    if re.search(r"\bteen[s]?\b", t):        spans.append((12.0, 17.99))
 
     return spans
 
@@ -408,6 +420,29 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 if always_on:
                     tag_list.extend(always_on)
+
+                # --- Fuzzy audience from free text (constrained so HS/MS don't trigger School Age)
+                age_haystack = full_text  # already lowercased earlier
+                
+                is_school_age_phrase  = re.search(r"\bschool age\b", age_haystack, re.I)
+                mentions_elementary   = re.search(r"\belementary\b", age_haystack, re.I)
+                mentions_grades_elm   = re.search(r"\bgrades?\s*(k|[1-5])(\s*-\s*(k|[1-5]))?\b", age_haystack, re.I)
+                
+                mentions_high_school   = re.search(r"\bhigh\s+school\b", age_haystack, re.I)
+                mentions_middle_school = re.search(r"\bmiddle\s+school\b", age_haystack, re.I)
+                
+                # Elementary → School Age, but NOT if the text also says HS/MS
+                if (is_school_age_phrase or mentions_elementary or mentions_grades_elm) and not (mentions_high_school or mentions_middle_school):
+                    _ensure(tag_list, "Audience - School Age")
+                
+                # Middle School (6–8) → Teens
+                if re.search(r"\bgrades?\s*(6|7|8)(\s*-\s*(6|7|8))?\b", age_haystack, re.I) or mentions_middle_school:
+                    _ensure(tag_list, "Audience - Teens")
+                
+                # High School (9–12) → Teens
+                if re.search(r"\bgrades?\s*(9|1[0-2])(\s*-\s*(9|1[0-2]))?\b", age_haystack, re.I) or mentions_high_school:
+                    _ensure(tag_list, "Audience - Teens")
+
                 
                 # YPL: always add base tags
                 if library == "ypl":
