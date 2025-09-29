@@ -135,13 +135,20 @@ def _extract_year_spans(text: str):
         a, b = int(m.group(1)), int(m.group(2))
         spans.append((a, b))
 
-    # (2) generic "ages X[-Y]" WITHOUT units — but NOT when followed by months
+    # (2) generic "ages X[-Y]" WITHOUT units — *and* explicitly not months
     for m in re.finditer(
-        rf"ages?\s*(\d{{1,2}})(?:\s*[-–]\s*(\d{{1,2}}))?(?!\s*{MONTH_WORDS})\b",
-        t, flags=re.I
+        r"""
+        ages?\s*
+        (?!\d+\s*[-–]\s*\d+\s*months\b)   # not "ages 12-24 months"
+        (?!\d+\s*months\b)                # not "ages 12 months"
+        (\d{1,2})(?:\s*[-–]\s*(\d{1,2}))?
+        \b
+        """,
+        t, flags=re.I | re.X
     ):
         a = int(m.group(1)); b = int(m.group(2) or a)
         spans.append((a, b))
+
 
     # (3) "X+ years" — also guard against "X+ months"
     for m in re.finditer(rf"(\d{{1,2}})\s*\+\s*(?:{YEAR_WORDS})?(?!\s*{MONTH_WORDS})\b", t, flags=re.I):
