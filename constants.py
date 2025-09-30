@@ -399,6 +399,7 @@ LIBRARY_CONSTANTS = {
             "American Revolution Museum": "American Revolution Museum",
             "Townwide": "Yorktown, VA",
             "Yorktown Battlefield Visitor Center": "Yorktown Battlefield Visitor Center",
+            "McReynolds Athletic Complex": "McReynolds Athletic Complex",
             "Grace Episcopal Church": "Grace Episcopal Church"            
         },
     
