@@ -19,6 +19,35 @@ SYNTHESIZE_SINGLE_FOR = {"visitchesapeake", "visitnewportnews", "visitnorfolk"}
 
 DASH_SPLIT = re.compile(r"\s+[-–—]\s+")  # space + dash + space (handles -, – , —)
 
+def _coerce_ymd(year, month, day):
+    """
+    Return (y, m, d) where month may be '10', 'Oct', or 'October'.
+    Missing/invalid parts return None.
+    """
+    def _to_int(x):
+        try:
+            return int(str(x))
+        except Exception:
+            return None
+
+    y = _to_int(year)
+    d = _to_int(day)
+
+    m = None
+    if month is not None:
+        s = str(month).strip()
+        m = _to_int(s)
+        if m is None:
+            # Try short then long month names
+            for fmt in ("%b", "%B"):
+                try:
+                    m = datetime.strptime(s[:3] if fmt == "%b" else s, fmt).month
+                    break
+                except Exception:
+                    pass
+    return y, m, d
+
+
 def _strip_room_suffix(loc: str) -> str:
     """
     'Russell Memorial Library - Activity Room, Atrium' → 'Russell Memorial Library'
@@ -33,21 +62,31 @@ def _strip_room_suffix(loc: str) -> str:
 def _synthesize_one_hour_range(start_str: str, year=None, month=None, day=None, minutes: int = 60) -> str:
     """
     Turn 'H:MM AM/PM' (or 'H AM/PM') into 'H:MM AM/PM - H:MM AM/PM',
-    anchored to the row's date so AM/PM rollovers (11:30 AM → 12:30 PM) are correct.
+    anchored to the row's date so AM/PM rollovers are correct.
+    Accepts month names like 'Oct'/'October' as well as numbers.
     """
-    s = start_str.strip().upper().replace(".", "")
-    # allow '3 PM' or '3:00 PM'
+    s = (start_str or "").strip().upper().replace(".", "")
+    # parse time-of-day only
     try:
-        dt = datetime.strptime(s, "%I:%M %p")
+        tod = datetime.strptime(s, "%I:%M %p")
     except ValueError:
-        dt = datetime.strptime(s, "%I %p")
-    if year and month and day:
-        dt = datetime(int(year), int(month), int(day), dt.hour, dt.minute)
+        tod = datetime.strptime(s, "%I %p")
+
+    # choose an anchor date (prefer event Y/M/D if usable; otherwise today)
+    y, m, d = _coerce_ymd(year, month, day)
+    if y and m and d:
+        anchor = datetime(y, m, d, tod.hour, tod.minute)
     else:
         today = datetime.today()
-        dt = datetime(today.year, today.month, today.day, dt.hour, dt.minute)
-    end = dt + timedelta(minutes=minutes)
-    return f"{dt.strftime('%-I:%M %p')} - {end.strftime('%-I:%M %p')}"
+        anchor = datetime(today.year, today.month, today.day, tod.hour, tod.minute)
+
+    end = anchor + timedelta(minutes=minutes)
+
+    def _fmt12(dt):
+        # portable 12h without leading zero
+        return dt.strftime("%I:%M %p").lstrip("0")
+
+    return f"{_fmt12(anchor)} - {_fmt12(end)}"
 
 
 def _protect_special_labels(text: str) -> str:
@@ -91,9 +130,17 @@ _DAY_IDX = {"mon":0,"tue":1,"wed":2,"thu":3,"fri":4,"sat":5,"sun":6}
 
 def _wk_from_ymd(y, m, d):
     try:
-        return datetime(int(y), int(m), int(d)).weekday()
+        yy = int(y)
+        # allow '10', 'Oct', 'October'
+        try:
+            mm = int(m)
+        except Exception:
+            mm = datetime.strptime(str(m)[:3], "%b").month
+        dd = int(d)
+        return datetime(yy, mm, dd).weekday()
     except Exception:
         return None
+
 
 def _day_idx(tok: str):
     return _DAY_IDX.get(tok[:3].lower())
