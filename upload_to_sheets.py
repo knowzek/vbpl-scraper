@@ -15,7 +15,8 @@ import pandas as pd
 SPECIAL_MULTIWORD = "List - Cosplay, Anime, Comics"
 PLACEHOLDER = "LIST_COSPLAY_ANIME_COMICS"  # something that will never appear naturally
 
-SYNTHESIZE_SINGLE_FOR = {"visitchesapeake", "visitnewportnews", "visitnorfolk"}
+SYNTHESIZE_SINGLE_FOR = {"visitchesapeake", "visitnewportnews", "visitnorfolk", "visityorktown"}
+PLACEHOLDER_1159_FOR = {"visitnorfolk", "visityorktown"}
 ENFORCE_VENUE_MAP_FOR = {"visitchesapeake", "visityorktown", "visitnorfolk"}
 
 DASH_SPLIT = re.compile(r"\s+[-–—]\s+")  # space + dash + space (handles -, – , —)
@@ -59,21 +60,40 @@ def _strip_room_suffix(loc: str) -> str:
     # split once on the first " - " (or –/—) and take the left side
     return DASH_SPLIT.split(base, 1)[0].strip()
 
+def _coerce_ymd(year, month, day):
+    """Return (y,m,d) where month can be '10', 'Oct', or 'October'; missing parts → None."""
+    def _to_int(x):
+        try:
+            return int(str(x))
+        except Exception:
+            return None
+
+    y = _to_int(year)
+    d = _to_int(day)
+
+    m = None
+    if month is not None:
+        s = str(month).strip()
+        m = _to_int(s)
+        if m is None:
+            for fmt in ("%b", "%B"):
+                try:
+                    m = datetime.strptime(s, fmt).month
+                    break
+                except Exception:
+                    pass
+    return y, m, d
 
 def _synthesize_one_hour_range(start_str: str, year=None, month=None, day=None, minutes: int = 60) -> str:
     """
-    Turn 'H:MM AM/PM' (or 'H AM/PM') into 'H:MM AM/PM - H:MM AM/PM',
-    anchored to the row's date so AM/PM rollovers are correct.
-    Accepts month names like 'Oct'/'October' as well as numbers.
+    'H[:MM] AM/PM' → 'H:MM AM/PM - H:MM AM/PM', anchored to the row date (handles Oct/October).
     """
     s = (start_str or "").strip().upper().replace(".", "")
-    # parse time-of-day only
     try:
         tod = datetime.strptime(s, "%I:%M %p")
     except ValueError:
         tod = datetime.strptime(s, "%I %p")
 
-    # choose an anchor date (prefer event Y/M/D if usable; otherwise today)
     y, m, d = _coerce_ymd(year, month, day)
     if y and m and d:
         anchor = datetime(y, m, d, tod.hour, tod.minute)
@@ -84,10 +104,10 @@ def _synthesize_one_hour_range(start_str: str, year=None, month=None, day=None, 
     end = anchor + timedelta(minutes=minutes)
 
     def _fmt12(dt):
-        # portable 12h without leading zero
         return dt.strftime("%I:%M %p").lstrip("0")
 
     return f"{_fmt12(anchor)} - {_fmt12(end)}"
+
 
 
 def _protect_special_labels(text: str) -> str:
@@ -252,25 +272,26 @@ def _normalize_time_for_upload(raw: str, library: str, year=None, month=None, da
                     if cleaned:
                         break
 
-    # --- VisitNorfolk: force missing-end or placeholder end → start + 60 minutes ---
-    if library == "visitnorfolk" and cleaned:
-        # Normalize dash types and whitespace (incl. non-breaking spaces)
+    # --- Treat 'start only' or 'start - 11:59 PM' as start+60 for selected libs ---
+    if library in PLACEHOLDER_1159_FOR and cleaned:
+        # normalize dashes/whitespace/nbsp
         cand = cleaned.replace("\u00A0", " ")
         cand = re.sub(r"\s*[–—]\s*", " - ", cand)
         cand = re.sub(r"\s+", " ", cand).strip()
-
+    
         # Case A: single start time only
         if re.match(r"^\s*\d{1,2}(:\d{2})?\s*[AP]M\s*$", cand, re.I):
-            start_norm = _fmt_one_time(cand)  # -> 'H:MM AM/PM'
+            start_norm = _fmt_one_time(cand)
             return _synthesize_one_hour_range(start_norm, year, month, day, minutes=60)
-
-        # Case B: placeholder end 11:59 PM / 23:59
+    
+        # Case B: placeholder 11:59 end
         m = re.search(r"^\s*(\d{1,2}(?::\d{2})?\s*[ap]m)\s*-\s*(?:11:59\s*pm|23:59)\s*$", cand, re.I)
         if m:
             start_norm = _fmt_one_time(m.group(1))
             return _synthesize_one_hour_range(start_norm, year, month, day, minutes=60)
+    
+        cleaned = cand  # keep normalized spacing
 
-        cleaned = cand  # keep normalized spacing/dashes
 
     # --- Generic: if the result is a single time, synthesize +60 for selected libs ---
     if cleaned and library in SYNTHESIZE_SINGLE_FOR:
