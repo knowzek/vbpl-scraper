@@ -11,12 +11,13 @@ from constants import COMBINED_KEYWORD_TO_CATEGORY
 
 import pandas as pd
 
-# --- Master sheet routing ---
-MASTER_SHEET_ENABLED = True
-MASTER_SPREADSHEET_NAME = "Master Events"   # spreadsheet title
-MASTER_WORKSHEET_NAME  = "Master Events"           # events tab
-MASTER_LOG_WORKSHEET_NAME = "Master Events Log"           # logs tab (optional)
-MASTER_SPREADSHEET_ID = os.environ.get("1v4-5ZSZGpMshiZZnG8q0z9NTKHHdq95y6HmxkWsCheQ")
+# === MASTER SHEET OVERRIDE ===
+USE_MASTER_SHEET = True  # <— turn on the single-sheet world
+MASTER_SPREADSHEET_ID = os.environ.get("MASTER_SPREADSHEET_ID")  # preferred
+MASTER_SPREADSHEET_NAME = os.environ.get("MASTER_SPREADSHEET_NAME", "Master Events")  # fallback by name
+MASTER_WORKSHEET_NAME = os.environ.get("MASTER_WORKSHEET_NAME", "Master Events")
+MASTER_LOG_WORKSHEET_NAME = os.environ.get("MASTER_LOG_WORKSHEET_NAME", "Master events Log")  # optional
+
 
 # --- protect a single label that contains commas so we don't split it ---
 SPECIAL_MULTIWORD = "List - Cosplay, Anime, Comics"
@@ -359,6 +360,30 @@ def connect_to_sheet(spreadsheet_name, worksheet_name):
     # per-library fallback
     return client.open(spreadsheet_name).worksheet(worksheet_name)
 
+def connect_to_master_sheet(worksheet_name):
+    creds_json = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+    if not creds_json:
+        secret_path = "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON"
+        if os.path.exists(secret_path):
+            with open(secret_path, "r") as f:
+                creds_json = f.read()
+    if not creds_json:
+        raise RuntimeError("GOOGLE_APPLICATION_CREDENTIALS_JSON env var not set")
+
+    creds_dict = json.loads(creds_json)
+    creds = service_account.Credentials.from_service_account_info(
+        creds_dict,
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive",
+        ],
+    )
+    client = gspread.authorize(creds)
+
+    if MASTER_SPREADSHEET_ID:
+        return client.open_by_key(MASTER_SPREADSHEET_ID).worksheet(worksheet_name)
+    return client.open(MASTER_SPREADSHEET_NAME).worksheet(worksheet_name)
+
 
 def normalize(row):
     return [cell.strip() for cell in row[:13]] + [""] * (13 - len(row))
@@ -490,11 +515,17 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
     WORKSHEET_NAME     = config["worksheet_name"]
     LOG_WORKSHEET_NAME = config["log_worksheet_name"]
 
-    # OVERRIDE → one master workbook/tab
-    if MASTER_SHEET_ENABLED:
-        SPREADSHEET_NAME   = MASTER_SPREADSHEET_NAME
-        WORKSHEET_NAME     = MASTER_WORKSHEET_NAME
+    # FORCE all uploads to Master
+    if USE_MASTER_SHEET:
+        SPREADSHEET_NAME = MASTER_SPREADSHEET_NAME
+        WORKSHEET_NAME = MASTER_WORKSHEET_NAME
         LOG_WORKSHEET_NAME = MASTER_LOG_WORKSHEET_NAME
+
+    try:
+        if USE_MASTER_SHEET:
+            log_sheet = connect_to_master_sheet(LOG_WORKSHEET_NAME)
+        else:
+            log_sheet = connect_to_sheet(SPREADSHEET_NAME, LOG_WORKSHEET_NAME)
 
     library_constants = LIBRARY_CONSTANTS.get(library, {})
     program_type_to_categories = library_constants.get("program_type_to_categories", {})
