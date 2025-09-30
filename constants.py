@@ -165,6 +165,7 @@ UNWANTED_TITLE_KEYWORDS = [
     "exhibition",
     "collection",
     "business",
+    "lecture",
     "closed"
 ]
 
