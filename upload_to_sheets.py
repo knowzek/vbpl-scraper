@@ -135,13 +135,13 @@ def _extract_year_spans(text: str):
         a, b = int(m.group(1)), int(m.group(2))
         spans.append((a, b))
 
-    # generic "ages X[-–|to]Y" WITHOUT months
+    # generic "ages: X[-–|to]Y" (or "ages X[-–|to]Y") WITHOUT months
     for m in re.finditer(
-        r"""
-        ages?\s*
-        (?!\d+\s*[-–]\s*\d+\s*months\b)   # not "ages 12-24 months"
-        (?!\d+\s*months\b)                # not "ages 12 months"
-        (\d{1,2})(?:\s*(?:[-–]|to)\s*(\d{1,2}))?
+        rf"""
+        ages?\s*[: ]*                      # allow optional colon after 'age/ages'
+        (?!\d+\s*[-–]\s*\d+\s*{MONTH_WORDS}\b)   # not "ages 12-24 months"
+        (?!\d+\s*{MONTH_WORDS}\b)                # not "ages 12 months"
+        (\d{{1,2}})(?:\s*(?:[-–]|to)\s*(\d{{1,2}}))?
         \b
         """,
         t, flags=re.I | re.X
@@ -150,10 +150,26 @@ def _extract_year_spans(text: str):
         spans.append((a, b))
 
 
-
     # (3) "X+ years" — also guard against "X+ months"
     for m in re.finditer(rf"(\d{{1,2}})\s*\+\s*(?:{YEAR_WORDS})?(?!\s*{MONTH_WORDS})\b", t, flags=re.I):
         a = int(m.group(1)); spans.append((a, 99))
+
+    # (3b) "X and above / X and up / X and over / X or older" (treat like 'X+'), BUT not months
+    for m in re.finditer(
+        rf"""
+        (?:age|ages|target\s*age)?\s*[: ]*
+        (\d{{1,2}})
+        (?!\s*{MONTH_WORDS}\b)                 # don't match "12 months and older"
+        \s*(?:and\s+(?:above|over|up)|or\s+older)\b
+        """,
+        t, flags=re.I | re.X
+    ):
+        a = int(m.group(1))
+        # Keep this clamp if you DON'T want 'Adults 18+' added for phrases like "16 and up".
+        # If you do want Adults in those cases, change 17.99 to 99.
+        hi = 17.99 if 12 <= a <= 17 else 99
+        spans.append((a, hi))
+
 
     # --- GRADES & SCHOOL LEVELS ---
     if re.search(r"\b(pre[-\s]?k|prek|prekinder(?:garten)?)\b", t): spans.append((3.0, 4.99))
