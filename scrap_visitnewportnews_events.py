@@ -88,6 +88,52 @@ def fix_time_sanity(s: str) -> str:
         pass
     return s
 
+def _parse_api_meridiem(s: str) -> str | None:
+    """Return 'AM' or 'PM' if we can infer it from API startTime (12h or 24h)."""
+    if not s:
+        return None
+    t = s.strip()
+    # 24h like '14:30:00'
+    m24 = re.match(r"^(\d{1,2}):(\d{2})(?::\d{2})?$", t)
+    if m24:
+        h = int(m24.group(1))
+        return "PM" if 12 <= h <= 23 else "AM"
+    # 12h like '2:30 PM'
+    m12 = re.search(r"\b([AP])M\b", t, re.I)
+    if m12:
+        return m12.group(0).upper()
+    return None
+
+def align_with_api_meridiem(time_str: str, api_start: str) -> str:
+    """
+    If API says PM but our time_str says AM (or vice-versa), fix it.
+    Also handles single times by synthesizing +60 min using the API's meridiem.
+    """
+    mer = _parse_api_meridiem(api_start)
+    if not time_str or not mer:
+        return time_str
+
+    # Single time like '2:30 AM' → make a 1h range with API meridiem
+    single = re.match(r"^\s*(\d{1,2}:\d{2})\s*([AP]M)\s*$", time_str, re.I)
+    if single:
+        hhmm = single.group(1)
+        start = datetime.strptime(f"{hhmm} {mer}", "%I:%M %p")
+        end = start + timedelta(minutes=60)
+        return f"{start.strftime('%-I:%M %p')} - {end.strftime('%-I:%M %p')}"
+
+    # Range like '2:30 AM - 3:30 AM' → set both to API meridiem, then bump end if needed
+    rng = re.match(r"^\s*(\d{1,2}:\d{2})\s*([AP]M)\s*-\s*(\d{1,2}:\d{2})\s*([AP]M)\s*$", time_str, re.I)
+    if rng:
+        sh, sm, eh, em = rng.groups()
+        s_dt = datetime.strptime(f"{sh} {mer}", "%I:%M %p")
+        e_dt = datetime.strptime(f"{eh} {mer}", "%I:%M %p")
+        if e_dt <= s_dt:
+            e_dt += timedelta(hours=12)  # usual afternoon window
+        return f"{s_dt.strftime('%-I:%M %p')} - {e_dt.strftime('%-I:%M %p')}"
+
+    return time_str
+
+
 def check_keyword(word, text):
     pattern = rf'\b{re.escape(word)}\b'
     if re.search(pattern, text, re.IGNORECASE):
@@ -155,7 +201,7 @@ def filter_data(data):
         d['Event Name'] = d.get('title', '')
         d['Event Description'] = d.get('description', '')
 
-        # 1) Build a single string from the API fields
+        # 1) Build time string
         t = normalize_time_from_fields(
             times_text=d.get('times'),
             start_time=d.get('startTime'),
@@ -163,14 +209,16 @@ def filter_data(data):
             default_minutes=60
         )
         
-        # 2) Normalize separators / missing meridiems (handles "to", "5 p.m.", etc.)
+        # 2) Normalize separators / odd meridiems ("to", "p.m.", etc.)
         t = fix_time_range(t)
         
-        # 3) Sanity guard: if it still says "AM - AM" and end <= start, flip to PM
+        # 3) Sanity flip (AM–AM with end <= start → PM)
         t = fix_time_sanity(t)
         
+        # 4) Align with API startTime meridiem (fixes 2:30 AM → 2:30 PM cases)
+        t = align_with_api_meridiem(t, d.get('startTime') or "")
+        
         d['Time'] = t
-
 
         # ---- BEGIN: fix identical start/end ----
         def _fmt_time12(dt):
