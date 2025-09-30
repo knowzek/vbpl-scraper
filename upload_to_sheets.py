@@ -17,6 +17,19 @@ PLACEHOLDER = "LIST_COSPLAY_ANIME_COMICS"  # something that will never appear na
 
 SYNTHESIZE_SINGLE_FOR = {"visitchesapeake", "visitnewportnews"}
 
+DASH_SPLIT = re.compile(r"\s+[-–—]\s+")  # space + dash + space (handles -, – , —)
+
+def _strip_room_suffix(loc: str) -> str:
+    """
+    'Russell Memorial Library - Activity Room, Atrium' → 'Russell Memorial Library'
+    """
+    base = (loc or "").strip()
+    if not base:
+        return ""
+    # split once on the first " - " (or –/—) and take the left side
+    return DASH_SPLIT.split(base, 1)[0].strip()
+
+
 def _synthesize_one_hour_range(start_str: str, year=None, month=None, day=None, minutes: int = 60) -> str:
     """
     Turn 'H:MM AM/PM' (or 'H AM/PM') into 'H:MM AM/PM - H:MM AM/PM',
@@ -700,15 +713,25 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 # Decide what to put in the Google Sheet "Location" (Column F)
                 organizer = (event.get("Organizer", "") or "").strip().lower()
                 if library == "visithampton" and organizer == "fort monroe national monument":
-                    sheet_location = "Fort Monroe Visitor & Education Center"
+                    raw_location = "Fort Monroe Visitor & Education Center"
                 elif library == "visithampton":
-                    sheet_location = (event.get("Venue", "") or "").strip()
+                    raw_location = (event.get("Venue", "") or "").strip()
                 else:
-                    sheet_location = (event.get("Location", "") or "").strip()
-
-                # Normalize Location via constants.py venue_names (case-insensitive)
-                loc_key = re.sub(r"^Library Branch:", "", sheet_location).strip()
+                    raw_location = (event.get("Location", "") or "").strip()
+                
+                # 1) strip room/area suffix after " - "
+                raw_location = _strip_room_suffix(raw_location)
+                
+                # 2) remove 'Library Branch:' prefix, then try to map to a canonical venue
+                loc_key = re.sub(r"^Library Branch:", "", raw_location).strip()
+                
+                # 3) check if this venue exists in the map (case-insensitive)
+                venue_map_present = bool(venue_names_map_lc)              # only enforce if a map is provided
+                venue_in_map      = venue_map_present and (loc_key.lower() in venue_names_map_lc)
+                
+                # 4) normalize via map; fall back to the stripped value
                 sheet_location = venue_names_map_lc.get(loc_key.lower(), loc_key)
+
 
                 time_str = _normalize_time_for_upload(
                     event.get("Time", ""),
@@ -741,12 +764,17 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 time_raw = time_str 
                 t = (time_raw or "").strip().lower()
                 title    = (event.get("Event Name") or "")
+                # Require mapped venue only for VisitChesapeake
+                enforce_venue_map = (library == "visitchesapeake")
+                
+                missing_mapped_venue = enforce_venue_map and venue_map_present and (not venue_in_map)
                 
                 needs_attention = (
                     not (desc_value or "").strip() or              # missing description
                     not (sheet_location or "").strip() or          # missing location
                     not _has_valid_time_str(time_str) or           # missing/invalid time
                     ("exhibit" in title.lower())                   # exhibit keyword
+                    missing_mapped_venue 
                 )
                 
                 # --- Time integrity check: if NOT all-day and end time is missing → NEEDS ATTENTION
