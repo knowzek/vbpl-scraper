@@ -23,8 +23,9 @@ STRICT_VENUE_LIBS = {"vbpl", "npl", "chpl", "nnpl", "hpl", "spl", "ppl"}
 NEEDS_ATTENTION_EMAIL = os.environ.get("NEEDS_ATTENTION_EMAIL")  # set in Render
 
 MASTER_SPREADSHEET_NAME = os.environ.get("MASTER_SPREADSHEET_NAME", "Master Events")
-MASTER_WORKSHEET_NAME   = os.environ.get("MASTER_WORKSHEET_NAME", "Events")  # change if your tab name differs
+MASTER_WORKSHEET_NAME   = os.environ.get("MASTER_WORKSHEET_NAME", "Master Events")  # change if your tab name differs
 USE_MASTER_SHEET        = os.environ.get("USE_MASTER_SHEET", "1") == "1"     # set to "0" to fall back to per-lib sheets
+MASTER_SPREADSHEET_ID   = os.environ.get("1v4-5ZSZGpMshiZZnG8q0z9NTKHHdq95y6HmxkWsCheQ", "")
 
 
 def _retry(fn, *args, **kwargs):
@@ -208,7 +209,13 @@ def export_events_to_csv(library="vbpl", return_df=False, needs_bucket=None):
     if USE_MASTER_SHEET:
         sheet = _retry(client.open, MASTER_SPREADSHEET_NAME).worksheet(MASTER_WORKSHEET_NAME)
     else:
-        sheet = _retry(client.open, config["spreadsheet_name"]).worksheet(config["worksheet_name"])
+        if USE_MASTER_SHEET and MASTER_SPREADSHEET_ID:
+            sheet = _retry(client.open_by_key, MASTER_SPREADSHEET_ID).worksheet(MASTER_WORKSHEET_NAME)
+        elif USE_MASTER_SHEET:
+            sheet = _retry(client.open, MASTER_SPREADSHEET_NAME).worksheet(MASTER_WORKSHEET_NAME)
+        else:
+            sheet = _retry(client.open, config["spreadsheet_name"]).worksheet(config["worksheet_name"])
+
 
     df = pd.DataFrame(_retry(sheet.get_all_records))
     # If we’re using the master sheet, scope rows to the requested library
