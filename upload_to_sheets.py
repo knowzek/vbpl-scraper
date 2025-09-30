@@ -15,6 +15,28 @@ import pandas as pd
 SPECIAL_MULTIWORD = "List - Cosplay, Anime, Comics"
 PLACEHOLDER = "LIST_COSPLAY_ANIME_COMICS"  # something that will never appear naturally
 
+SYNTHESIZE_SINGLE_FOR = {"visitchesapeake", "visitnewportnews"}
+
+def _synthesize_one_hour_range(start_str: str, year=None, month=None, day=None, minutes: int = 60) -> str:
+    """
+    Turn 'H:MM AM/PM' (or 'H AM/PM') into 'H:MM AM/PM - H:MM AM/PM',
+    anchored to the row's date so AM/PM rollovers (11:30 AM → 12:30 PM) are correct.
+    """
+    s = start_str.strip().upper().replace(".", "")
+    # allow '3 PM' or '3:00 PM'
+    try:
+        dt = datetime.strptime(s, "%I:%M %p")
+    except ValueError:
+        dt = datetime.strptime(s, "%I %p")
+    if year and month and day:
+        dt = datetime(int(year), int(month), int(day), dt.hour, dt.minute)
+    else:
+        today = datetime.today()
+        dt = datetime(today.year, today.month, today.day, dt.hour, dt.minute)
+    end = dt + timedelta(minutes=minutes)
+    return f"{dt.strftime('%-I:%M %p')} - {end.strftime('%-I:%M %p')}"
+
+
 def _protect_special_labels(text: str) -> str:
     return (text or "").replace(SPECIAL_MULTIWORD, PLACEHOLDER)
 
@@ -162,16 +184,20 @@ def _normalize_time_for_upload(raw: str, library: str, year=None, month=None, da
     best = max(scored, key=lambda x: x[0])[1]
     cleaned = _extract_times_from_segment(best)
 
-    # Fallback: if nothing parsed from best, try others
+        # Fallback: if nothing parsed from best, try others
     if not cleaned:
         for _, s in sorted(scored, reverse=True):
             cleaned = _extract_times_from_segment(s)
             if cleaned:
                 break
 
+    # NEW: If the chosen result is a single time, synthesize +60 minutes
+    if cleaned and library in SYNTHESIZE_SINGLE_FOR:
+        if re.match(r"^\s*\d{1,2}(:\d{2})?\s*[AP]M\s*$", cleaned, re.I):
+            start_norm = _fmt_one_time(cleaned)  # ensure 'H:MM AM/PM'
+            return _synthesize_one_hour_range(start_norm, year, month, day, minutes=60)
+
     return cleaned
-
-
 
 def _has_valid_time_str(t: str) -> bool:
     t = (t or "").strip().lower()
