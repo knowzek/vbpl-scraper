@@ -168,61 +168,70 @@ def _normalize_time_for_upload(raw: str, library: str, year=None, month=None, da
     if not t:
         return ""
 
-    # Only tighten for VisitChesapeake
-    if library != "visitchesapeake":
-        return t
+    cleaned = t  # default pass-through
 
-    # Drop obvious labels at the very start
-    t = re.sub(r"^\s*(?:time|times|hours|start|starts)\s*:\s*", "", t, flags=re.I)
+    # --- Special parsing ONLY for VisitChesapeake (multi-day segments like "Tue–Fri ...; Sat–Sun ...") ---
+    if library == "visitchesapeake":
+        # Drop obvious labels at the very start
+        t2 = re.sub(r"^\s*(?:time|times|hours|start|starts)\s*:\s*", "", t, flags=re.I)
 
-    # Split into logical chunks by semicolons
-    segs = [s for s in re.split(r"\s*;\s*", t) if s.strip()]
-    if not segs:
-        return ""
+        # Split into logical chunks by semicolons
+        segs = [s for s in re.split(r"\s*;\s*", t2) if s.strip()]
+        if not segs:
+            cleaned = ""
+        else:
+            wkd = _wk_from_ymd(year, month, day)
 
-    wkd = _wk_from_ymd(year, month, day)
+            # Score each segment: does its dayset include today?
+            scored = []
+            for s in segs:
+                days = _segment_dayset(s)
+                has_time = bool(re.search(r"\d", s))
+                score = 0
+                if has_time: score += 1
+                if wkd is not None and days and wkd in days: score += 2
+                if wkd is not None and not days: score += 1  # no day mentioned → generic
+                scored.append((score, s))
 
-    # Score each segment: does its dayset include today?
-    scored = []
-    for s in segs:
-        days = _segment_dayset(s)
-        has_time = bool(re.search(r"\d", s))
-        score = 0
-        if has_time: score += 1
-        if wkd is not None and days and wkd in days: score += 2
-        if wkd is not None and not days: score += 1  # no day mentioned → generic
-        scored.append((score, s))
+            # pick best segment
+            best = max(scored, key=lambda x: x[0])[1]
+            cleaned = _extract_times_from_segment(best)
 
-    # pick best segment
-    best = max(scored, key=lambda x: x[0])[1]
-    cleaned = _extract_times_from_segment(best)
+            # Fallback: if nothing parsed from best, try others
+            if not cleaned:
+                for _, s in sorted(scored, reverse=True):
+                    cleaned = _extract_times_from_segment(s)
+                    if cleaned:
+                        break
 
-        # Fallback: if nothing parsed from best, try others
-    if not cleaned:
-        for _, s in sorted(scored, reverse=True):
-            cleaned = _extract_times_from_segment(s)
-            if cleaned:
-                break
+    # --- VisitNorfolk: force missing-end or placeholder end → start + 60 minutes ---
+    if library == "visitnorfolk" and cleaned:
+        # Normalize dash types and whitespace (incl. non-breaking spaces)
+        cand = cleaned.replace("\u00A0", " ")
+        cand = re.sub(r"\s*[–—]\s*", " - ", cand)
+        cand = re.sub(r"\s+", " ", cand).strip()
 
-    # NEW: If the chosen result is a single time, synthesize +60 minutes
+        # Case A: single start time only
+        if re.match(r"^\s*\d{1,2}(:\d{2})?\s*[AP]M\s*$", cand, re.I):
+            start_norm = _fmt_one_time(cand)  # -> 'H:MM AM/PM'
+            return _synthesize_one_hour_range(start_norm, year, month, day, minutes=60)
+
+        # Case B: placeholder end 11:59 PM / 23:59
+        m = re.search(r"^\s*(\d{1,2}(?::\d{2})?\s*[ap]m)\s*-\s*(?:11:59\s*pm|23:59)\s*$", cand, re.I)
+        if m:
+            start_norm = _fmt_one_time(m.group(1))
+            return _synthesize_one_hour_range(start_norm, year, month, day, minutes=60)
+
+        cleaned = cand  # keep normalized spacing/dashes
+
+    # --- Generic: if the result is a single time, synthesize +60 for selected libs ---
     if cleaned and library in SYNTHESIZE_SINGLE_FOR:
         if re.match(r"^\s*\d{1,2}(:\d{2})?\s*[AP]M\s*$", cleaned, re.I):
             start_norm = _fmt_one_time(cleaned)  # ensure 'H:MM AM/PM'
             return _synthesize_one_hour_range(start_norm, year, month, day, minutes=60)
 
-    # VisitNorfolk special case: some helpers default to 11:59 PM when end is missing.
-    # Treat that as "start + 60 minutes".
-    if library == "visitnorfolk" and cleaned:
-        m = re.match(
-            r"^\s*(\d{1,2}(?::\d{2})?\s*[AP]M)\s*-\s*11:59\s*PM\s*$",
-            cleaned, re.I
-        )
-        if m:
-            start_norm = _fmt_one_time(m.group(1))  # -> 'H:MM AM/PM'
-            return _synthesize_one_hour_range(start_norm, year, month, day, minutes=60)
-
-
     return cleaned
+
 
 def _has_valid_time_str(t: str) -> bool:
     t = (t or "").strip().lower()
