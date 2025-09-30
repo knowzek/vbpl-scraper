@@ -42,7 +42,7 @@ def check_keyword(word, text):
 
 def get_categories(event):
     # Always-on tags
-    base_tags = ["Event Location - Portsmouth", "Audience - Family Event"]
+    base_tags = ["Event Location - Portsmouth"]
 
     # 1) Keyword-driven tags 
     keyword_tags = set()
