@@ -6,6 +6,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Storytime": "List - Storytimes",
     "baby storytime": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me",
     "baby Story Time": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me",
+    "just 2s": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
     "preschool storytime": "List - Storytimes, Audience - Preschool Age",
     "preschool Story Time": "List - Storytimes, Audience - Preschool Age",
     "toddler storytime": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
