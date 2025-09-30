@@ -392,15 +392,15 @@ LIBRARY_CONSTANTS = {
     
     "vbpl": {
         "program_type_to_categories": {
-            "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event, List - Storytimes",
-            "STEAM": "Event Location - Virginia Beach, List - STEM/STEAM, Audience - Free Event, Audience - Family Event",
-            "Computers & Technology": "Event Location - Virginia Beach, Audience - Free Event, Audience - Teens, Audience - Family Event",
-            "Workshops & Lectures": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
-            "Discussion Groups": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
-            "Arts & Crafts": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
-            "Hobbies": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
-            "Books & Authors": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
-            "Culture": "Event Location - Virginia Beach, Audience - Free Event, Audience - Family Event",
+            "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Free Event, List - Storytimes",
+            "STEAM": "Event Location - Virginia Beach, List - STEM/STEAM, Audience - Free Event",
+            "Computers & Technology": "Event Location - Virginia Beach, Audience - Free Event, Audience - Teens",
+            "Workshops & Lectures": "Event Location - Virginia Beach, Audience - Free Event",
+            "Discussion Groups": "Event Location - Virginia Beach, Audience - Free Event",
+            "Arts & Crafts": "Event Location - Virginia Beach, Audience - Free Event",
+            "Hobbies": "Event Location - Virginia Beach, Audience - Free Event",
+            "Books & Authors": "Event Location - Virginia Beach, Audience - Free Event",
+            "Culture": "Event Location - Virginia Beach, Audience - Free Event",
             "History & Genealogy": "Event Location - Virginia Beach, Audience - Teens, Audience - Free Event"
         },
         "name_suffix_map": {
@@ -432,19 +432,18 @@ LIBRARY_CONSTANTS = {
         "always_on_categories": [
         "Event Location - Poquoson",
         "Audience - Free Event",
-        "Audience - Family Event",
     ],
         "program_type_to_categories": {
-            "Storytimes & Early Learning": "Audience - Free Event, Audience - Family Event, List - Storytimes",
-            "STEAM": "List - STEM/STEAM, Audience - Free Event, Audience - Family Event",
-            "Computers & Technology": "Audience - Free Event, Audience - Teens, Audience - Family Event",
-            "Workshops & Lectures": "Audience - Free Event, Audience - Family Event",
-            "Discussion Groups": "Audience - Free Event, Audience - Family Event",
-            "Arts & Crafts": "Audience - Free Event, Audience - Family Event",
-            "Hobbies": "Audience - Free Event, Audience - Family Event",
-            "Books & Authors": "Audience - Free Event, Audience - Family Event",
-            "Culture": "Audience - Free Event, Audience - Family Event",
-            "History & Genealogy": "Audience - Teens, Audience - Free Event"
+            "Storytimes & Early Learning": "Audience - Free Event, List - Storytimes",
+            "STEAM": "List - STEM/STEAM, Audience - Free Event",
+            "Computers & Technology": "Audience - Free Event, Audience - Teens",
+            "Workshops & Lectures": "Audience - Free Event",
+            "Discussion Groups": "Audience - Free Event",
+            "Arts & Crafts": "Audience - Free Event",
+            "Hobbies": "Audience - Free Event",
+            "Books & Authors": "Audience - Free Event",
+            "Culture": "Audience - Free Event",
+            "History & Genealogy": "Audience - Teens"
         },
         "name_suffix_map": {
             "Great Neck Area Library": "Great Neck Area Library",
