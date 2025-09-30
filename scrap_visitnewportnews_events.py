@@ -7,7 +7,6 @@ import pytz
 import re
 from constants import TITLE_KEYWORD_TO_CATEGORY_RAW
 
-
 BASE_URL = "https://www.visitnewportnews.com"
 
 HEADERS = {
@@ -36,13 +35,58 @@ COOKIES = {
     "_clsk": "y5y2zn|1755033054713|3|1|s.clarity.ms/collect"
 }
 
-# def extract_times(text):
-#    pattern = r'\b(?:0?[1-9]|1[0-2])(?:\:[0-5][0-9])?(?:am|pm)\b'
-#    lst = re.findall(pattern, text, re.IGNORECASE)
-#    for i,t in enumerate(lst):
-#        if ':' not in t:
-#            lst[i] = t[:-2] + ':00' + t[-2:]
-#    return lst
+def _norm_time_token(tok: str) -> str:
+    t = (tok or "").strip().lower().replace(".", "")
+    if t in {"noon", "12 noon"}: return "12:00 PM"
+    if t in {"midnight"}:        return "12:00 AM"
+    return tok
+
+def _fmt_to_12(s: str) -> datetime:
+    s = _norm_time_token(s).upper()
+    s = s.replace(".", "").strip()
+    if ":" not in s and ("AM" in s or "PM" in s):
+        s = s.replace("AM", ":00 AM").replace("PM", ":00 PM")
+    return datetime.strptime(s, "%I:%M %p") if ":" in s else datetime.strptime(s, "%I %p")
+
+def fix_time_range(s: str) -> str:
+    if not s:
+        return ""
+    s = re.sub(r"\s+to\s+", " - ", s, flags=re.I).strip()
+    m = re.match(
+        r"^\s*(\d{1,2}(?::\d{2})?)\s*([ap]\.?m\.?)\s*[-–—]\s*(\d{1,2}(?::\d{2})?)\s*([ap]\.?m\.?)?\s*$",
+        s, flags=re.I
+    )
+    if not m:
+        return s  # leave unchanged if it doesn’t match
+
+    sh, sm, eh, em = m.groups()
+    start = datetime.strptime(f"{sh} {sm}".replace(".", ""), "%I:%M %p" if ":" in sh else "%I %p")
+    if em:
+        end = datetime.strptime(f"{eh} {em}".replace(".", ""), "%I:%M %p" if ":" in eh else "%I %p")
+    else:
+        end = datetime.strptime(f"{eh} {start.strftime('%p')}", "%I:%M %p" if ":" in eh else "%I %p")
+        if end <= start:
+            end = end + timedelta(hours=12)
+    return f"{start.strftime('%-I:%M %p')} - {end.strftime('%-I:%M %p')}"
+
+def fix_time_sanity(s: str) -> str:
+    """
+    If we got '10:00 AM - 5:00 AM' but the source clearly means daytime hours,
+    flip the end to PM when start is AM and end<=start.
+    """
+    m = re.match(r'^\s*(\d{1,2}:\d{2})\s*([AP]M)\s*-\s*(\d{1,2}:\d{2})\s*([AP]M)\s*$', s, re.I)
+    if not m:
+        return s
+    sh, sm, eh, em = m.groups()
+    try:
+        s_dt = datetime.strptime(f"{sh} {sm.upper()}", "%I:%M %p")
+        e_dt = datetime.strptime(f"{eh} {em.upper()}", "%I:%M %p")
+        if sm.upper() == "AM" and em.upper() == "AM" and e_dt <= s_dt:
+            e_dt = e_dt + timedelta(hours=12)  # assume PM
+            return f"{s_dt.strftime('%-I:%M %p')} - {e_dt.strftime('%-I:%M %p')}"
+    except Exception:
+        pass
+    return s
 
 def check_keyword(word, text):
     pattern = rf'\b{re.escape(word)}\b'
@@ -111,13 +155,22 @@ def filter_data(data):
         d['Event Name'] = d.get('title', '')
         d['Event Description'] = d.get('description', '')
 
-        # One source of truth (handles 12/24h, "to"/dashes, seconds, multi-schedule safety)
-        d['Time'] = normalize_time_from_fields(
+        # 1) Build a single string from the API fields
+        t = normalize_time_from_fields(
             times_text=d.get('times'),
             start_time=d.get('startTime'),
             end_time=d.get('endTime'),
             default_minutes=60
         )
+        
+        # 2) Normalize separators / missing meridiems (handles "to", "5 p.m.", etc.)
+        t = fix_time_range(t)
+        
+        # 3) Sanity guard: if it still says "AM - AM" and end <= start, flip to PM
+        t = fix_time_sanity(t)
+        
+        d['Time'] = t
+
 
         # ---- BEGIN: fix identical start/end ----
         def _fmt_time12(dt):
@@ -343,8 +396,6 @@ def scrap_visitnewportnews(mode="all", max_workers=10):
     all_data = filter_data(all_data)
     # wJson(all_data, "all_data(visitnewportnews) new.json")
     return all_data
-
-
 
 
 if __name__ == "__main__":
