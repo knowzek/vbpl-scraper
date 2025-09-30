@@ -388,7 +388,11 @@ LIBRARY_CONSTANTS = {
             "Riverwalk Landing": "Riverwalk Landing",
             "Historic Main Street": "Historic Main Street Yorktown",
             "York Hall": "York Hall",
-            "Watermen's Museum": "Watermen's Museum"
+            "Watermen's Museum": "Watermen's Museum",
+            "American Revolution Museum": "American Revolution Museum",
+            "Townwide": "Yorktown, VA",
+            "Yorktown Battlefield Visitor Center": "Yorktown Battlefield Visitor Center",
+            "Grace Episcopal Church": "Grace Episcopal Church"            
         },
     
         "program_type_to_categories": {},
