@@ -22,10 +22,20 @@ from gspread.exceptions import APIError
 STRICT_VENUE_LIBS = {"vbpl", "npl", "chpl", "nnpl", "hpl", "spl", "ppl"}
 NEEDS_ATTENTION_EMAIL = os.environ.get("NEEDS_ATTENTION_EMAIL")  # set in Render
 
+# === MASTER SHEET OVERRIDE ===
+USE_MASTER_SHEET = True  # single CSV only
+MASTER_SPREADSHEET_ID = os.environ.get("MASTER_SPREADSHEET_ID")
 MASTER_SPREADSHEET_NAME = os.environ.get("MASTER_SPREADSHEET_NAME", "Master Events")
-MASTER_WORKSHEET_NAME   = os.environ.get("MASTER_WORKSHEET_NAME", "Master Events")  # change if your tab name differs
-USE_MASTER_SHEET        = os.environ.get("USE_MASTER_SHEET", "1") == "1"     # set to "0" to fall back to per-lib sheets
-MASTER_SPREADSHEET_ID   = os.environ.get("1v4-5ZSZGpMshiZZnG8q0z9NTKHHdq95y6HmxkWsCheQ", "")
+MASTER_WORKSHEET_NAME = os.environ.get("MASTER_WORKSHEET_NAME", "Master Events")
+
+def _open_target_sheet(client, spreadsheet_name, worksheet_name):
+    if USE_MASTER_SHEET:
+        if MASTER_SPREADSHEET_ID:
+            return _retry(client.open_by_key, MASTER_SPREADSHEET_ID).worksheet(MASTER_WORKSHEET_NAME)
+        return _retry(client.open, MASTER_SPREADSHEET_NAME).worksheet(MASTER_WORKSHEET_NAME)
+    # legacy (not used when USE_MASTER_SHEET=True)
+    return _retry(client.open, spreadsheet_name).worksheet(worksheet_name)
+
 
 
 def _retry(fn, *args, **kwargs):
@@ -190,7 +200,7 @@ def send_notification_email(file_url, subject, recipient):
 
     print(f"📬 Email sent to {recipient}")
 
-def export_events_to_csv(library="vbpl", return_df=False, needs_bucket=None):
+def export_events_to_csv(library="vbpl", return_df=False, needs_bucket=None, send_email=True):
     config = get_library_config(library)
     constants = LIBRARY_CONSTANTS.get(library, {})
     name_suffix_map = constants.get("name_suffix_map", {})
@@ -507,7 +517,9 @@ def export_events_to_csv(library="vbpl", return_df=False, needs_bucket=None):
     export_df.to_csv(csv_path, index=False)
     print(f"✅ Exported {len(export_df)} events to CSV (from {original_row_count} original rows)")
 
-    send_notification_email_with_attachment(csv_path, config["email_subject"], config["email_recipient"])
+    if send_email and not USE_MASTER_SHEET:
+        send_notification_email_with_attachment(csv_path, config["email_subject"], config["email_recipient"])
+
 
     # 🔧 Force-mark everything we just exported as on site (in-memory)
     df.loc[:, "Site Sync Status"] = "on site"
@@ -545,39 +557,28 @@ def export_events_to_csv(library="vbpl", return_df=False, needs_bucket=None):
     return csv_path
 
 if __name__ == "__main__":
-    LIBRARIES = ["visitnewportnews"]
-    print("🧪 Running unified CSV export for LIBRARIES:", LIBRARIES)
+    print("🚀 Exporting from MASTER sheet only …")
 
-    needs_bucket = []   # collect NEEDS ATTENTION across libs
-    all_exports  = []   # collect per-lib upload CSV DataFrames
+    needs_bucket = []
+    # Build one DataFrame from Master; no per-library emails
+    master_df = export_events_to_csv(library="master", return_df=True, needs_bucket=needs_bucket, send_email=False)
 
-    for lib in LIBRARIES:
-        print(f"🚀 Exporting {lib} …")
-        df = export_events_to_csv(lib, return_df=True, needs_bucket=needs_bucket)
-        if df is not None and not df.empty:
-            all_exports.append(df)
-        time.sleep(8)  # smooth out per-minute read bursts
-
-    # --- Combined events export (from all per-lib upload CSVs) ---
-    if all_exports:
-        master_df = pd.concat(all_exports, ignore_index=True)
+    if master_df is not None and not master_df.empty:
         csv_path = "combined_events_export.csv"
         master_df.to_csv(csv_path, index=False)
-        print(f"✅ Wrote combined CSV with {len(master_df)} events")
+        print(f"✅ Wrote combined CSV with {len(master_df)} events → {csv_path}")
 
-        subject = "Unified Events Export"
         recipient = os.environ.get("EXPORT_RECIPIENT", "knowzek@gmail.com")
-        send_notification_email_with_attachment(csv_path, subject, recipient)
+        send_notification_email_with_attachment(csv_path, "Unified Events Export", recipient)
     else:
-        print("🚫 No events to export across all libraries.")
+        print("🚫 No events to export from Master.")
 
-    # --- Write & email NEEDS ATTENTION roll-up ---
+    # NEEDS ATTENTION roll-up from the same Master sheet
     if needs_bucket:
         na_df = pd.concat(needs_bucket, ignore_index=True)
         sort_cols = [c for c in ["Year","Month","Day","Library","Event Name"] if c in na_df.columns]
         if sort_cols:
             na_df = na_df.sort_values(sort_cols, kind="stable")
-
         today_str = datetime.now().strftime("%Y-%m-%d")
         na_csv_path = f"needs_attention_{today_str}.csv"
         na_df.to_csv(na_csv_path, index=False, encoding="utf-8")
@@ -592,4 +593,4 @@ if __name__ == "__main__":
         else:
             print("⚠️ NEEDS_ATTENTION_EMAIL not set; file saved only:", na_csv_path)
     else:
-        print("✅ No rows marked 'NEEDS ATTENTION' across libraries.")
+        print("✅ No rows marked 'NEEDS ATTENTION'.")
