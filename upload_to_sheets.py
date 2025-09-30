@@ -16,6 +16,7 @@ SPECIAL_MULTIWORD = "List - Cosplay, Anime, Comics"
 PLACEHOLDER = "LIST_COSPLAY_ANIME_COMICS"  # something that will never appear naturally
 
 SYNTHESIZE_SINGLE_FOR = {"visitchesapeake", "visitnewportnews", "visitnorfolk"}
+ENFORCE_VENUE_MAP_FOR = {"visitchesapeake", "visityorktown", "visitnorfolk"}
 
 DASH_SPLIT = re.compile(r"\s+[-–—]\s+")  # space + dash + space (handles -, – , —)
 
@@ -839,7 +840,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 # venue_in_map = (loc_key.lower() in venue_names_map_lc) if venue_map_present else False
                 
                 # Only enforce the venue map for VisitChesapeake
-                enforce_venue_map     = (library == "visitchesapeake")
+                enforce_venue_map     = (library in ENFORCE_VENUE_MAP_FOR)
                 missing_mapped_venue  = enforce_venue_map and venue_map_present and (not venue_in_map)
                 
                 # Basic time checks (on the normalized string)
