@@ -129,7 +129,6 @@ def scrape_YPL_events(mode="all"):
                 if (not description) or looks_like_disclaimer:
                     try:
                         detail_headers = dict(HEADERS)
-                        # give the detail request a sane referer to mimic browser flow
                         detail_headers["Referer"] = f"{BASE}/events"
                         dr = requests.get(link, headers=detail_headers, timeout=30)
                         if dr.ok:
@@ -141,11 +140,15 @@ def scrape_YPL_events(mode="all"):
                             )
                             if body_el:
                                 description = _strip_disclaimer(body_el.get_text(" ", strip=True))
+                            # ⬇️ NEW: append any page messages as separate paragraphs
+                            description = _append_ypl_messages_from_soup(description, dsoup)
                     except Exception:
                         pass
+
                 
                 clean_description = description
-
+                # Make sure LibCal page messages are included even if we didn't fetch body above
+                clean_description = _append_ypl_messages(clean_description, link)
 
                 events.append({
                     "Event Name": name,
@@ -167,3 +170,39 @@ def scrape_YPL_events(mode="all"):
 
     print(f"✅ Scraped {len(events)} YPL events.")
     return events
+
+def _append_ypl_messages_from_soup(base_desc: str, dsoup: BeautifulSoup) -> str:
+    """Append each .lc-messages__message line as its own paragraph to base_desc."""
+    msgs_raw = dsoup.select(".lc-messages__message")
+    msgs = []
+    for li in msgs_raw:
+        txt = li.get_text(" ", strip=True)
+        if txt:
+            msgs.append(txt)
+
+    # dedupe while preserving order
+    seen = set()
+    msgs = [m for m in msgs if not (m in seen or seen.add(m))]
+
+    # skip messages already present in description (case-insensitive)
+    lower_desc = (base_desc or "").lower()
+    msgs = [m for m in msgs if m.lower() not in lower_desc]
+
+    if msgs:
+        block = "\n\n".join(msgs)
+        base_desc = (base_desc + ("\n\n" if base_desc else "") + block).strip()
+        base_desc = re.sub(r"\n{3,}", "\n\n", base_desc)  # tidy extra blank lines
+    return base_desc
+
+
+def _append_ypl_messages(base_desc: str, link: str) -> str:
+    """Fetch the event detail page and append .lc-messages__message to base_desc."""
+    try:
+        dr = requests.get(link, headers=HEADERS, timeout=30)
+        if not dr.ok:
+            return base_desc
+        dsoup = BeautifulSoup(dr.text, "html.parser")
+        return _append_ypl_messages_from_soup(base_desc, dsoup)
+    except Exception:
+        return base_desc
+
