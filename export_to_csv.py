@@ -203,11 +203,8 @@ def send_notification_email(file_url, subject, recipient):
 
     print(f"📬 Email sent to {recipient}")
 
-def export_events_to_csv(library="vbpl", return_df=False, needs_bucket=None, send_email=True):
-    config = get_library_config(library)
-    constants = LIBRARY_CONSTANTS.get(library, {})
-    name_suffix_map = constants.get("name_suffix_map", {})
-    suffix = config.get("event_name_suffix", "")
+def export_events_to_csv(library="master", return_df=False, needs_bucket=None, send_email=True):
+    use_master = USE_MASTER_SHEET or (str(library).strip().lower() == "master")
 
     creds = service_account.Credentials.from_service_account_file(
         "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON",
@@ -217,23 +214,31 @@ def export_events_to_csv(library="vbpl", return_df=False, needs_bucket=None, sen
             "https://www.googleapis.com/auth/gmail.send"
         ]
     )
-
     client = gspread.authorize(creds)
-    if USE_MASTER_SHEET:
-        sheet = _retry(client.open, MASTER_SPREADSHEET_NAME).worksheet(MASTER_WORKSHEET_NAME)
+
+    if use_master:
+        # Read everything from Master; no per-library config/constants
+        sheet = _open_master_sheet(client)
+        df = pd.DataFrame(_retry(sheet.get_all_records))
+        organizer_name = os.environ.get("MASTER_ORGANIZER_NAME", "Master Events")
+        constants = {}
+        name_suffix_map = {}
+        suffix = ""
     else:
-        if USE_MASTER_SHEET and MASTER_SPREADSHEET_ID:
-            sheet = _retry(client.open_by_key, MASTER_SPREADSHEET_ID).worksheet(MASTER_WORKSHEET_NAME)
-        elif USE_MASTER_SHEET:
-            sheet = _retry(client.open, MASTER_SPREADSHEET_NAME).worksheet(MASTER_WORKSHEET_NAME)
-        else:
-            sheet = _retry(client.open, config["spreadsheet_name"]).worksheet(config["worksheet_name"])
+        # Legacy per-library path (kept if you ever toggle USE_MASTER_SHEET=False)
+        config = get_library_config(library)
+        constants = LIBRARY_CONSTANTS.get(library, {})
+        name_suffix_map = constants.get("name_suffix_map", {})
+        suffix = config.get("event_name_suffix", "")
+        organizer_name = config["organizer_name"]
 
+        sheet = _retry(client.open, config["spreadsheet_name"]).worksheet(config["worksheet_name"])
+        df = pd.DataFrame(_retry(sheet.get_all_records))
 
-    df = pd.DataFrame(_retry(sheet.get_all_records))
-    # If we’re using the master sheet, scope rows to the requested library
-    if USE_MASTER_SHEET and "Library" in df.columns and library and library.upper() != "ALL":
-        df = df[df["Library"].astype(str).str.strip().str.lower() == library.strip().lower()]
+    # If you ever want to export only one library’s rows from Master, uncomment:
+    # if use_master and "Library" in df.columns and library not in (None, "", "master", "ALL"):
+    #     df = df[df["Library"].astype(str).str.strip().str.lower() == library.strip().lower()]
+
 
 
     # 🔧 Convert all columns to string safely
@@ -268,9 +273,14 @@ def export_events_to_csv(library="vbpl", return_df=False, needs_bucket=None, sen
     
     needs_df = df.loc[needs_mask, needs_cols].copy()
     if not needs_df.empty:
-        needs_df.insert(0, "Library", library)  # keep provenance
+        # Prefer the sheet’s own Library column if present
+        if "Library" in df.columns:
+            needs_df.insert(0, "Library", df.loc[needs_mask, "Library"].astype(str).values)
+        else:
+            needs_df.insert(0, "Library", library)
         if needs_bucket is not None:
             needs_bucket.append(needs_df)
+
             
     df = df[df["Site Sync Status"].fillna("").str.strip().str.lower() == "new"]  
 
