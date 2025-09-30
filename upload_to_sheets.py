@@ -761,21 +761,40 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 existing_core = normalize(existing_row)
 
                 # --- Needs-Attention logic ---
-                time_raw = time_str 
+                time_raw = time_str  # use normalized value everywhere
                 t = (time_raw or "").strip().lower()
-                title    = (event.get("Event Name") or "")
-                # Require mapped venue only for VisitChesapeake
-                enforce_venue_map = (library == "visitchesapeake")
+                title = (event.get("Event Name") or "")
                 
-                missing_mapped_venue = enforce_venue_map and venue_map_present and (not venue_in_map)
+                # If you didn't keep these earlier, uncomment the two lines below:
+                # venue_map_present = bool(venue_names_map_lc)
+                # venue_in_map = (loc_key.lower() in venue_names_map_lc) if venue_map_present else False
                 
-                needs_attention = (
-                    not (desc_value or "").strip() or              # missing description
-                    not (sheet_location or "").strip() or          # missing location
-                    not _has_valid_time_str(time_str) or           # missing/invalid time
-                    ("exhibit" in title.lower())                   # exhibit keyword
-                    missing_mapped_venue 
-                )
+                # Only enforce the venue map for VisitChesapeake
+                enforce_venue_map     = (library == "visitchesapeake")
+                missing_mapped_venue  = enforce_venue_map and venue_map_present and (not venue_in_map)
+                
+                # Basic time checks (on the normalized string)
+                is_all_day     = ("all day" in t) or ("ongoing" in t)
+                start_present  = bool(re.search(r"\b\d{1,2}(:\d{2})?\s*[ap]m\b", t, re.I))
+                has_end        = bool(re.search(r"\b\d{1,2}(:\d{2})?\s*[ap]m\b\s*[-–—]\s*\d{1,2}(:\d{2})?\s*[ap]m\b", t, re.I))
+                missing_end_time = (not is_all_day) and start_present and (not has_end)
+                
+                # Individual flags
+                missing_desc  = not (desc_value or "").strip()
+                missing_loc   = not (sheet_location or "").strip()
+                invalid_time  = not _has_valid_time_str(time_raw)
+                is_exhibit    = "exhibit" in title.lower()
+                
+                # Final decision
+                needs_attention = any([
+                    missing_desc,          # missing description
+                    missing_loc,           # missing location (Column F after normalization)
+                    invalid_time,          # missing/invalid time
+                    is_exhibit,            # contains 'exhibit'
+                    missing_mapped_venue,  # venue not in Constants.py map (visitchesapeake only)
+                    missing_end_time       # start present but no end (non All-Day)
+                ])
+
                 
                 # --- Time integrity check: if NOT all-day and end time is missing → NEEDS ATTENTION
                 time_raw = (event.get("Time", "") or "").strip()
