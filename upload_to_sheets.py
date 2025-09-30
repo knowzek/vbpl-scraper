@@ -51,69 +51,126 @@ TIME_OK = re.compile(r"\b\d{1,2}(:\d{2})?\s*[ap]m\b", re.I)
 
 DAY_WORD = r"(?:mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)"
 
-def _normalize_time_for_upload(raw: str, library: str) -> str:
-    """Standardize free-text time into 'H:MM AM - H:MM PM' or '' if ambiguous."""
+DAY_WORD = r"(?:mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)"
+_DAY_IDX = {"mon":0,"tue":1,"wed":2,"thu":3,"fri":4,"sat":5,"sun":6}
+
+def _wk_from_ymd(y, m, d):
+    try:
+        return datetime(int(y), int(m), int(d)).weekday()
+    except Exception:
+        return None
+
+def _day_idx(tok: str):
+    return _DAY_IDX.get(tok[:3].lower())
+
+def _segment_dayset(seg: str):
+    s = seg.lower()
+    if "daily" in s or "every day" in s:
+        return set(range(7))
+    days = set()
+    if "weekend" in s:
+        days.update({5, 6})
+    if "weekday" in s:
+        days.update({0,1,2,3,4})
+    # ranges like "tuesday-friday"
+    for a, b in re.findall(rf"\b({DAY_WORD})\s*[-–]\s*({DAY_WORD})\b", s):
+        ia, ib = _day_idx(a), _day_idx(b)
+        if ia is not None and ib is not None:
+            if ia <= ib:
+                days.update(range(ia, ib+1))
+            else:  # wrap-around, e.g., sat-mon
+                days.update(list(range(ia,7)) + list(range(0,ib+1)))
+    # singular/plural days like "Saturdays", "Sunday"
+    for tok in re.findall(rf"\b{DAY_WORD}s?\b", s):
+        i = _day_idx(tok)
+        if i is not None:
+            days.add(i)
+    return days
+
+def _fmt_one_time(p: str) -> str:
+    x = (p or "").strip().lower().replace(".", "")
+    if x in {"noon","12 noon"}: return "12:00 PM"
+    if x == "midnight":         return "12:00 AM"
+    # 3p / 3 p → 3:00 pm
+    x = re.sub(r"\b(\d{1,2})\s*([ap])\b", r"\1:00 \2m", x)
+    # ensure space before am/pm, drop leading zero hour
+    x = re.sub(r"(\d)([ap]m)\b", r"\1 \2", x)
+    x = re.sub(r"\b0?(\d):", r"\1:", x)
+    X = x.upper()
+    for fmt in ("%I:%M %p", "%I %p"):
+        try:
+            dt = datetime.strptime(X, fmt)
+            return dt.strftime("%-I:%M %p") if ":" in X else dt.strftime("%-I %p")
+        except ValueError:
+            continue
+    return p.strip()
+
+def _extract_times_from_segment(seg: str):
+    s = re.sub(r"\s+to\s+", " - ", seg, flags=re.I)
+    s = re.sub(r"\s+", " ", s).strip()
+    # full range
+    m = re.search(r"(\d{1,2}(?::\d{2})?\s*[ap]\.?m\.?)\s*[-–—]\s*(\d{1,2}(?::\d{2})?\s*[ap]\.?m\.?)", s, re.I)
+    if m:
+        a, b = _fmt_one_time(m.group(1)), _fmt_one_time(m.group(2))
+        # if AM→AM and b<=a, bump to PM
+        try:
+            sdt = datetime.strptime(a, "%-I:%M %p")
+            edt = datetime.strptime(b, "%-I:%M %p")
+            if "AM" in a and "AM" in b and edt <= sdt:
+                edt = edt + timedelta(hours=12)
+                b = edt.strftime("%-I:%M %p")
+        except Exception:
+            pass
+        return f"{a} - {b}"
+    # single time
+    m = re.search(r"(\d{1,2}(?::\d{2})?\s*[ap]\.?m\.?)", s, re.I)
+    if m:
+        return _fmt_one_time(m.group(1))
+    return ""
+
+def _normalize_time_for_upload(raw: str, library: str, year=None, month=None, day=None) -> str:
     t = (raw or "").strip()
     if not t:
         return ""
 
-    # Only tighten for sources that send lots of prose-y times
-    if library not in {"visitchesapeake"}:
+    # Only tighten for VisitChesapeake
+    if library != "visitchesapeake":
         return t
 
-    # Drop obvious labels
-    t = re.sub(r"^\s*(?:time|times|hours)\s*:\s*", "", t, flags=re.I)
+    # Drop obvious labels at the very start
+    t = re.sub(r"^\s*(?:time|times|hours|start|starts)\s*:\s*", "", t, flags=re.I)
 
-    # Remove weekday ranges like 'tuesday-friday ' at the front
-    t = re.sub(rf"^\s*{DAY_WORD}(?:\s*[-–]\s*{DAY_WORD})*\s*", "", t, flags=re.I)
-
-    # If it looks like instructions (not a time), empty it so we flag NEEDS ATTENTION
-    if re.search(r"\b(see|check|details?|varies|call|contact|by\s+appointment)\b", t, flags=re.I):
+    # Split into logical chunks by semicolons
+    segs = [s for s in re.split(r"\s*;\s*", t) if s.strip()]
+    if not segs:
         return ""
 
-    # Unify 'to' → dash
-    t = re.sub(r"\s+to\s+", " - ", t, flags=re.I)
-    t = re.sub(r"\s+", " ", t).strip()
+    wkd = _wk_from_ymd(year, month, day)
 
-    # Split into start / end (if any)
-    parts = [p.strip() for p in re.split(r"\s*[-–—]\s*", t) if p.strip()]
+    # Score each segment: does its dayset include today?
+    scored = []
+    for s in segs:
+        days = _segment_dayset(s)
+        has_time = bool(re.search(r"\d", s))
+        score = 0
+        if has_time: score += 1
+        if wkd is not None and days and wkd in days: score += 2
+        if wkd is not None and not days: score += 1  # no day mentioned → generic
+        scored.append((score, s))
 
-    def _fmt_one(p: str) -> str:
-        x = p.lower().replace(".", "").strip()
-        if x in {"noon", "12 noon"}: return "12:00 PM"
-        if x == "midnight":          return "12:00 AM"
-        # 3pm / 3 pm → 3:00 pm
-        x = re.sub(r"\b(\d{1,2})\s*([ap])\b", r"\1:00 \2m", x)
-        # 09:00am → 9:00 am (drop leading zero), ensure space before am/pm
-        x = re.sub(r"\b0?(\d):", r"\1:", x)
-        x = re.sub(r"(\d)([ap]m)\b", r"\1 \2", x)
-        X = x.upper()
-        try:
-            dt = datetime.strptime(X, "%I:%M %p") if ":" in X else datetime.strptime(X, "%I %p")
-            return dt.strftime("%-I:%M %p") if ":" in X else dt.strftime("%-I %p")
-        except Exception:
-            return p  # leave as-is if it doesn't parse
+    # pick best segment
+    best = max(scored, key=lambda x: x[0])[1]
+    cleaned = _extract_times_from_segment(best)
 
-    if not parts:
-        return ""
+    # Fallback: if nothing parsed from best, try others
+    if not cleaned:
+        for _, s in sorted(scored, reverse=True):
+            cleaned = _extract_times_from_segment(s)
+            if cleaned:
+                break
 
-    if len(parts) == 1:
-        return _fmt_one(parts[0])
+    return cleaned
 
-    start = _fmt_one(parts[0])
-    end   = _fmt_one(parts[1])
-
-    # If both parsed and end <= start while start is AM, assume the end meant PM
-    try:
-        sdt = datetime.strptime(start, "%-I:%M %p")
-        edt = datetime.strptime(end,   "%-I:%M %p")
-        if "AM" in start and edt <= sdt:
-            edt = edt + timedelta(hours=12)
-            end = edt.strftime("%-I:%M %p")
-    except Exception:
-        pass
-
-    return f"{start} - {end}"
 
 
 def _has_valid_time_str(t: str) -> bool:
@@ -627,7 +684,12 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 loc_key = re.sub(r"^Library Branch:", "", sheet_location).strip()
                 sheet_location = venue_names_map_lc.get(loc_key.lower(), loc_key)
 
-                time_str = _normalize_time_for_upload(event.get("Time", ""), library)
+                time_str = _normalize_time_for_upload(
+                    event.get("Time", ""),
+                    library,
+                    event.get("Year"), event.get("Month"), event.get("Day")
+                )
+
 
                 row_core = [
                     event_name,
