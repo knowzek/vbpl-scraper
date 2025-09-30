@@ -22,6 +22,11 @@ from gspread.exceptions import APIError
 STRICT_VENUE_LIBS = {"vbpl", "npl", "chpl", "nnpl", "hpl", "spl", "ppl"}
 NEEDS_ATTENTION_EMAIL = os.environ.get("NEEDS_ATTENTION_EMAIL")  # set in Render
 
+MASTER_SPREADSHEET_NAME = os.environ.get("MASTER_SPREADSHEET_NAME", "Master Events")
+MASTER_WORKSHEET_NAME   = os.environ.get("MASTER_WORKSHEET_NAME", "Events")  # change if your tab name differs
+USE_MASTER_SHEET        = os.environ.get("USE_MASTER_SHEET", "1") == "1"     # set to "0" to fall back to per-lib sheets
+
+
 def _retry(fn, *args, **kwargs):
     delay = 6
     for attempt in range(6):
@@ -200,8 +205,16 @@ def export_events_to_csv(library="vbpl", return_df=False, needs_bucket=None):
     )
 
     client = gspread.authorize(creds)
-    sheet = _retry(client.open, config["spreadsheet_name"]).worksheet(config["worksheet_name"])
+    if USE_MASTER_SHEET:
+        sheet = _retry(client.open, MASTER_SPREADSHEET_NAME).worksheet(MASTER_WORKSHEET_NAME)
+    else:
+        sheet = _retry(client.open, config["spreadsheet_name"]).worksheet(config["worksheet_name"])
+
     df = pd.DataFrame(_retry(sheet.get_all_records))
+    # If we’re using the master sheet, scope rows to the requested library
+    if USE_MASTER_SHEET and "Library" in df.columns and library and library.upper() != "ALL":
+        df = df[df["Library"].astype(str).str.strip().str.lower() == library.strip().lower()]
+
 
     # 🔧 Convert all columns to string safely
     for col in df.columns:
