@@ -49,6 +49,73 @@ def _has_unwanted_title(title: str) -> bool:
 
 TIME_OK = re.compile(r"\b\d{1,2}(:\d{2})?\s*[ap]m\b", re.I)
 
+DAY_WORD = r"(?:mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)"
+
+def _normalize_time_for_upload(raw: str, library: str) -> str:
+    """Standardize free-text time into 'H:MM AM - H:MM PM' or '' if ambiguous."""
+    t = (raw or "").strip()
+    if not t:
+        return ""
+
+    # Only tighten for sources that send lots of prose-y times
+    if library not in {"visitchesapeake"}:
+        return t
+
+    # Drop obvious labels
+    t = re.sub(r"^\s*(?:time|times|hours)\s*:\s*", "", t, flags=re.I)
+
+    # Remove weekday ranges like 'tuesday-friday ' at the front
+    t = re.sub(rf"^\s*{DAY_WORD}(?:\s*[-–]\s*{DAY_WORD})*\s*", "", t, flags=re.I)
+
+    # If it looks like instructions (not a time), empty it so we flag NEEDS ATTENTION
+    if re.search(r"\b(see|check|details?|varies|call|contact|by\s+appointment)\b", t, flags=re.I):
+        return ""
+
+    # Unify 'to' → dash
+    t = re.sub(r"\s+to\s+", " - ", t, flags=re.I)
+    t = re.sub(r"\s+", " ", t).strip()
+
+    # Split into start / end (if any)
+    parts = [p.strip() for p in re.split(r"\s*[-–—]\s*", t) if p.strip()]
+
+    def _fmt_one(p: str) -> str:
+        x = p.lower().replace(".", "").strip()
+        if x in {"noon", "12 noon"}: return "12:00 PM"
+        if x == "midnight":          return "12:00 AM"
+        # 3pm / 3 pm → 3:00 pm
+        x = re.sub(r"\b(\d{1,2})\s*([ap])\b", r"\1:00 \2m", x)
+        # 09:00am → 9:00 am (drop leading zero), ensure space before am/pm
+        x = re.sub(r"\b0?(\d):", r"\1:", x)
+        x = re.sub(r"(\d)([ap]m)\b", r"\1 \2", x)
+        X = x.upper()
+        try:
+            dt = datetime.strptime(X, "%I:%M %p") if ":" in X else datetime.strptime(X, "%I %p")
+            return dt.strftime("%-I:%M %p") if ":" in X else dt.strftime("%-I %p")
+        except Exception:
+            return p  # leave as-is if it doesn't parse
+
+    if not parts:
+        return ""
+
+    if len(parts) == 1:
+        return _fmt_one(parts[0])
+
+    start = _fmt_one(parts[0])
+    end   = _fmt_one(parts[1])
+
+    # If both parsed and end <= start while start is AM, assume the end meant PM
+    try:
+        sdt = datetime.strptime(start, "%-I:%M %p")
+        edt = datetime.strptime(end,   "%-I:%M %p")
+        if "AM" in start and edt <= sdt:
+            edt = edt + timedelta(hours=12)
+            end = edt.strftime("%-I:%M %p")
+    except Exception:
+        pass
+
+    return f"{start} - {end}"
+
+
 def _has_valid_time_str(t: str) -> bool:
     t = (t or "").strip().lower()
     if not t:
@@ -560,11 +627,13 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 loc_key = re.sub(r"^Library Branch:", "", sheet_location).strip()
                 sheet_location = venue_names_map_lc.get(loc_key.lower(), loc_key)
 
+                time_str = _normalize_time_for_upload(event.get("Time", ""), library)
+
                 row_core = [
                     event_name,
                     link,
                     event.get("Event Status", ""),
-                    event.get("Time", ""),
+                    time_str,  
                     event.get("Ages", ""),
                     sheet_location,
                     event.get("Month", ""),
@@ -581,7 +650,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 existing_core = normalize(existing_row)
 
                 # --- Needs-Attention logic ---
-                time_str = (event.get("Time") or "").strip()
+                time_raw = time_str 
+                t = (time_raw or "").strip().lower()
                 title    = (event.get("Event Name") or "")
                 
                 needs_attention = (
