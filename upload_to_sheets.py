@@ -15,7 +15,7 @@ import pandas as pd
 SPECIAL_MULTIWORD = "List - Cosplay, Anime, Comics"
 PLACEHOLDER = "LIST_COSPLAY_ANIME_COMICS"  # something that will never appear naturally
 
-SYNTHESIZE_SINGLE_FOR = {"visitchesapeake", "visitnewportnews"}
+SYNTHESIZE_SINGLE_FOR = {"visitchesapeake", "visitnewportnews", "visitnorfolk"}
 
 DASH_SPLIT = re.compile(r"\s+[-–—]\s+")  # space + dash + space (handles -, – , —)
 
@@ -209,6 +209,18 @@ def _normalize_time_for_upload(raw: str, library: str, year=None, month=None, da
         if re.match(r"^\s*\d{1,2}(:\d{2})?\s*[AP]M\s*$", cleaned, re.I):
             start_norm = _fmt_one_time(cleaned)  # ensure 'H:MM AM/PM'
             return _synthesize_one_hour_range(start_norm, year, month, day, minutes=60)
+
+    # VisitNorfolk special case: some helpers default to 11:59 PM when end is missing.
+    # Treat that as "start + 60 minutes".
+    if library == "visitnorfolk" and cleaned:
+        m = re.match(
+            r"^\s*(\d{1,2}(?::\d{2})?\s*[AP]M)\s*-\s*11:59\s*PM\s*$",
+            cleaned, re.I
+        )
+        if m:
+            start_norm = _fmt_one_time(m.group(1))  # -> 'H:MM AM/PM'
+            return _synthesize_one_hour_range(start_norm, year, month, day, minutes=60)
+
 
     return cleaned
 
