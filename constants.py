@@ -263,6 +263,14 @@ LIBRARY_CONSTANTS = {
             "Constant's Wharf Park &amp; Marina": "Constant’s Wharf",
             "Constant's Wharf Park & Marina": "Constant’s Wharf",
             "Holland Ballfield": "Holland Village Ball Field 3",
+            "Suffolk Executive Airport": "Suffolk Executive Airport",
+            "New Realm Brewing Company - Suffolk": "New Realm Brewing Company Suffolk",
+            "Sleepy Hole Park": "Sleepy Hole Park",
+            "North Suffolk Library": "North Suffolk Library",
+            "Lake Meade Park": "Lake Meade Park",
+            "Nansemond Brewing Station": "Nansemond Brewing Station",
+            "Boat Ramp at Bennett's Creek Park": "Bennett’s Creek Park",
+            "Bennett's Creek Park": "Bennett's Creek Park"
             
         },
         "event_name_suffix": " (Suffolk)"
