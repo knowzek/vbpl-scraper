@@ -102,6 +102,8 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Trick-or-Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
     "Trunk or Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
     "Trunk-or-Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
+    "fall festival": "List - Fall - Fall Festivals",
+    "corn maze": "List - Fall - Fall Festivals",
     "christmas": "Audience - Holiday Events",
     "christmas in july": "List - Summer - Christmas In July!",
     "santa": "List - Winter - Santa All",
@@ -476,7 +478,7 @@ LIBRARY_CONSTANTS = {
         "event_name_suffix": " (York County)",
         "age_to_categories": {
             "Families": "Audience - Family Event",
-            "Infants - Preschool": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Preschool Age",
+            #"Infants - Preschool": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Preschool Age",
             "Elementary": "Audience - School Age",
             "Children": "Audience - School Age",
             "All Ages": "Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Family Event",
