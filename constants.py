@@ -671,12 +671,12 @@ LIBRARY_CONSTANTS = {
             "Chuckatuck Library": "Chuckatuck Library"
         },
         "program_type_to_categories": {
-            "Early Childhood": "Audience - Family Event, Event Location - Suffolk, Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Audience - Toddler/Infant",
+            #"Early Childhood": "Audience - Family Event, Event Location - Suffolk, Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Audience - Toddler/Infant",
             "Elementary": "Audience - School Age, Audience - Free Event, Event Location - Suffolk",
             "Family": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk",
             "High School": "Audience - Teens, Audience - Free Event, Event Location - Suffolk",
             "Middle School": "Audience - Teens, Audience - Free Event, Event Location - Suffolk",
-            "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age"
+            "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Teens"
         },
         "event_name_suffix": " (Suffolk)",
         "age_to_categories": {}
