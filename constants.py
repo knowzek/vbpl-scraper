@@ -323,6 +323,7 @@ LIBRARY_CONSTANTS = {
             "Barron F. Black Branch Library": "Barron F. Black Branch, Norfolk Public Library",
             "Mary D. Pretlow Anchor Branch Library": "Pretlow Branch Library",
             "Jordan-Newby Anchor Branch Library at Broad Creek": "Jordan-Newby Anchor Branch Library at Broad Creek",
+            "Jordan-Newby Anchor Branch": "Jordan-Newby Anchor Branch Library at Broad Creek",
             "Blyden Branch Library": "Blyden Branch Library",
             "Lafayette Branch Library": "Lafayette Branch, Norfolk Public Library",
             "Larchmont Branch Library": "Larchmont Branch Library, Norfolk Public Library",
@@ -352,7 +353,13 @@ LIBRARY_CONSTANTS = {
             "Virginia Zoological Park": "Virginia Zoo",
             "Hermitage Museum and Gardens": "Hermitage Museum & Gardens",
             "Starbucks at Wards Corner 7550 Granby St.  Norfolk VA 23505": "Starbucks - Wards Corner",
-            "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks - Wards Corner"
+            "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks - Wards Corner",
+            "Starbucks at Wards Corner": "Starbucks - Wards Corner",
+            "Town Point Park": "Town Point Park",
+            "Norview Community Center": "Norview Community Center",
+            "Grandy Village": "Grandy Village Pier",
+            "Harrison Opera House": "Harrison Opera House",
+            "Poplar Hall Dr. at Ring Rd. (Military Circle Mall": "Military Circle Mall"
         },
     
         "program_type_to_categories": {},
