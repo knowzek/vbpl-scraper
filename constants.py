@@ -185,7 +185,17 @@ LIBRARY_CONSTANTS = {
         "name_suffix_map": {},  # optional for location inference
         "venue_names": {
             "Kingston Elem School": "Kingston Elementary School",
-            "Fairfield Elem School": "Fairfield Elementary School"
+            "Fairfield Elem School": "Fairfield Elementary School",
+            "Williams Farm Recreation Center": "Williams Farm Recreation Center",
+            "Seatack Recreation Center": "Seatack Recreation Center",
+            "Bayside Recreation Center": "Bayside Recreation Center",
+            "Stumpy Lake Natural Area": "Stumpy Lake Natural Area",
+            "Kempsville Recreation Center": "Kempsville Recreation Center",
+            "Princess Anne Recreation Center": "Princess Anne Recreation Center",
+            "Great Neck Recreation Center": "Great Neck Recreation Center",
+            "Bow Creek Recreation Center": "Bow Creek Recreation Center",
+            "Red Wing Park": "Red Wing Park",
+            "Munden Point Park": "Munden Point Park"
         },     
         "event_name_suffix": " (Virginia Beach)"
     },
@@ -222,7 +232,14 @@ LIBRARY_CONSTANTS = {
         "name_suffix_map": {},
         "venue_names": {
             "Armstrong Stadium": "Hampton University - Armstrong Stadium",
-            "The American Theater": "The American Theatre"
+            "The American Theater": "The American Theatre",
+            "Fort Monroe Visitor & Education Center": "Fort Monroe Visitor & Education Center",
+            "Hampton History Museum": "Hampton History Museum",
+            "The Charles H. Taylor Visual Arts Center": "Charles H. Taylor Visual Arts Center",
+            "Hampton Roads Convention Center": "Hampton Roads Convention Center",
+            "Mill Point Park": "Mill Point Park",
+            "Bluebird Gap Farm": "Bluebird Gap Farm",
+            "St. George Brewing Company": "St. George Brewing Company"
         },
         "event_name_suffix": " (Hampton)"
     },
@@ -294,6 +311,9 @@ LIBRARY_CONSTANTS = {
             "4 Prints Sake": "4 Prints Sake",
             "The Hill House Museum": "Hill House Museum",
             "That Art Store": "That Art Store",
+            "Paradise Creek Nature Park": "Paradise Creek Nature Park",
+            "Portsmouth Welcome Center": "Portsmouth Welcome Center",
+            "Afton Square": "Afton Square"
             
         },
         "event_name_suffix": " (Portsmouth)"
