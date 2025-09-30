@@ -36,7 +36,10 @@ def _open_target_sheet(client, spreadsheet_name, worksheet_name):
     # legacy (not used when USE_MASTER_SHEET=True)
     return _retry(client.open, spreadsheet_name).worksheet(worksheet_name)
 
-
+def _open_master_sheet(client):
+    if MASTER_SPREADSHEET_ID:
+        return _retry(client.open_by_key, MASTER_SPREADSHEET_ID).worksheet(MASTER_WORKSHEET_NAME)
+    return _retry(client.open, MASTER_SPREADSHEET_NAME).worksheet(MASTER_WORKSHEET_NAME)
 
 def _retry(fn, *args, **kwargs):
     delay = 6
@@ -484,7 +487,7 @@ def export_events_to_csv(library="vbpl", return_df=False, needs_bucket=None, sen
         "EVENT NAME": df["Event Name"],
         "EVENT EXCERPT": "",
         "EVENT VENUE NAME": df["Venue"],
-        "EVENT ORGANIZER NAME": config["organizer_name"],
+        "EVENT ORGANIZER NAME": organizer_name,
         "EVENT START DATE": df["EVENT START DATE"],
         "EVENT START TIME": df["EVENT START TIME"],
         "EVENT END DATE": df["EVENT END DATE"],
