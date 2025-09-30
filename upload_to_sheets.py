@@ -11,6 +11,12 @@ from constants import COMBINED_KEYWORD_TO_CATEGORY
 
 import pandas as pd
 
+# --- Master sheet routing ---
+MASTER_SHEET_ENABLED = True
+MASTER_SPREADSHEET_NAME = "Master Events"   # spreadsheet title
+MASTER_WORKSHEET_NAME  = "Events"           # events tab
+MASTER_LOG_WORKSHEET_NAME = "Log"           # logs tab (optional)																																																																																					
+
 # --- protect a single label that contains commas so we don't split it ---
 SPECIAL_MULTIWORD = "List - Cosplay, Anime, Comics"
 PLACEHOLDER = "LIST_COSPLAY_ANIME_COMICS"  # something that will never appear naturally
@@ -470,29 +476,24 @@ def _spans_to_audience_tags(spans):
 
 def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_to_categories={}, name_suffix_map={}):
     config = get_library_config(library)
-    SPREADSHEET_NAME = config["spreadsheet_name"]
-    WORKSHEET_NAME = config["worksheet_name"]
+
+    # Default per-library destinations
+    SPREADSHEET_NAME   = config["spreadsheet_name"]
+    WORKSHEET_NAME     = config["worksheet_name"]
     LOG_WORKSHEET_NAME = config["log_worksheet_name"]
+
+    # OVERRIDE → one master workbook/tab
+    if MASTER_SHEET_ENABLED:
+        SPREADSHEET_NAME   = MASTER_SPREADSHEET_NAME
+        WORKSHEET_NAME     = MASTER_WORKSHEET_NAME
+        LOG_WORKSHEET_NAME = MASTER_LOG_WORKSHEET_NAME
+
     library_constants = LIBRARY_CONSTANTS.get(library, {})
     program_type_to_categories = library_constants.get("program_type_to_categories", {})
     venue_names_map_lc = {k.lower(): v for k, v in library_constants.get("venue_names", {}).items()}
     age_to_categories = age_to_categories or library_constants.get("age_to_categories", {})
     name_suffix_map = name_suffix_map or library_constants.get("name_suffix_map", {})
     always_on = library_constants.get("always_on_categories", [])
-
-
-    PROGRAM_TYPE_TO_CATEGORIES = {
-        "Storytimes & Early Learning": f"Event Location - {config['organizer_name']}, Audience - Free Event, List - Storytimes",
-        "STEAM": f"Event Location - {config['organizer_name']}, List - STEM/STEAM, Audience - Free Event",
-        "Computers & Technology": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Teens, Audience - Family Event",
-        "Workshops & Lectures": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
-        "Discussion Groups": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
-        "Arts & Crafts": f"Event Location - {config['organizer_name']}, Audience - Free Event",
-        "Hobbies": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
-        "Books & Authors": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
-        "Culture": f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event",
-        "History & Genealogy": f"Event Location - {config['organizer_name']}, Audience - Teens, Audience - Free Event"
-    }
 
     try:
         if sheet is None:
@@ -561,10 +562,6 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 
                 # 🚫 Central unwanted-title filter (title only)
                 title_for_filter = (event.get("Event Name") or "").strip()
-                if any(bad.lower() in title_for_filter.lower() for bad in UNWANTED_TITLE_KEYWORDS):
-                    print(f"⏭️ Skipping (unwanted title match): {title_for_filter}")
-                    skipped += 1
-                    continue
 
                 if library == "ppl":
                     # Use pre-tagged categories or fallback
