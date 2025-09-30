@@ -521,12 +521,6 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
         WORKSHEET_NAME = MASTER_WORKSHEET_NAME
         LOG_WORKSHEET_NAME = MASTER_LOG_WORKSHEET_NAME
 
-    try:
-        if USE_MASTER_SHEET:
-            log_sheet = connect_to_master_sheet(LOG_WORKSHEET_NAME)
-        else:
-            log_sheet = connect_to_sheet(SPREADSHEET_NAME, LOG_WORKSHEET_NAME)
-
     library_constants = LIBRARY_CONSTANTS.get(library, {})
     program_type_to_categories = library_constants.get("program_type_to_categories", {})
     venue_names_map_lc = {k.lower(): v for k, v in library_constants.get("venue_names", {}).items()}
