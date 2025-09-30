@@ -98,6 +98,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "October 31": "List - Fall - Halloween Day Events",
     "Oct 31st": "List - Fall - Halloween Day Events",
     "Trick or Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
+    "Trick or Treating": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
     "Trick-or-Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
     "Trunk or Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
     "Trunk-or-Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
