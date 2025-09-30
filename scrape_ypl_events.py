@@ -126,6 +126,8 @@ def scrape_YPL_events(mode="all"):
                     or description.lower().startswith(("we cannot guarantee", "this program is designed"))
                 )
                 
+                dsoup_local = None  # track if we already fetched the detail page
+
                 if (not description) or looks_like_disclaimer:
                     try:
                         detail_headers = dict(HEADERS)
@@ -140,15 +142,17 @@ def scrape_YPL_events(mode="all"):
                             )
                             if body_el:
                                 description = _strip_disclaimer(body_el.get_text(" ", strip=True))
-                            # ⬇️ NEW: append any page messages as separate paragraphs
-                            description = _append_ypl_messages_from_soup(description, dsoup)
+                            # ⬇️ NEW: remember soup and append page messages now
+                            dsoup_local = dsoup
+                            description = _append_ypl_messages_from_soup(description, dsoup_local)
                     except Exception:
                         pass
 
                 
                 clean_description = description
-                # Make sure LibCal page messages are included even if we didn't fetch body above
-                clean_description = _append_ypl_messages(clean_description, link)
+                if dsoup_local is None:
+                    # We never fetched the detail page above — do a one-time fetch to append messages
+                    clean_description = _append_ypl_messages(clean_description, link)
 
                 events.append({
                     "Event Name": name,
