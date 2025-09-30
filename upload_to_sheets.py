@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import gspread
 from google.oauth2 import service_account
@@ -741,7 +741,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     raw_location = (event.get("Location", "") or "").strip()
                 
                 # 1) strip room/area suffix after " - "
-                raw_location = _strip_room_suffix(raw_location)
+                if library == "visitchesapeake":
+                    raw_location = _strip_room_suffix(raw_location)
                 
                 # 2) remove 'Library Branch:' prefix, then try to map to a canonical venue
                 loc_key = re.sub(r"^Library Branch:", "", raw_location).strip()
@@ -815,11 +816,6 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     missing_mapped_venue,  # venue not in Constants.py map (visitchesapeake only)
                     missing_end_time       # start present but no end (non All-Day)
                 ])
-
-                
-                # --- Time integrity check: if NOT all-day and end time is missing → NEEDS ATTENTION
-                time_raw = (event.get("Time", "") or "").strip()
-                t = time_raw.lower()
                 
                 # Consider these as all-day markers
                 is_all_day = ("all day" in t) or ("ongoing" in t)
