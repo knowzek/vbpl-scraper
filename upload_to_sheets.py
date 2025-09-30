@@ -14,8 +14,9 @@ import pandas as pd
 # --- Master sheet routing ---
 MASTER_SHEET_ENABLED = True
 MASTER_SPREADSHEET_NAME = "Master Events"   # spreadsheet title
-MASTER_WORKSHEET_NAME  = "Events"           # events tab
-MASTER_LOG_WORKSHEET_NAME = "Log"           # logs tab (optional)																																																																																					
+MASTER_WORKSHEET_NAME  = "Master Events"           # events tab
+MASTER_LOG_WORKSHEET_NAME = "Master Events Log"           # logs tab (optional)
+MASTER_SPREADSHEET_ID = os.environ.get("1v4-5ZSZGpMshiZZnG8q0z9NTKHHdq95y6HmxkWsCheQ")
 
 # --- protect a single label that contains commas so we don't split it ---
 SPECIAL_MULTIWORD = "List - Cosplay, Anime, Comics"
@@ -332,12 +333,10 @@ from google.oauth2 import service_account
 def connect_to_sheet(spreadsheet_name, worksheet_name):
     creds_json = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
     if not creds_json:
-        # Fallback to Render Secret File mount
         secret_path = "/etc/secrets/GOOGLE_APPLICATION_CREDENTIALS_JSON"
         if os.path.exists(secret_path):
             with open(secret_path, "r") as f:
                 creds_json = f.read()
-
     if not creds_json:
         raise RuntimeError("GOOGLE_APPLICATION_CREDENTIALS_JSON env var not set")
 
@@ -350,7 +349,16 @@ def connect_to_sheet(spreadsheet_name, worksheet_name):
         ],
     )
     client = gspread.authorize(creds)
+
+    # 👇 Master override
+    if USE_MASTER_SHEET:
+        if MASTER_SPREADSHEET_ID:
+            return client.open_by_key(MASTER_SPREADSHEET_ID).worksheet(MASTER_WORKSHEET_NAME)
+        return client.open(MASTER_SPREADSHEET_NAME).worksheet(MASTER_WORKSHEET_NAME)
+
+    # per-library fallback
     return client.open(spreadsheet_name).worksheet(worksheet_name)
+
 
 def normalize(row):
     return [cell.strip() for cell in row[:13]] + [""] * (13 - len(row))
