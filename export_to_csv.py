@@ -22,6 +22,35 @@ from gspread.exceptions import APIError
 STRICT_VENUE_LIBS = {"vbpl", "npl", "chpl", "nnpl", "hpl", "spl", "ppl"}
 NEEDS_ATTENTION_EMAIL = os.environ.get("NEEDS_ATTENTION_EMAIL")  # set in Render
 
+def _infer_library_from_url(u: str):
+    u = (u or "").lower()
+    # Library-specific URL fingerprints
+    if "vbpl.librarymarket.com" in u: return "vbpl"
+    if "chesapeakelibrary.libnet.info" in u or "chesapeake.librarycalendar.com" in u: return "chpl"
+    if "norfolk.libcal.com" in u: return "npl"
+    if "suffolkpubliclibrary" in u: return "spl"
+    if "portsmouthpubliclibrary" in u: return "ppl"
+    if "calendar.hampton.gov" in u: return "hpl"
+    if "calendar.nnpl.org" in u: return "nnpl"
+    if "poquoson.librarycalendar.com" in u: return "poquosonpl"
+    if "yorkcountyva.librarycalendar.com" in u: return "ypl"
+    if "portsvaevents" in u: return "portsvaevents"
+    if "visithampton" in u: return "visithampton"
+    if "apm.activecommunities.com/vbparksrec" in u: return "vbpr"
+    if "visitchesapeake.com" in u: return "visitchesapeake"
+    if "visitnewportnews.com" in u: return "visitnewportnews"
+    if "visitsuffolkva.com" in u: return "visitsuffolk"
+    if "norfolk.gov" in u: return "visitnorfolk"
+    if "visityorktown.org" in u: return "visityorktown"
+        
+    return None
+
+def _infer_library_from_venue(v: str):
+    v = (v or "").lower()
+    if "poquoson" in v: return "poquosonpl"
+    return None
+
+
 # === MASTER SHEET OVERRIDE ===
 USE_MASTER_SHEET = True  # single CSV only
 MASTER_SPREADSHEET_ID = os.environ.get("MASTER_SPREADSHEET_ID")
@@ -493,6 +522,24 @@ def export_events_to_csv(library="master", return_df=False, needs_bucket=None, s
         print("🚫 Nothing left to export after post-filters.")
         return None if return_df else ""
 
+
+    # Organizer per row (works even in Master mode without a Library column)
+    if use_master:
+        def _organizer_for_row(row):
+            lib = _infer_library_from_url(row.get("Event Link", ""))
+            if not lib:
+                lib = _infer_library_from_venue(row.get("Venue", ""))
+            if lib:
+                try:
+                    return get_library_config(lib).get("organizer_name") or os.environ.get("MASTER_ORGANIZER_NAME", "Master Events")
+                except Exception:
+                    return os.environ.get("MASTER_ORGANIZER_NAME", "Master Events")
+            return os.environ.get("MASTER_ORGANIZER_NAME", "Master Events")
+        organizer_series = df.apply(_organizer_for_row, axis=1)
+    else:
+        # Single-library export path: use the library's organizer from config
+        organizer_series = pd.Series(organizer_name, index=df.index)
+
     export_df = pd.DataFrame({
         "EVENT NAME": df["Event Name"],
         "EVENT EXCERPT": "",
@@ -520,6 +567,9 @@ def export_events_to_csv(library="master", return_df=False, needs_bucket=None, s
         "ALLOW TRACKBACKS AND PINGBACKS": "FALSE",
         "EVENT DESCRIPTION": df["Event Description"]
     })
+
+    # Replace placeholder with per-row organizer values
+    export_df["EVENT ORGANIZER NAME"] = organizer_series.values
 
     str_cols = export_df.select_dtypes(include="object").columns
     for col in str_cols:
