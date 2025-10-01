@@ -459,14 +459,14 @@ LIBRARY_CONSTANTS = {
         "program_type_to_categories": {
             "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Free Event, List - Storytimes",
             "STEAM": "Event Location - Virginia Beach, List - STEM/STEAM, Audience - Free Event",
-            "Computers & Technology": "Event Location - Virginia Beach, Audience - Free Event, Audience - Teens",
+            "Computers & Technology": "Event Location - Virginia Beach, Audience - Free Event",
             "Workshops & Lectures": "Event Location - Virginia Beach, Audience - Free Event",
             "Discussion Groups": "Event Location - Virginia Beach, Audience - Free Event",
             "Arts & Crafts": "Event Location - Virginia Beach, Audience - Free Event",
             "Hobbies": "Event Location - Virginia Beach, Audience - Free Event",
             "Books & Authors": "Event Location - Virginia Beach, Audience - Free Event",
             "Culture": "Event Location - Virginia Beach, Audience - Free Event",
-            "History & Genealogy": "Event Location - Virginia Beach, Audience - Teens, Audience - Free Event"
+            "History & Genealogy": "Event Location - Virginia Beach, Audience - Free Event"
         },
         "name_suffix_map": {
             "Oceanfront Area Library": "Oceanfront Area Library",
