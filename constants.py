@@ -501,14 +501,14 @@ LIBRARY_CONSTANTS = {
         "program_type_to_categories": {
             "Storytimes & Early Learning": "Audience - Free Event, List - Storytimes",
             "STEAM": "List - STEM/STEAM, Audience - Free Event",
-            "Computers & Technology": "Audience - Free Event, Audience - Teens",
+            "Computers & Technology": "Audience - Free Event",
             "Workshops & Lectures": "Audience - Free Event",
             "Discussion Groups": "Audience - Free Event",
             "Arts & Crafts": "Audience - Free Event",
             "Hobbies": "Audience - Free Event",
             "Books & Authors": "Audience - Free Event",
             "Culture": "Audience - Free Event",
-            "History & Genealogy": "Audience - Teens"
+            "History & Genealogy": "Audience - Freen Event"
         },
         "name_suffix_map": {
             "Great Neck Area Library": "Great Neck Area Library",
@@ -669,9 +669,9 @@ LIBRARY_CONSTANTS = {
         "sensory": "Event Location - Hampton, Audience - Free Event, Audience - Toddler/Infant, List - Toddler Time Events",
         "chalk": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Outdoor Activities",
         "bubble": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Outdoor Activities",
-        "photography": "Event Location - Hampton, Audience - Free Event, Audience - Teens, List - STEM/STEAM",
-        "writing": "Event Location - Hampton, Audience - Free Event, Audience - Teens, List - Creative Writing",
-        "book club": "Event Location - Hampton, Audience - Free Event, Audience - Teens, List - Reading",
+        "photography": "Event Location - Hampton, Audience - Free Event, List - STEM/STEAM",
+        "writing": "Event Location - Hampton, Audience - Free Event, List - Creative Writing",
+        "book club": "Event Location - Hampton, Audience - Free Event, List - Reading",
         "movie": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Movies",
         "trivia": "Event Location - Hampton, Audience - Free Event, Audience - Family Event",
         "scavenger": "Event Location - Hampton, Audience - Free Event, Audience - Family Event",
