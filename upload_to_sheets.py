@@ -655,7 +655,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     or ""
                 )
                 title_text = (event.get("Event Name", "") or "").lower()
-                full_text  = f"{event.get('Event Name', '')} {desc_value} {ages_raw}".lower()
+                # EXCLUDE Ages from keyword/fuzzy tagging:
+                full_text  = f"{event.get('Event Name', '')} {desc_value}".lower()
 
                 title_based_tags = []
                 for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
@@ -698,7 +699,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 # === Normalize title and description text
                 title_text = (event.get("Event Name", "") or "").lower()
-                full_text  = f"{event.get('Event Name', '')} {desc_value} {ages_raw}".lower()
+                # EXCLUDE Ages from keyword/fuzzy tagging:
+                full_text  = f"{event.get('Event Name', '')} {desc_value}".lower()
 
                 title_based_tags = []
                 
