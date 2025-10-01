@@ -42,6 +42,7 @@ def _infer_library_from_url(u: str):
     if "visitsuffolkva.com" in u: return "visitsuffolk"
     if "norfolk.gov" in u: return "visitnorfolk"
     if "visityorktown.org" in u: return "visityorktown"
+    if "langleylibrary.org" in u: return "langleylibrary"
         
     return None
 
