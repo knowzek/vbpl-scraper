@@ -413,7 +413,7 @@ def _extract_year_spans(text: str):
     spans = []
 
     # --- MONTHS FIRST (ranges, then singles) ---
-    for m in re.finditer(rf"(\d{{1,2}})\s*[-–]\s*(\d{{1,2}})\s*{MONTH_WORDS}\b", t, flags=re.I):
+    for m in re.finditer(rf"(\d{{1,2}})\s*(?:[-–]|to)\s*(\d{{1,2}})\s*{MONTH_WORDS}\b", t, flags=re.I):
         a, b = int(m.group(1))/12.0, int(m.group(2))/12.0
         spans.append((a, b))
 
@@ -430,9 +430,10 @@ def _extract_year_spans(text: str):
     # generic "ages: X[-–|to]Y" (or "ages X[-–|to]Y") WITHOUT months
     for m in re.finditer(
         rf"""
-        ages?\s*[: ]*                      # allow optional colon after 'age/ages'
-        (?!\d+\s*[-–]\s*\d+\s*{MONTH_WORDS}\b)   # not "ages 12-24 months"
-        (?!\d+\s*{MONTH_WORDS}\b)                # not "ages 12 months"
+        ages?\s*[: ]*                           # allow optional colon after 'age/ages'
+        (?!\d+\s*(?:[-–]|to)\s*\d+\s*{MONTH_WORDS}\b)   # not "ages 12–24 months" OR "ages 12 to 24 months"
+        (?!\d+\s*{MONTH_WORDS}\b)                      # not "ages 12 months"
+        (?!\d+\s*to\s*\d+\s*{MONTH_WORDS}\b)           # extra guard: not "ages 6 to 24 months"
         (\d{{1,2}})(?:\s*(?:[-–]|to)\s*(\d{{1,2}}))?
         \b
         """,
@@ -690,6 +691,19 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                         f"Event Location - {fallback_city}, Audience - Free Event"
                         if fallback_city else "Audience - Free Event"
                     )
+
+                # --- DEBUG for VBPL baby events ---
+                if library == "vbpl":
+                    title_l = (event.get("Event Name","") or "").lower()
+                    hay_l   = f"{title_l} {(desc_value or '').lower()} {(ages_raw or '').lower()}"
+                    if "baby" in title_l or "months" in hay_l:
+                        print("DBG VBPL:", event.get("Event Name"),
+                              "| spans:", _extract_year_spans(hay_l),
+                              "| age_tags:", age_tags,
+                              "| program_type:", program_type,
+                              "| title_kw_hits:",
+                              [k for k in TITLE_KEYWORD_TO_CATEGORY if _kw_hit(title_l, k) or _kw_hit(hay_l, k)])
+
                 
                 # 6) Final clean & dedupe (preserve order)
                 categories = ", ".join(dict.fromkeys([t.replace("\u00A0", " ").replace("Â", "").strip() for t in tag_list if t.strip()]))
