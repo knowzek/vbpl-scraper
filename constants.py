@@ -169,6 +169,7 @@ UNWANTED_TITLE_KEYWORDS = [
     "collection",
     "business",
     "lecture",
+    "food drive",
     "closed"
 ]
 
