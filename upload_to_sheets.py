@@ -502,7 +502,7 @@ def _spans_to_audience_tags(spans):
         tags.append("Audience - School Age")
 
     # teens overlap
-    if mx >= 12.0 and mn <= 17.99 and not (mx <= 2.5):
+    if mx >= 13.0 and mn <= 17.99 and not (mx <= 2.5):
         tags.append("Audience - Teens")
 
     return list(dict.fromkeys(tags))
