@@ -498,11 +498,11 @@ def export_events_to_csv(library="master", return_df=False, needs_bucket=None, s
         return str(out)
     
     # assign back safely
-    titles = df.apply(format_event_title, axis=1)
-    if hasattr(titles, "columns"):  # just in case
-        titles = titles.iloc[:, 0]
-    df["Event Name"] = titles.astype(str).values
-
+    if not use_master:
+        titles = df.apply(format_event_title, axis=1)
+        if hasattr(titles, "columns"):
+            titles = titles.iloc[:, 0]
+        df["Event Name"] = titles.astype(str).values
 
     expected_export_cols = [
         "Event Name", "Venue", "EVENT START DATE", "EVENT START TIME", "EVENT END DATE",
