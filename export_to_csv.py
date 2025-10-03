@@ -588,37 +588,55 @@ def export_events_to_csv(library="master", return_df=False, needs_bucket=None, s
     # 🔧 Force-mark everything we just exported as on site (in-memory)
     df.loc[:, "Site Sync Status"] = "on site"
 
-    # ✅ Mark exported rows as "on site" in the sheet
-    site_sync_col = df.columns.get_loc("Site Sync Status")
-    values = _retry(sheet.get_all_values)
-
-    # Build a map from Event Link → Sheet Row Number
-    link_col_idx = df.columns.get_loc("Event Link")
-    event_link_to_row = {}
-
-    for i, row in enumerate(values[1:], start=2):  # Skip header
-        if len(row) > link_col_idx:
-            link = row[link_col_idx].strip()
-            if link:
-                event_link_to_row[link] = i
-
-    # Prepare batch updates
-    updates = []
-    for link in df["Event Link"]:
-        link = str(link).strip()
-        row_num = event_link_to_row.get(link)
-
-        if row_num:
-            cell = rowcol_to_a1(row_num, site_sync_col + 1)
-            updates.append({"range": cell, "values": [["on site"]]})
-
-    # Perform batch update
-    if updates:
-        _retry(sheet.batch_update, [{"range": u["range"], "values": u["values"]} for u in updates])
-
+    # 🔧 Force-mark in memory too (optional but nice for the returned df)
+    df.loc[:, "Site Sync Status"] = "on site"
+    
+    # ✅ Mark exported rows as "on site" in the SHEET using the SHEET headers (not df order)
+    values = _retry(sheet.get_all_values)  # full grid
+    if values:
+        headers = values[0]
+        try:
+            sheet_link_col = headers.index("Event Link")           # 0-based col in SHEET
+            sheet_sync_col = headers.index("Site Sync Status")     # 0-based col in SHEET
+        except ValueError as e:
+            print(f"❌ Required header missing in sheet: {e}. Found: {headers}")
+            sheet_link_col = sheet_sync_col = None
+    
+        if sheet_link_col is not None and sheet_sync_col is not None:
+            # Build Event Link → row number map from the SHEET
+            event_link_to_row = {}
+            for i, row in enumerate(values[1:], start=2):  # data starts at row 2
+                link = ""
+                if sheet_link_col < len(row):
+                    link = (row[sheet_link_col] or "").strip()
+                if link:
+                    event_link_to_row[link] = i
+    
+            # Flip ONLY the links we exported this run (from df)
+            exported_links = set(df["Event Link"].astype(str).str.strip())
+            updates, missing = [], []
+    
+            for link in exported_links:
+                row_num = event_link_to_row.get(link)
+                if row_num:
+                    a1 = rowcol_to_a1(row_num, sheet_sync_col + 1)
+                    updates.append({"range": a1, "values": [["on site"]]})
+                else:
+                    missing.append(link)
+    
+            if updates:
+                _retry(sheet.batch_update, [{"range": u["range"], "values": u["values"]} for u in updates])
+                print(f"✅ Flipped {len(updates)} exported rows to 'on site'.")
+            if missing:
+                print(f"🔎 {len(missing)} exported links not found in sheet (first 5): {missing[:5]}")
+    else:
+        print("⚠️ No values returned from sheet; skipping flip to 'on site'.")
+    
+    # Keep your existing return logic
     if return_df:
         return export_df
     return csv_path
+
 
 if __name__ == "__main__":
     print("🚀 Exporting from MASTER sheet only …")
