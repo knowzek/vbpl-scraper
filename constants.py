@@ -21,14 +21,20 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Farmer's Market": "Audience - Outdoor Event",
     "Farmers Market": "Audience - Outdoor Event",
     "Hispanic Heritage Month": "List - Fall - Hispanic Heritage Month (Sept/Oct)",
+    "gaming": "List - Gaming Events",
+    "video game": "List - Gaming Events",
+    "video games": "List - Gaming Events",
+    "card games": "List - Gaming Events",
+    "card game": "List - Gaming Events",
+    "history": "Virginia History – Events",
     "cars": "List - Car Shows & Events",
     "anime": "List - Cosplay, Anime, Comics",
     "cosplay": "List - Cosplay, Anime, Comics",
     "comics": "List - Cosplay, Anime, Comics",
     "walking tour": "List - Local Tours, Audience - Outdoor Event",
-    "swim": "List - Fitness Events",
-    "swimming": "List - Fitness Events",
-    "kayak": "Audience - Outdoor Event, List - Fitness Events",
+    "swim": "List - Fitness & Wellness Events",
+    "swimming": "List - Fitness & Wellness Events",
+    "kayak": "Audience - Outdoor Event, List - Fitness & Wellness Events",
     "math": "List - STEM/STEAM",
     "science": "List - STEM/STEAM",
     "nature": "List - STEM/STEAM",
@@ -53,7 +59,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "tiny tot": "Audience - Toddler/Infant, Audience - Parent & Me",
     "steam": "List - STEM/STEAM",
     "computers": "List - STEM/STEAM",
-    "yoga": "List - Fitness Events",
+    "yoga": "List - Fitness & Wellness Events",
     "food distribution": "List - Food Distribution",
     "homeschool": "List - Homeschool",
     "KINDERSTEM": "List - STEM/STEAM, Audience - Preschool Age",
@@ -184,7 +190,7 @@ AGE_RANGE_TO_CATEGORY = [
 LIBRARY_CONSTANTS = {
     "vbpr": {
         "program_type_to_categories": {
-            "Fitness & Wellness": "Event Location - Virginia Beach, List - Fitness Events"
+            "Fitness & Wellness": "Event Location - Virginia Beach, List - Fitness & Wellness Events"
         },
         "name_suffix_map": {},  # optional for location inference
         "venue_names": {
