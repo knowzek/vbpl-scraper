@@ -16,7 +16,7 @@ USE_MASTER_SHEET = True  # <— turn on the single-sheet world
 MASTER_SPREADSHEET_ID = os.environ.get("MASTER_SPREADSHEET_ID")  # preferred
 MASTER_SPREADSHEET_NAME = os.environ.get("MASTER_SPREADSHEET_NAME", "Master Events")  # fallback by name
 MASTER_WORKSHEET_NAME = os.environ.get("MASTER_WORKSHEET_NAME", "Master Events")
-MASTER_LOG_WORKSHEET_NAME = os.environ.get("MASTER_LOG_WORKSHEET_NAME", "Master events Log")  # optional
+MASTER_LOG_WORKSHEET_NAME = os.environ.get("MASTER_LOG_WORKSHEET_NAME", "Master Events Log")  # optional
 
 
 # --- protect a single label that contains commas so we don't split it ---
