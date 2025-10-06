@@ -1022,26 +1022,33 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
 
         if new_rows:
-            print("🔍 Full row to upload:", full_row)
+            # Optional: comment this out if it's too chatty
+            # print("🔍 Full row to upload:", full_row)
             sheet.append_rows(new_rows, value_input_option="USER_ENTERED")
-
+        
         try:
-            log_sheet = connect_to_sheet(SPREADSHEET_NAME, LOG_WORKSHEET_NAME)
+            # Build summary using the variables you actually have
             log_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            log_row = [log_time, mode, added, updated, skipped]
+            new_count      = added
+            updated_count  = updated
+            error_count    = skipped
+        
+            # Log summary row (timestamp, mode, new_count, updated_count, error_count)
+            log_row = [log_time, mode, new_count, updated_count, error_count]
+        
+            # Write to the Master Events Log tab (avoid touching the Master Events sheet)
+            log_sheet = client.open_by_key(SPREADSHEET_ID).worksheet(LOG_WORKSHEET_NAME)
             log_sheet.append_row(log_row, value_input_option="USER_ENTERED")
-            print(f"📝 Logged summary to '{LOG_WORKSHEET_NAME}' tab.")
+        
+            print(f"🪵 Logged summary to {LOG_WORKSHEET_NAME}: {log_row}")
+        
         except Exception as e:
             print(f"⚠️ Failed to log to {LOG_WORKSHEET_NAME} tab: {e}")
-
+        
         print(f"📦 {added} new events added.")
         print(f"🔁 {updated} existing events updated.")
         if skipped:
             print(f"🧹 {skipped} malformed events skipped.")
-
-    except Exception as e:
-        print(f"❌ ERROR during upload_events_to_sheet: {e}")
-        traceback.print_exc()
 
 def export_all_events_to_csv_and_email():
     LIBRARIES = [
