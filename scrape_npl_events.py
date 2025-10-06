@@ -38,7 +38,7 @@ def scrape_npl_events(mode="all"):
         while True:
             url = (
                 "https://norfolk.libcal.com/ajax/calendar/list"
-                f"?c=-1&date={chunk_date}&perpage=100&page={page}&audience=&cats=&camps=&inc=0"
+                f"?c=-1&date={chunk_date}&perpage=200&page={page}&audience=&cats=&camps=&inc=0"
             )
             print(f"📄 Fetching page {page} for {chunk_date}")
         
@@ -124,7 +124,7 @@ def scrape_npl_events(mode="all"):
                                 "Janaf": "Janaf Branch Library"
                             }
                             for key, full_name in name_map.items():
-                                if short_name.lower() in key.lower():
+                                if key.lower() in short_name.lower():
                                     location = full_name
                                     break
                     # === Category tagging logic ===
@@ -188,7 +188,7 @@ def scrape_npl_events(mode="all"):
             page += 1
             sleep(0.5)
         
-        current += timedelta(days=7)
+        current += timedelta(days=1)
         sleep(0.5)
 
     print(f"✅ Scraped {len(events)} events total.")
