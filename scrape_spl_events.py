@@ -202,16 +202,37 @@ def scrape_spl_events(mode="all"):
                     
                     event_name = f"{full_title} ({location})"
                     
-                    # Build categories from both Program Type and Keywords
-                    title_lower = title.lower()
-                    keyword_tags = [tag for keyword, tag in TITLE_KEYWORD_TO_CATEGORY.items() if keyword in title_lower]
-                    keyword_category_str = ", ".join(keyword_tags)
+                    # === Build categories: base city + free + program type + keywords ===
+                    base_location_tag = "Event Location - Suffolk"
+                    free_tag = "Audience - Free Event"   # keep unless you have a fee detector
                     
-                    program_type_categories = ""
+                    title_lower = (title or "").lower()
+                    
+                    # 1) Keyword → categories (supports comma-separated values)
+                    keyword_tags: list[str] = []
+                    for keyword, tag_string in TITLE_KEYWORD_TO_CATEGORY.items():
+                        if keyword.lower() in title_lower:
+                            keyword_tags.extend([t.strip() for t in str(tag_string).split(",") if t.strip()])
+                    
+                    # 2) Program type → categories (also supports comma-separated values)
+                    program_type_categories_list: list[str] = []
                     if program_type:
-                        program_type_categories = LIBRARY_CONSTANTS["spl"].get("program_type_to_categories", {}).get(program_type, "")
+                        pt_map = LIBRARY_CONSTANTS.get("spl", {}).get("program_type_to_categories", {})
+                        pt_val = pt_map.get(program_type, "")
+                        program_type_categories_list = [t.strip() for t in str(pt_val).split(",") if t.strip()]
                     
-                    all_categories = ", ".join(filter(None, [program_type_categories, keyword_category_str]))
+                    # 3) Merge & de-dupe (include base city + free)
+                    merged_tags = {
+                        base_location_tag,
+                        free_tag,
+                        *keyword_tags,
+                        *program_type_categories_list,
+                        # *age_tags,  # <- include here if you compute age_tags elsewhere
+                    }
+                    # drop empties and join
+                    final_categories = sorted(t for t in merged_tags if t)
+                    all_categories = ", ".join(final_categories)
+
                     
                     events.append({
                         "Event Name": f"{full_title} ({location})",
