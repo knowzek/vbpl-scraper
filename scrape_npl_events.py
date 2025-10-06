@@ -32,29 +32,44 @@ def scrape_npl_events(mode="all"):
     while current <= end_date:
         chunk_date = current.strftime("%Y-%m-%d")
         print(f"📆 Fetching chunk for date={chunk_date}")
-        url = f"https://norfolk.libcal.com/ajax/calendar/list?c=-1&date={chunk_date}&perpage=100&page=1&audience=&cats=&camps=&inc=0"
 
-        try:
-            response = requests.get(url)
-            response.raise_for_status()
-            data = response.json()
-            results = data.get("results", [])
-
+        page = 1
+        MAX_PAGES = 20  # safety guard
+        while True:
+            url = (
+                "https://norfolk.libcal.com/ajax/calendar/list"
+                f"?c=-1&date={chunk_date}&perpage=100&page={page}&audience=&cats=&camps=&inc=0"
+            )
+            print(f"📄 Fetching page {page} for {chunk_date}")
+        
+            try:
+                response = requests.get(url, timeout=15)
+                response.raise_for_status()
+                data = response.json()
+                results = data.get("results", []) or []
+            except Exception as err:
+                print(f"❌ Failed to fetch page {page} for {chunk_date}: {err}")
+                break
+        
+            if not results:
+                print(f"🛑 No more results for {chunk_date} (page {page}).")
+                break
+        
             for result in results:
                 try:
                     title = result.get("title", "").strip()
-                    title_lc = re.sub(r"[^\w\s]", "", title.lower())  # Remove punctuation
+                    title_lc = re.sub(r"[^\w\s]", "", title.lower())
                     if any(kw in title_lc for kw in UNWANTED_TITLE_KEYWORDS):
                         print(f"⏭️ Skipping: Unwanted title match → {title}")
                         continue
-
+        
                     dt = datetime.strptime(result["startdt"], "%Y-%m-%d %H:%M:%S")
                     end_dt = datetime.strptime(result["enddt"], "%Y-%m-%d %H:%M:%S")
-
+        
                     audiences = result.get("audiences", [])
                     if len(audiences) == 1 and audiences[0].get("name", "").strip() == "Adults (18+)":
                         continue
-
+        
                     ages = ", ".join([a.get("name", "") for a in audiences if "name" in a])
 
                     # Fallback: infer Adults 18+ from breadcrumb
@@ -146,7 +161,6 @@ def scrape_npl_events(mode="all"):
                     # 4. Merge and deduplicate
                     final_categories = sorted(set([base_location_tag, free_tag] + keyword_tags + age_tags))
                     categories = ", ".join(final_categories)
-
                     
                     events.append({
                         "Event Name": title,
@@ -167,10 +181,13 @@ def scrape_npl_events(mode="all"):
                     })
                 except Exception as e:
                     print(f"⚠️ Error parsing event: {e}")
-
-        except Exception as err:
-            print(f"❌ Failed to fetch page for {chunk_date}: {err}")
-
+        
+            # —— pagination advance / last-page detection ——
+            if len(results) < 100 or page >= MAX_PAGES:
+                break
+            page += 1
+            sleep(0.5)
+        
         current += timedelta(days=7)
         sleep(0.5)
 
