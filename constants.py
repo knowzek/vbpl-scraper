@@ -26,7 +26,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "video games": "List - Gaming Events",
     "card games": "List - Gaming Events",
     "card game": "List - Gaming Events",
-    "history": "Virginia History – Events",
+    "history": "List - Virginia History Events",
     "cars": "List - Car Shows & Events",
     "anime": "List - Cosplay Anime Comics",
     "cosplay": "List - Cosplay Anime Comics",
