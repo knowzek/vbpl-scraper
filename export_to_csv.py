@@ -591,46 +591,68 @@ def export_events_to_csv(library="master", return_df=False, needs_bucket=None, s
     # 🔧 Force-mark in memory too (optional but nice for the returned df)
     df.loc[:, "Site Sync Status"] = "on site"
     
-    # ✅ Mark exported rows as "on site" in the SHEET using the SHEET headers (not df order)
+    # ✅ Mark exported rows as "on site" in the SHEET using (link + date [+ time]) keys
     values = _retry(sheet.get_all_values)  # full grid
     if values:
         headers = values[0]
-        try:
-            sheet_link_col = headers.index("Event Link")           # 0-based col in SHEET
-            sheet_sync_col = headers.index("Site Sync Status")     # 0-based col in SHEET
-        except ValueError as e:
-            print(f"❌ Required header missing in sheet: {e}. Found: {headers}")
-            sheet_link_col = sheet_sync_col = None
     
-        if sheet_link_col is not None and sheet_sync_col is not None:
-            # Build Event Link → row number map from the SHEET
-            event_link_to_row = {}
+        def _idx(col):
+            try:
+                return headers.index(col)
+            except ValueError:
+                return None
+    
+        c_link = _idx("Event Link")
+        c_sync = _idx("Site Sync Status")
+        c_month = _idx("Month")
+        c_day   = _idx("Day")
+        c_year  = _idx("Year")
+        c_time  = _idx("Time")  # optional, if present we’ll use it for extra disambiguation
+    
+        needed = [c_link, c_sync, c_month, c_day, c_year]
+        if any(v is None for v in needed):
+            print(f"❌ Required header missing; found headers: {headers}")
+        else:
+            # Build (link, month, day, year, time?) → row(s) index from SHEET
+            key_to_rows = {}
             for i, row in enumerate(values[1:], start=2):  # data starts at row 2
-                link = ""
-                if sheet_link_col < len(row):
-                    link = (row[sheet_link_col] or "").strip()
-                if link:
-                    event_link_to_row[link] = i
+                link  = (row[c_link]  if c_link  is not None and c_link  < len(row) else "").strip()
+                month = (row[c_month] if c_month is not None and c_month < len(row) else "").strip()
+                day   = (row[c_day]   if c_day   is not None and c_day   < len(row) else "").strip()
+                year  = (row[c_year]  if c_year  is not None and c_year  < len(row) else "").strip()
+                timev = (row[c_time]  if c_time  is not None and c_time  < len(row) else "").strip()
     
-            # Flip ONLY the links we exported this run (from df)
-            exported_links = set(df["Event Link"].astype(str).str.strip())
+                # primary key uses time if available; we’ll try without time as a fallback later
+                key = (link, month, day, year, timev)
+                key_to_rows.setdefault(key, []).append(i)
+    
+            # Build keys from the rows we actually exported this run (df is already filtered to “new”)
+            df_links  = df["Event Link"].astype(str).str.strip()
+            df_months = df["Month"].astype(str).str.strip()
+            df_days   = df["Day"].astype(str).str.strip()
+            df_years  = df["Year"].astype(str).str.strip()
+            df_times  = df["Time"].astype(str).str.strip() if "Time" in df.columns else pd.Series([""] * len(df), index=df.index)
+    
             updates, missing = [], []
-    
-            for link in exported_links:
-                row_num = event_link_to_row.get(link)
-                if row_num:
-                    a1 = rowcol_to_a1(row_num, sheet_sync_col + 1)
-                    updates.append({"range": a1, "values": [["on site"]]})
+            for link, m, d, y, t in zip(df_links, df_months, df_days, df_years, df_times):
+                key_with_time = (link, m, d, y, t)
+                key_no_time   = (link, m, d, y, "")
+                rows = key_to_rows.get(key_with_time) or key_to_rows.get(key_no_time)
+                if rows:
+                    for row_num in rows:
+                        a1 = rowcol_to_a1(row_num, c_sync + 1)
+                        updates.append({"range": a1, "values": [["on site"]]})
                 else:
-                    missing.append(link)
+                    missing.append(key_with_time)
     
             if updates:
                 _retry(sheet.batch_update, [{"range": u["range"], "values": u["values"]} for u in updates])
                 print(f"✅ Flipped {len(updates)} exported rows to 'on site'.")
             if missing:
-                print(f"🔎 {len(missing)} exported links not found in sheet (first 5): {missing[:5]}")
+                print(f"🔎 {len(missing)} exported rows not found for flip (showing 5): {missing[:5]}")
     else:
         print("⚠️ No values returned from sheet; skipping flip to 'on site'.")
+
     
     # Keep your existing return logic
     if return_df:
