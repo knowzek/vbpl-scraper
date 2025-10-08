@@ -58,6 +58,27 @@ MASTER_SPREADSHEET_ID = os.environ.get("MASTER_SPREADSHEET_ID")
 MASTER_SPREADSHEET_NAME = os.environ.get("MASTER_SPREADSHEET_NAME", "Master Events")
 MASTER_WORKSHEET_NAME = os.environ.get("MASTER_WORKSHEET_NAME", "Master Events")
 
+def _write_chunked_csvs(df, base_name: str, library: str, chunk_size: int = 75):
+    """
+    Split df into multiple CSVs of <= chunk_size rows.
+    Returns list of file paths in order.
+    """
+    paths = []
+    n = len(df)
+    if n == 0:
+        return paths
+    total = (n + chunk_size - 1) // chunk_size
+    for i in range(total):
+        start = i * chunk_size
+        end   = min(n, start + chunk_size)
+        part_df = df.iloc[start:end].copy()
+        fname = f"{base_name}_{library}_part{(i+1):02d}of{total:02d}.csv"
+        part_df.to_csv(fname, index=False)
+        print(f"✅ Wrote chunk {(i+1)}/{total}: {fname} ({end-start} rows)")
+        paths.append(fname)
+    return paths
+
+
 def _open_target_sheet(client, spreadsheet_name, worksheet_name):
     if USE_MASTER_SHEET:
         if MASTER_SPREADSHEET_ID:
@@ -577,12 +598,16 @@ def export_events_to_csv(library="master", return_df=False, needs_bucket=None, s
         export_df[col] = export_df[col].map(_ascii_normalize).map(_ascii_quotes)
 
 
-    csv_path = f"events_for_upload_{library}.csv"
-    export_df.to_csv(csv_path, index=False)
-    print(f"✅ Exported {len(export_df)} events to CSV (from {original_row_count} original rows)")
-
+    # Chunked write: 75 rows per CSV
+    paths = _write_chunked_csvs(export_df, base_name="events_for_upload", library=str(library), chunk_size=75)
+    print(f"📦 Exported {len(export_df)} events across {len(paths)} CSV file(s) (from {original_row_count} original rows)")
+    
+    # Optional email for per-library (Master emailing handled in __main__)
     if send_email and not USE_MASTER_SHEET:
-        send_notification_email_with_attachment(csv_path, config["email_subject"], config["email_recipient"])
+        for idx, p in enumerate(paths, start=1):
+            subj = f"{config['email_subject']} (Part {idx} of {len(paths)})"
+            send_notification_email_with_attachment(p, subj, config["email_recipient"])
+
 
 
     # 🔧 Force-mark everything we just exported as on site (in-memory)
@@ -668,12 +693,14 @@ if __name__ == "__main__":
     master_df = export_events_to_csv(library="master", return_df=True, needs_bucket=needs_bucket, send_email=False)
 
     if master_df is not None and not master_df.empty:
-        csv_path = "combined_events_export.csv"
-        master_df.to_csv(csv_path, index=False)
-        print(f"✅ Wrote combined CSV with {len(master_df)} events → {csv_path}")
-
+        paths = _write_chunked_csvs(master_df, base_name="combined_events_export", library="master", chunk_size=75)
+        print(f"✅ Wrote combined CSVs ({len(master_df)} events) → {len(paths)} file(s)")
+    
         recipient = os.environ.get("EXPORT_RECIPIENT", "knowzek@gmail.com")
-        send_notification_email_with_attachment(csv_path, "Unified Events Export", recipient)
+        # If you want emails: send each part separately. Otherwise, comment out.
+        for i, p in enumerate(paths, start=1):
+            send_notification_email_with_attachment(p, f"Unified Events Export (Part {i} of {len(paths)})", recipient)
+
     else:
         print("🚫 No events to export from Master.")
 
