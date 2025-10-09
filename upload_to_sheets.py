@@ -105,6 +105,16 @@ def _strip_preschool_for_just2s(title: str, tags: list[str]) -> list[str]:
         return [c for c in tags if c not in {"Audience - Preschool Age", "Audience - Preschool"}]
     return tags
 
+def _strip_schoolage_for_3splease(title: str, tags: list[str]) -> list[str]:
+    """
+    If the title contains any '3s Please' variant, forcibly remove school-age audience tags.
+    """
+    t = (title or "").lower()
+    # matches: "3s please", "3's please", "three's please"
+    if re.search(r"\b3\s*[’']?\s*s\s*please\b|\bthree[’']?s\s*please\b", t):
+        return [c for c in tags if c not in {"Audience - School Age"}]
+    return tags
+
 def _ensure(lst, item):
     if item not in lst:
         lst.append(item)
@@ -659,6 +669,9 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                         
                 # Remove preschool tag for "Just 2s / Just 2's" titles
                 tag_list = _strip_preschool_for_just2s(event.get("Event Name", ""), tag_list)
+
+                # Remove school-age tag for "3s Please" titles
+                tag_list = _strip_schoolage_for_3splease(event.get("Event Name", ""), tag_list)
 
                 # Final clean & dedupe
                 categories = ", ".join(dict.fromkeys([t.replace("\u00A0", " ").replace("Â", "").strip() for t in tag_list if t.strip()]))
