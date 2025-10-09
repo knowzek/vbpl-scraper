@@ -119,6 +119,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "corn maze": "List - Fall - Fall Festivals",
     "Diwali": "List - Fall - Diwali Events (November)",
     "christmas": "Audience - Holiday Events",
+    "festival of lights": "Audience - Holiday Events",
     "christmas in july": "List - Summer - Christmas In July!",
     "santa": "List - Winter - Santa All",
     "thanksgiving": "List - Fall - Thanksgiving",
