@@ -29,35 +29,6 @@ ENFORCE_VENUE_MAP_FOR = {"visitchesapeake", "visityorktown", "visitnorfolk", "vi
 
 DASH_SPLIT = re.compile(r"\s+[-–—]\s+")  # space + dash + space (handles -, – , —)
 
-def _coerce_ymd(year, month, day):
-    """
-    Return (y, m, d) where month may be '10', 'Oct', or 'October'.
-    Missing/invalid parts return None.
-    """
-    def _to_int(x):
-        try:
-            return int(str(x))
-        except Exception:
-            return None
-
-    y = _to_int(year)
-    d = _to_int(day)
-
-    m = None
-    if month is not None:
-        s = str(month).strip()
-        m = _to_int(s)
-        if m is None:
-            # Try short then long month names
-            for fmt in ("%b", "%B"):
-                try:
-                    m = datetime.strptime(s[:3] if fmt == "%b" else s, fmt).month
-                    break
-                except Exception:
-                    pass
-    return y, m, d
-
-
 def _strip_room_suffix(loc: str) -> str:
     """
     'Russell Memorial Library - Activity Room, Atrium' → 'Russell Memorial Library'
@@ -151,8 +122,6 @@ def _has_unwanted_title(title: str) -> bool:
     return False
 
 TIME_OK = re.compile(r"\b\d{1,2}(:\d{2})?\s*[ap]m\b", re.I)
-
-DAY_WORD = r"(?:mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)"
 
 DAY_WORD = r"(?:mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)"
 _DAY_IDX = {"mon":0,"tue":1,"wed":2,"thu":3,"fri":4,"sat":5,"sun":6}
@@ -528,7 +497,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
     age_to_categories = age_to_categories or library_constants.get("age_to_categories", {})
     name_suffix_map = name_suffix_map or library_constants.get("name_suffix_map", {})
     always_on = library_constants.get("always_on_categories", [])
-
+    
     try:
         if sheet is None:
             sheet = connect_to_sheet(SPREADSHEET_NAME, WORKSHEET_NAME)
@@ -556,9 +525,10 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
         updated = 0
         skipped = 0
 
+        added = updated = skipped = error_count = 0  # <-- make sure this is before the loop
         new_rows = []
         update_requests = []
-
+        
         for event in events:
             try:
                 raw_link = (event.get("Event Link", "") or "").strip()
@@ -566,15 +536,15 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     print(f"⚠️  Skipping malformed event (missing link): {event.get('Event Name','')}")
                     skipped += 1
                     continue
-
+        
                 link = _clean_link(raw_link)
-
+        
                 title_for_filter = (event.get("Event Name", "") or "").strip()
                 if _has_unwanted_title(title_for_filter):
                     print(f"⏭️ Skipping (unwanted title): {title_for_filter}")
                     skipped += 1
                     continue
-
+        
                 # === Exclude unwanted events for specific scrapers ===
                 if library in ["visitsuffolk", "portsvaevents", "visitnewportnews", "visithampton", "visitchesapeake"]:
                     exclude_keywords = ["live", "patio"]
@@ -584,21 +554,17 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                         print(f"⏭️ Skipping (excluded keyword): {event.get('Event Name')}")
                         skipped += 1
                         continue
-                
+        
                 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                # --- NEW: always trust scraper's Categories, then append/dedupe ---
-
+        
                 # 0) Start from what the scraper provided
                 scraper_cats = [c.strip() for c in (event.get("Categories", "") or "").split(",") if c.strip()]
-                
-                # 1) Program-type based categories (keep this if you want those too)
+        
+                # 1) Program-type based categories
                 program_type = event.get("Program Type", "")
-                
-                # 🚫 Central unwanted-title filter (title only)
                 title_for_filter = (event.get("Event Name") or "").strip()
-
+        
                 if library == "ppl":
-                    # Use pre-tagged categories or fallback
                     programtype_cats = [c.strip() for c in (event.get("Categories", "") or "").split(",") if c.strip()]
                     if not programtype_cats:
                         programtype_cats = [c.strip() for c in "Audience - Family Event, Audience - Free Event, Audience - Preschool Age, Audience - School Age, Event Location - Portsmouth".split(",")]
@@ -612,22 +578,20 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                             matched_tags.extend([_restore_special_labels(c.strip()) for c in safe_cat.split(",")])
                     programtype_cats = list(dict.fromkeys(matched_tags))
                 else:
-                    # Default mapping for libraries that still want program-type fallbacks
                     base_pt = program_type_to_categories.get(program_type, "")
                     programtype_cats = [c.strip() for c in base_pt.split(",") if c.strip()]
-                
-                # 2) Age-based categories (both structured + fuzzy)
+        
+                # 2) Age-based categories (mapped + fuzzy)
                 ages_raw = event.get("Ages", "") or ""
                 audience_keys = [a.strip() for a in ages_raw.split(",") if a.strip()]
-                
+        
                 mapped_age_tags = []
                 if age_to_categories:
                     for tag in audience_keys:
                         tags = age_to_categories.get(tag)
                         if tags:
                             mapped_age_tags.extend([t.strip() for t in tags.split(",")])
-                
-                # NEW: units-aware parse across ages/title/desc
+        
                 desc_value = (
                     event.get("Event Description")
                     or event.get("Description")
@@ -638,47 +602,38 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 title_text = (event.get("Event Name", "") or "")
                 age_haystack = f"{title_text} {desc_value} {ages_raw}"
                 age_tags = _spans_to_audience_tags(_extract_year_spans(age_haystack))
-                
+        
                 def _has_audience_tag(tags):
                     return any((t or "").startswith("Audience -") for t in tags)
-                
+        
                 age_combined = list(mapped_age_tags)
                 if age_tags and not _has_audience_tag(mapped_age_tags):
                     age_combined.extend(age_tags)
-
-                
+        
                 # 3) Keyword tags (single + paired)
-                desc_value = (
-                    event.get("Event Description")
-                    or event.get("Description")
-                    or event.get("Desc")
-                    or event.get("Event Details")
-                    or ""
-                )
-                title_text = (event.get("Event Name", "") or "").lower()
-                # EXCLUDE Ages from keyword/fuzzy tagging:
-                full_text  = f"{event.get('Event Name', '')} {desc_value}".lower()
-
+                full_text = f"{event.get('Event Name', '')} {desc_value}".lower()
+                title_text_l = (event.get("Event Name", "") or "").lower()
+        
                 title_based_tags = []
                 for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
-                    if _kw_hit(title_text, keyword) or _kw_hit(full_text, keyword):
+                    if _kw_hit(title_text_l, keyword) or _kw_hit(full_text, keyword):
                         safe_cat = _protect_special_labels(cat)
                         title_based_tags.extend([_restore_special_labels(c.strip()) for c in safe_cat.split(",")])
-                
+        
                 for (kw1, kw2), cat in COMBINED_KEYWORD_TO_CATEGORY.items():
                     if _kw_hit(full_text, kw1) and _kw_hit(full_text, kw2):
                         safe_cat = _protect_special_labels(cat)
                         title_based_tags.extend([_restore_special_labels(c.strip()) for c in safe_cat.split(",")])
-                
-                # 4) Always-on tags for this library (from constants)
+        
+                # 4) Always-on tags for this library
                 tag_list = []
-                tag_list.extend(scraper_cats)           # trust the scraper first
-                tag_list.extend(programtype_cats)       # then program-type fallback (optional)
-                tag_list.extend(age_combined)           # age-based (mapped + fuzzy if needed)
-                tag_list.extend(title_based_tags)       # keywords
+                tag_list.extend(scraper_cats)
+                tag_list.extend(programtype_cats)
+                tag_list.extend(age_combined)
+                tag_list.extend(title_based_tags)
                 if always_on:
                     tag_list.extend(always_on)
-                
+        
                 # 5) Fallback if nothing at all
                 if not tag_list:
                     raw_location = (event.get("Location", "") or "").strip()
@@ -691,8 +646,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                         f"Event Location - {fallback_city}, Audience - Free Event"
                         if fallback_city else "Audience - Free Event"
                     )
-
-                # --- DEBUG for VBPL baby events ---
+        
+                # VBPL debug (optional)
                 if library == "vbpl":
                     title_l = (event.get("Event Name","") or "").lower()
                     hay_l   = f"{title_l} {(desc_value or '').lower()} {(ages_raw or '').lower()}"
@@ -701,152 +656,43 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                               "| spans:", _extract_year_spans(hay_l),
                               "| age_tags:", age_tags,
                               "| program_type:", program_type,
-                              "| title_kw_hits:",
-                              [k for k in TITLE_KEYWORD_TO_CATEGORY if _kw_hit(title_l, k) or _kw_hit(hay_l, k)])
-
-                
-                # 6) Final clean & dedupe (preserve order)
+                              "| title_kw_hits:", [k for k in TITLE_KEYWORD_TO_CATEGORY if _kw_hit(title_l, k) or _kw_hit(hay_l, k)])
+        
+                # Final clean & dedupe
                 categories = ", ".join(dict.fromkeys([t.replace("\u00A0", " ").replace("Â", "").strip() for t in tag_list if t.strip()]))
-                
-                print(f"🧾 Final categories for {event.get('Event Name')}: {categories}")
-
-
-                # === Normalize title and description text
-                title_text = (event.get("Event Name", "") or "").lower()
-                # EXCLUDE Ages from keyword/fuzzy tagging:
-                full_text  = f"{event.get('Event Name', '')} {desc_value}".lower()
-
-                title_based_tags = []
-                
-                # Single keywords: title OR description, with word boundaries
-                for keyword, cat in TITLE_KEYWORD_TO_CATEGORY.items():
-                    if _kw_hit(title_text, keyword) or _kw_hit(full_text, keyword):
-                        safe_cat = _protect_special_labels(cat)
-                        title_based_tags.extend([_restore_special_labels(c.strip()) for c in safe_cat.split(",")])
-                
-                # Combined keyword pairs: both must hit with word boundaries
-                for (kw1, kw2), cat in COMBINED_KEYWORD_TO_CATEGORY.items():
-                    if _kw_hit(full_text, kw1) and _kw_hit(full_text, kw2):
-                        safe_cat = _protect_special_labels(cat)
-                        title_based_tags.extend([_restore_special_labels(c.strip()) for c in safe_cat.split(",")])
-                
-                # Build the tag list from the three sources
-                # 1) Start from program-type/default categories
-                safe_categories = _protect_special_labels(categories)
-                tag_list = [ _restore_special_labels(c.strip()) for c in safe_categories.split(",") if c.strip() ]
-                
-                # 2) Add age-based categories
-                tag_list.extend(age_combined)
-                
-                # 3) Add keyword categories
-                tag_list.extend(title_based_tags)
-
-                if always_on:
-                    tag_list.extend(always_on)
-
-                # --- Fuzzy audience from free text (constrained so HS/MS don't trigger School Age)
-                age_haystack = full_text  # already lowercased earlier
-                
-                is_school_age_phrase  = re.search(r"\bschool age\b", age_haystack, re.I)
-                mentions_elementary   = re.search(r"\belementary\b", age_haystack, re.I)
-                mentions_grades_elm   = re.search(r"\bgrades?\s*(k|[1-5])(\s*-\s*(k|[1-5]))?\b", age_haystack, re.I)
-                
-                mentions_high_school   = re.search(r"\bhigh\s+school\b", age_haystack, re.I)
-                mentions_middle_school = re.search(r"\bmiddle\s+school\b", age_haystack, re.I)
-                
-                # Elementary → School Age, but NOT if the text also says HS/MS
-                if (is_school_age_phrase or mentions_elementary or mentions_grades_elm) and not (mentions_high_school or mentions_middle_school):
-                    _ensure(tag_list, "Audience - School Age")
-                
-                # Middle School (6–8) → Teens
-                if re.search(r"\bgrades?\s*(6|7|8)(\s*-\s*(6|7|8))?\b", age_haystack, re.I) or mentions_middle_school:
-                    _ensure(tag_list, "Audience - Teens")
-                
-                # High School (9–12) → Teens
-                if re.search(r"\bgrades?\s*(9|1[0-2])(\s*-\s*(9|1[0-2]))?\b", age_haystack, re.I) or mentions_high_school:
-                    _ensure(tag_list, "Audience - Teens")
-
-                
-                # YPL: always add base tags
-                if library == "ypl":
-                    tag_list.extend([
-                        "Audience - Free Event",
-                        "Event Location - Yorktown / York County",
-                    ])
-
-                # Always add base tags for NPL
-                if library == "npl":
-                    tag_list.extend(["Event Location - Norfolk", "Audience - Free Event"])
-                
-                # If nothing matched at all, add a reasonable fallback
-                if not tag_list:
-                    raw_location = (event.get("Location", "") or "").strip()
-                    fallback_city = ""
-                    for city in ("Norfolk", "Virginia Beach", "Chesapeake", "Portsmouth", "Hampton", "Newport News", "Suffolk"):
-                        if city.lower() in raw_location.lower():
-                            fallback_city = city
-                            break
-                    if library == "ypl":
-                        # Always at least these for YPL
-                        tag_list.extend([
-                            "Audience - Free Event",
-                            "Event Location - Yorktown",
-                            "Event Location - York County",
-                        ])
-                    else:
-                        tag_list.append(
-                            f"Event Location - {fallback_city}, Audience - Free Event"
-                            if fallback_city else
-                            "Audience - Free Event"
-                        )
-
-                # Remove preschool tag for "Just 2s / Just 2's" titles
-                tag_list = _strip_preschool_for_just2s(event.get("Event Name", ""), tag_list)
-
-                # Final dedupe to string
-                categories = ", ".join(dict.fromkeys(tag_list))
-                print(f"🧾 Final categories for {event.get('Event Name')}: {categories}")
-
-
+        
+                # === Normalize title and (maybe) suffix ===
                 name_original = event.get("Event Name", "")
                 name_without_at = re.sub(r"\s*@\s*[^@,;:\\/]+", "", name_original, flags=re.IGNORECASE).strip()
-                # For visithampton: DO NOT strip " at ...".
-                # For others: keep stripping anything after " at ".
                 if library == "visithampton":
                     name_cleaned = name_without_at
                 else:
                     name_cleaned = re.sub(r"\s+at\s+.*", "", name_without_at, flags=re.IGNORECASE).strip()
-                
-                # Use Venue for visithampton (fallback to Location); others use Location as before
+        
                 if library == "visithampton":
                     pref_loc = (event.get("Venue", "") or "").strip() or (event.get("Location", "") or "").strip()
                 else:
                     pref_loc = (event.get("Location", "") or "").strip()
-                
+        
                 suffix = config.get("event_name_suffix", "")
                 loc_clean = re.sub(r"^Library Branch:", "", pref_loc).strip()
                 display_loc = name_suffix_map.get(loc_clean, loc_clean)
-                
-                # Normalize casing for suffix checks
+        
                 base_name = name_cleaned.lower()
                 loc_lower = display_loc.lower()
                 suffix_lower = (suffix or "").lower()
-
-                # Avoid duplicate location suffix
+        
                 if base_name.endswith(loc_lower) or suffix_lower in base_name:
                     event_name = f"{name_cleaned}"
                 else:
                     event_name = f"{name_cleaned} at {display_loc}"
-                
-                # Append suffix only if not already present
                 if suffix and suffix not in event_name:
                     event_name += suffix
-
+        
                 if not categories:
                     categories = event.get("Categories", "") or f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event"
-
-
-                # Decide what to put in the Google Sheet "Location" (Column F)
+        
+                # Decide sheet location (Column F)
                 organizer = (event.get("Organizer", "") or "").strip().lower()
                 if library == "visithampton" and organizer == "fort monroe national monument":
                     raw_location = "Fort Monroe Visitor & Education Center"
@@ -854,34 +700,26 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     raw_location = (event.get("Venue", "") or "").strip()
                 else:
                     raw_location = (event.get("Location", "") or "").strip()
-                
-                # 1) strip room/area suffix after " - "
+        
                 if library == "visitchesapeake":
                     raw_location = _strip_room_suffix(raw_location)
-                
-                # 2) remove 'Library Branch:' prefix, then try to map to a canonical venue
+        
                 loc_key = re.sub(r"^Library Branch:", "", raw_location).strip()
-                
-                # 3) check if this venue exists in the map (case-insensitive)
-                venue_map_present = bool(venue_names_map_lc)              # only enforce if a map is provided
+                venue_map_present = bool(venue_names_map_lc)
                 venue_in_map      = venue_map_present and (loc_key.lower() in venue_names_map_lc)
-                
-                # 4) normalize via map; fall back to the stripped value
-                sheet_location = venue_names_map_lc.get(loc_key.lower(), loc_key)
-
-
+                sheet_location    = venue_names_map_lc.get(loc_key.lower(), loc_key)
+        
                 time_str = _normalize_time_for_upload(
                     event.get("Time", ""),
                     library,
                     event.get("Year"), event.get("Month"), event.get("Day")
                 )
-
-
+        
                 row_core = [
                     event_name,
                     link,
                     event.get("Event Status", ""),
-                    time_str,  
+                    time_str,
                     event.get("Ages", ""),
                     sheet_location,
                     event.get("Month", ""),
@@ -894,81 +732,63 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 ]
                 print("🧾 Raw row_core before normalize:", row_core)
                 new_core = normalize(row_core)
-                existing_row = existing_data.get(link, [""] * 16)
+        
+                existing_row  = existing_data.get(link, [""] * 16)
                 existing_core = normalize(existing_row)
-
+        
                 # --- Needs-Attention logic ---
-                time_raw = time_str  # use normalized value everywhere
-                t = (time_raw or "").strip().lower()
+                t = (time_str or "").strip().lower()
                 title = (event.get("Event Name") or "")
-                
-                # If you didn't keep these earlier, uncomment the two lines below:
-                # venue_map_present = bool(venue_names_map_lc)
-                # venue_in_map = (loc_key.lower() in venue_names_map_lc) if venue_map_present else False
-                
-                # Only enforce the venue map for VisitChesapeake
+        
                 enforce_venue_map     = (library in ENFORCE_VENUE_MAP_FOR)
                 missing_mapped_venue  = enforce_venue_map and venue_map_present and (not venue_in_map)
-                
-                # Basic time checks (on the normalized string)
+        
                 is_all_day     = ("all day" in t) or ("ongoing" in t)
                 start_present  = bool(re.search(r"\b\d{1,2}(:\d{2})?\s*[ap]m\b", t, re.I))
                 has_end        = bool(re.search(r"\b\d{1,2}(:\d{2})?\s*[ap]m\b\s*[-–—]\s*\d{1,2}(:\d{2})?\s*[ap]m\b", t, re.I))
                 missing_end_time = (not is_all_day) and start_present and (not has_end)
-                
-                # Individual flags
+        
                 missing_desc  = not (desc_value or "").strip()
                 missing_loc   = not (sheet_location or "").strip()
-                invalid_time  = not _has_valid_time_str(time_raw)
+                invalid_time  = not _has_valid_time_str(time_str)
                 is_exhibit    = "exhibit" in title.lower()
-                
-                # Final decision
+        
                 needs_attention = any([
-                    missing_desc,          # missing description
-                    missing_loc,           # missing location (Column F after normalization)
-                    invalid_time,          # missing/invalid time
-                    is_exhibit,            # contains 'exhibit'
-                    missing_mapped_venue,  # venue not in Constants.py map (visitchesapeake only)
-                    missing_end_time       # start present but no end (non All-Day)
+                    missing_desc,
+                    missing_loc,
+                    invalid_time,
+                    is_exhibit,
+                    missing_mapped_venue,
+                    missing_end_time
                 ])
-                
-                # Consider these as all-day markers
-                is_all_day = ("all day" in t) or ("ongoing" in t)
-                
-                # Detect a start time and an explicit end time (e.g., "2 PM - 3 PM" or "2:15 pm – 3:00 pm")
-                start_present = bool(re.search(r"\b\d{1,2}(:\d{2})?\s*[ap]m\b", t, re.I))
-                has_end = bool(re.search(r"\b\d{1,2}(:\d{2})?\s*[ap]m\b\s*[-–—]\s*\d{1,2}(:\d{2})?\s*[ap]m\b", t, re.I))
-                
-                # If it's not all-day, and we do have a start but no end → flag for attention
-                missing_end_time = (not is_all_day) and start_present and (not has_end)
-
-                if needs_attention or missing_end_time:
+        
+                # --- Row status/state machine ---
+                if needs_attention:
                     site_sync_status = "NEEDS ATTENTION"
-                    status = "review needed"   # keep if you want this reflected in the Status column
+                    status = "review needed"
                 else:
                     status = "new"
                     site_sync_status = existing_row[15] if link in existing_data else "new"
-
-
+        
                 if link in existing_data:
                     existing_vals = {
                         "status": existing_row[2],
                         "month": existing_row[6],
-                        "day": existing_row[7],
-                        "year": existing_row[8],
-                        "time": existing_row[3],
+                        "day":   existing_row[7],
+                        "year":  existing_row[8],
+                        "time":  existing_row[3],
                     }
                     current_vals = {
                         "status": event.get("Event Status", ""),
-                        "month": event.get("Month", ""),
-                        "day": event.get("Day", ""),
-                        "year": event.get("Year", ""),
-                        "time": event.get("Time", "")
+                        "month":  event.get("Month", ""),
+                        "day":    event.get("Day", ""),
+                        "year":   event.get("Year", ""),
+                        "time":   event.get("Time", "")
                     }
                     changed_to_cancelled = (
                         existing_vals["status"].lower() != current_vals["status"].lower()
                         and current_vals["status"].lower() == "cancelled"
-                )
+                    )
                     date_changed = (
                         existing_vals["month"] != current_vals["month"]
                         or existing_vals["day"] != current_vals["day"]
@@ -982,26 +802,28 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     else:
                         status = existing_row[14]
                         site_sync_status = site_sync_status or ""
-
+        
                 full_row = new_core + [now, status, site_sync_status]
-
+        
                 if link not in existing_data:
                     print("🔍 New row to append:", full_row)
                     new_rows.append(full_row)
                     added += 1
-    
                 elif new_core != existing_core:
                     print(f"🔄 Updated row {link_to_row_index[link]}:", full_row)
                     row_index = link_to_row_index[link]
                     update_requests.append({
-                        "range": f"A{row_index}:Q{row_index}",
+                        "range": f"A{row_index}:P{row_index}",
                         "values": [full_row]
                     })
                     updated += 1
-            except Exception as row_err:
-                print(f"❌ Error processing event: {event.get('Event Name')} — {event.get('Event Link')}")
-                traceback.print_exc()
-                skipped += 1
+        
+            except Exception as e:
+                print(f"💥 Error processing event '{event.get('Event Name','')}' ({event.get('Event Link','')}): {e}")
+                # traceback.print_exc()  # uncomment if you want full stack
+                error_count += 1
+                continue
+
 
         if update_requests:
             sheet.batch_update(update_requests)
@@ -1027,28 +849,31 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
             sheet.append_rows(new_rows, value_input_option="USER_ENTERED")
         
         try:
-            # Build summary using the variables you actually have
             log_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            new_count      = added
-            updated_count  = updated
-            error_count    = skipped
+            log_row = [log_time, mode, added, updated, (skipped + error_count)]
         
-            # Log summary row (timestamp, mode, new_count, updated_count, error_count)
-            log_row = [log_time, mode, new_count, updated_count, error_count]
+            if USE_MASTER_SHEET:
+                log_sheet = connect_to_master_sheet(LOG_WORKSHEET_NAME)
+            else:
+                log_sheet = connect_to_sheet(SPREADSHEET_NAME, LOG_WORKSHEET_NAME)
         
-            # Write to the Master Events Log tab (avoid touching the Master Events sheet)
-            log_sheet = client.open_by_key(SPREADSHEET_ID).worksheet(LOG_WORKSHEET_NAME)
             log_sheet.append_row(log_row, value_input_option="USER_ENTERED")
-        
             print(f"🪵 Logged summary to {LOG_WORKSHEET_NAME}: {log_row}")
-        
         except Exception as e:
             print(f"⚠️ Failed to log to {LOG_WORKSHEET_NAME} tab: {e}")
+
         
         print(f"📦 {added} new events added.")
         print(f"🔁 {updated} existing events updated.")
         if skipped:
             print(f"🧹 {skipped} malformed events skipped.")
+
+    except Exception as e:
+        print(f"❌ upload_events_to_sheet failed for library='{library}': {e}")
+        traceback.print_exc()
+        # optional: re-raise if you want the caller/cron to fail loudly
+        # raise
+
 
 def export_all_events_to_csv_and_email():
     LIBRARIES = [
