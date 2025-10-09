@@ -4,6 +4,53 @@ import json
 from bs4 import BeautifulSoup
 from constants import UNWANTED_TITLE_KEYWORDS, TITLE_KEYWORD_TO_CATEGORY, LIBRARY_CONSTANTS
 from calendar import monthrange
+import re
+
+EMOJI_RX = re.compile(
+    "["                      # strip emoji (optional)
+    "\U0001F000-\U0001FFFF"
+    "\U00020000-\U0002FFFF"
+    "\U00030000-\U0003FFFF"
+    "]+", flags=re.UNICODE
+)
+
+def _clean_text(s: str) -> str:
+    s = re.sub(r"<[^>]+>", " ", s or "")
+    s = EMOJI_RX.sub("", s)                 # remove emojis
+    s = s.replace("\xa0", " ")
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+def _fetch_full_description(url: str, timeout: int = 15) -> str:
+    """
+    Open the event detail page and join all text from .amh-block.amh-text sections.
+    """
+    try:
+        r = requests.get(url, timeout=timeout)
+        r.raise_for_status()
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        parts = []
+        # each text block
+        for blk in soup.select(".amh-block.amh-text .amh-content"):
+            # collect paragraphs (including lone <p> in nested spans)
+            for p in blk.select("p"):
+                t = p.get_text(" ", strip=True)
+                if t:
+                    parts.append(t)
+
+        # fallback: sometimes the site uses <div> text without <p>
+        if not parts:
+            for blk in soup.select(".amh-block.amh-text"):
+                t = blk.get_text(" ", strip=True)
+                if t:
+                    parts.append(t)
+
+        desc = " ".join(parts)
+        return _clean_text(desc)
+    except Exception:
+        return ""
+
 
 def _end_of_next_month(dt):
     y = dt.year + (1 if dt.month == 12 else 0)
@@ -160,31 +207,75 @@ def scrape_chpl_events(mode="all"):
                         status = "Cancelled"
                 except Exception as e:
                     print(f"⚠️ Failed to fetch detail page for status check: {event_url} — {e}")
+
+            # --- Build merged description first (your block above) ---
+            api_desc   = (item.get("description", "") or "").strip()
+            detail_desc = _get_full_desc_from_chpl_detail(event_url, headers) or ""
             
-            # ✅ Category tagging from title + ages
-            title_lower = title.lower()
-            keyword_tags = [tag for keyword, tag in TITLE_KEYWORD_TO_CATEGORY.items() if keyword in title_lower]
+            def _clean(s: str) -> str:
+                s = re.sub(r"<[^>]+>", " ", s or "")
+                s = s.replace("\xa0", " ")
+                s = re.sub(r"\s+", " ", s).strip()
+                return s
+            
+            api_desc    = _clean(api_desc)
+            detail_desc = _clean(detail_desc)
+            
+            AGE_RX = re.compile(r"\bages?\b|\byears?\b|\bmonths?\b|\bcaregiver\b|\b0\s*[–-]\s*3\b", re.I)
+            def _merge_desc(a: str, b: str) -> str:
+                if not a: return b
+                if not b: return a
+                if a in b: return b
+                if AGE_RX.search(b) and not AGE_RX.search(a):
+                    return b if b.startswith(a[:120]) else f"{a.rstrip(' .')} {b}"
+                if AGE_RX.search(a) and not AGE_RX.search(b):
+                    return a
+                return b if len(b) > len(a) and not b.startswith(a[:120]) else (a if len(a) >= len(b) else b)
+            
+            full_desc = _merge_desc(api_desc, detail_desc)
+            
+            # --- Category tagging (now that full_desc is ready) ---
+            title_lower = (title or "").lower()
+            desc_lower  = full_desc.lower()
+            ages_str    = ages or ""
+            
+            def _kw_hit(text: str, kw: str) -> bool:
+                # word-boundary hit to avoid 'steam' in 'upstream'
+                return re.search(rf'(?<!\w){re.escape((kw or "").lower())}(?!\w)', (text or "").lower()) is not None
             
             program_type_to_categories = LIBRARY_CONSTANTS["chpl"].get("program_type_to_categories", {})
-            age_to_categories = LIBRARY_CONSTANTS["chpl"].get("age_to_categories", {})
-            audience_keys = [a.strip() for a in ages.split(",") if a.strip()]
+            age_to_categories         = LIBRARY_CONSTANTS["chpl"].get("age_to_categories", {})
+            always_on                 = LIBRARY_CONSTANTS["chpl"].get("always_on_categories", [])
+            
+            # 1) Keyword tags (title OR description), expand multi-tag strings
+            keyword_tags = []
+            for keyword, tag_str in TITLE_KEYWORD_TO_CATEGORY.items():
+                if _kw_hit(title_lower, keyword) or _kw_hit(desc_lower, keyword):
+                    keyword_tags.extend([t.strip() for t in tag_str.split(",") if t.strip()])
+            
+            # 2) Program type → categories (CHPL puts types in item['tags'])
+            pt_raw = (item.get("tags", "") or "").strip()
+            pt_tags = []
+            if pt_raw:
+                mapped = program_type_to_categories.get(pt_raw) or ""
+                pt_tags.extend([t.strip() for t in mapped.split(",") if t.strip()])
+            
+            # 3) Ages → categories (from the Ages field)
+            audience_keys = [a.strip() for a in ages_str.split(",") if a.strip()]
             age_tags = []
             for key in audience_keys:
-                tags = age_to_categories.get(key)
-                if tags:
-                    age_tags.extend([t.strip() for t in tags.split(",")])
+                tag_str = age_to_categories.get(key) or ""
+                if tag_str:
+                    age_tags.extend([t.strip() for t in tag_str.split(",") if t.strip()])
             
-            all_categories = ", ".join(dict.fromkeys(keyword_tags + age_tags))  # dedupe while preserving order
+            # 4) Always-on tags for CHPL
+            base_tags = list(always_on) if always_on else []
+            
+            # 5) Final categories (preserve order, dedupe)
+            all_tags = base_tags + pt_tags + age_tags + keyword_tags
+            all_categories = ", ".join(dict.fromkeys(all_tags))
 
-            api_desc = (item.get("description", "") or "").strip()
-            event_url = (item.get("url", "") or "").replace("\\/", "/")
-            
-            # If the API blurb looks short, fetch the full body from the detail page
-            full_desc = api_desc
-            if not api_desc or len(api_desc) < 140 or ("\n" not in api_desc and api_desc.count(".") <= 1):
-                long_txt = _get_full_desc_from_chpl_detail(event_url, headers)
-                if long_txt and len(long_txt) > len(api_desc):
-                    full_desc = long_txt
+
 
             # ✅ Final event append
             events.append({
