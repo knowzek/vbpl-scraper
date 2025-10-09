@@ -95,14 +95,13 @@ def _protect_special_labels(text: str) -> str:
 def _restore_special_labels(text: str) -> str:
     return (text or "").replace(PLACEHOLDER, SPECIAL_MULTIWORD)
 
-
 def _strip_preschool_for_just2s(title: str, tags: list[str]) -> list[str]:
     """
-    If the event title contains 'Just 2s' or 'Just 2's' (any spacing/case),
-    remove preschool audience tags.
+    If the title contains any 'Just 2s' variant, forcibly remove preschool audience tags.
     """
     t = (title or "").lower()
-    if re.search(r"\bjust\s*2'?s\b", t):
+    # matches: "just 2s", "just 2's", "just 2’s", "just twos", "just two's"
+    if re.search(r"\bjust\s*(?:2\s*[’']?\s*s|two[’']?s)\b", t):
         return [c for c in tags if c not in {"Audience - Preschool Age", "Audience - Preschool"}]
     return tags
 
@@ -657,7 +656,10 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                               "| age_tags:", age_tags,
                               "| program_type:", program_type,
                               "| title_kw_hits:", [k for k in TITLE_KEYWORD_TO_CATEGORY if _kw_hit(title_l, k) or _kw_hit(hay_l, k)])
-        
+                        
+                # Remove preschool tag for "Just 2s / Just 2's" titles
+                tag_list = _strip_preschool_for_just2s(event.get("Event Name", ""), tag_list)
+
                 # Final clean & dedupe
                 categories = ", ".join(dict.fromkeys([t.replace("\u00A0", " ").replace("Â", "").strip() for t in tag_list if t.strip()]))
         
