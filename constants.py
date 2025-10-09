@@ -482,6 +482,27 @@ LIBRARY_CONSTANTS = {
             "Culture": "Event Location - Virginia Beach, Audience - Free Event",
             "History & Genealogy": "Event Location - Virginia Beach, Audience - Free Event"
         },
+        "age_to_categories": {
+            # Babies / infants
+            "Babies (3-12 months)": "Audience - Parent & Me, Audience - Toddler/Infant",
+            "Onesies (12-24 months)": "Audience - Parent & Me, Audience - Toddler/Infant",
+            "Toddlers (2-3 years)": "Audience - Parent & Me, Audience - Toddler/Infant",
+        
+            # Preschool
+            "Preschool (3-5 years)": "Audience - Preschool Age",
+        
+            # Elementary
+            "Grades K-2": "Audience - School Age",
+            "Grades 3-5": "Audience - School Age",
+        
+            # Middle / High
+            "Grades 6-8": "Audience - Teens",
+            "Grades 9-12": "Audience - Teens",
+        
+            # All Ages (for Bookmobile or any VBPL “All Ages” events)
+            "All Ages": "Audience - Family Event, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Teens, Audience - Free Event, Event Location - Virginia Beach"
+
+        },
         "name_suffix_map": {
             "Oceanfront Area Library": "Oceanfront Area Library",
             "Meyera E. Oberndorf Central Library": "MEO Central Library",
@@ -494,17 +515,17 @@ LIBRARY_CONSTANTS = {
             "Kempsville Area Library": "Kempsville Area Library"
         },
         "venue_names": {
-        "Meyera E. Oberndorf Central Library": "MEO Central Library",
-        "TCC/City Joint-Use Library": "TCC Joint-Use Library",
-        "Princess Anne Area Library": "Princess Anne Area Library",
-        "Oceanfront Area Library": "Oceanfront Area Library",
-        "Bayside Area Library": "Bayside Area Library",
-        "Pungo-Blackwater Library": "Pungo Blackwater Library",
-        "Windsor Woods Area Library": "Windsor Woods Area Library",
-        "Great Neck Area Library": "Great Neck Area Library",
-        "Kempsville Area Library": "Kempsville Area Library"
-    },
-        "event_name_suffix": " (Virginia Beach)"
+            "Meyera E. Oberndorf Central Library": "MEO Central Library",
+            "TCC/City Joint-Use Library": "TCC Joint-Use Library",
+            "Princess Anne Area Library": "Princess Anne Area Library",
+            "Oceanfront Area Library": "Oceanfront Area Library",
+            "Bayside Area Library": "Bayside Area Library",
+            "Pungo-Blackwater Library": "Pungo Blackwater Library",
+            "Windsor Woods Area Library": "Windsor Woods Area Library",
+            "Great Neck Area Library": "Great Neck Area Library",
+            "Kempsville Area Library": "Kempsville Area Library"
+        },
+            "event_name_suffix": " (Virginia Beach)"
     },
 
     "poquosonpl": {
