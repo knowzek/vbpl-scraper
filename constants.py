@@ -656,7 +656,7 @@ LIBRARY_CONSTANTS = {
     },
     "chpl": {
         "age_to_categories": {
-            #"Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Chesapeake",
+            "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Chesapeake",
             "Elementary School": "Audience - School Age, Audience - Free Event, Event Location - Chesapeake",
             "Middle School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Chesapeake",
             "High School": "Audience - Teens, Audience - Free Event, Event Location - Chesapeake",
@@ -684,8 +684,13 @@ LIBRARY_CONSTANTS = {
             "Major Hillard Library": "Major Hillard Library",
             "Dr. Clarence V. Cuffee Library": "Dr. Clarence V. Cuffee Outreach & Innovation Library"
         },
-        "event_name_suffix": " (Chesapeake)",
+        "always_on_categories": [
+            "Event Location - Chesapeake",
+            "Audience - Free Event"
+        ],
+        "event_name_suffix": " (Chesapeake)"
     },
+    
     "hpl": {
     "program_type_to_categories": {
         "storytime": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Storytimes, List - Toddler Time Events, Audience - Toddler/Infant",
