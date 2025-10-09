@@ -487,6 +487,7 @@ def _spans_to_audience_tags(spans):
 
 
 def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_to_categories={}, name_suffix_map={}):
+    library = (library or "").lower()
     config = get_library_config(library)
 
     # Default per-library destinations
@@ -642,7 +643,12 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 tag_list.extend(title_based_tags)
                 if always_on:
                     tag_list.extend(always_on)
-        
+
+                # --- YPL: always add base tags ---
+                if library == "ypl":
+                    _ensure(tag_list, "Audience - Free Event")
+                    _ensure(tag_list, "Event Location - Yorktown / York County")
+
                 # 5) Fallback if nothing at all
                 if not tag_list:
                     raw_location = (event.get("Location", "") or "").strip()
