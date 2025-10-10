@@ -96,6 +96,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "taylor swift": "List - Swiftie Events",
     "Potter": "List - Wizard Events",
     "Harry Potter": "List - Wizard Events",
+    "Hogwarts": "List - Wizard Events",
     "outdoor": "Audience - Outdoor Event",
     "outdoors": "Audience - Outdoor Event",
     "spooky": "List - Fall - Family Halloween Events",
