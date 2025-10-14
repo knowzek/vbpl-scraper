@@ -1,34 +1,20 @@
-# scrape_visithampton_hmva_ical.py
-# Ready-to-paste scraper for Visit Hampton (With calendar via iCal)
-# - Supports two timeframes: "full" (next 12 weeks) and "fast" (next 4 weeks)
-# - Pulls three audience feeds: Kids, Family, Youth (server-side pinnedFilters if respected)
-# - Parses ICS without external libs, dedupes by UID, unions categories
-# - Derives Ages from description/title; if none found, tags as Family
-# - Always adds "Event Location - Hampton" to categories
-# - Emits rows compatible with your uploader. Will call upload_to_sheets if present.
-
+# scrape_visithampton_hmva_ical.py (fixed: title, venue, description)
 from __future__ import annotations
 import argparse
 import datetime as dt
+import html
 import os
 import re
 import sys
 import time
 import urllib.parse
-import requests
 from typing import Dict, List, Tuple, Optional
 
+import requests
+
 BASE_ICS = "https://api.withapps.io/api/v2/organizations/30/calendar/ical"
-
-# Audience filters to attempt server-side
 AUDIENCE_FILTERS = ["Kids", "Family", "Youth"]
-
-# Library identifier (used by your uploader & constants)
 LIBRARY_KEY = "visithampton"
-
-# -----------------------------------------------------------------------------
-# Time window helpers
-# -----------------------------------------------------------------------------
 
 def _unix(t: dt.datetime) -> int:
     return int(t.timestamp())
@@ -39,12 +25,8 @@ def _time_window(weeks: int) -> Tuple[int, int]:
     end = start + dt.timedelta(weeks=weeks)
     return _unix(start), _unix(end)
 
-# -----------------------------------------------------------------------------
-# Lightweight ICS parsing (no external libs)
-# -----------------------------------------------------------------------------
-
+# ---------- ICS parsing (keep params for X-APPLE-STRUCTURED-LOCATION) ----------
 def _unfold_ics_lines(text: str) -> List[str]:
-    """Unfold folded iCal lines: lines that begin with space/tab are continuations."""
     raw_lines = text.splitlines()
     out = []
     for line in raw_lines:
@@ -58,7 +40,6 @@ def _unfold_ics_lines(text: str) -> List[str]:
     return out
 
 def _parse_vevent_blocks(ics_text: str) -> List[Dict[str, str]]:
-    """Parse ICS into a list of VEVENT dictionaries (key -> value)."""
     lines = _unfold_ics_lines(ics_text)
     events = []
     cur = None
@@ -69,32 +50,24 @@ def _parse_vevent_blocks(ics_text: str) -> List[Dict[str, str]]:
             if cur:
                 events.append(cur)
                 cur = None
-        elif cur is not None:
-            # Split property and value: e.g., "DTSTART;TZID=America/New_York:20251022T180000"
-            if ":" not in line:
-                continue
+        elif cur is not None and ":" in line:
             prop, value = line.split(":", 1)
             prop_name = prop.split(";", 1)[0].upper()
             cur.setdefault(prop_name, "")
-            # Some props can repeat (e.g., CATEGORIES)
             if cur[prop_name]:
                 cur[prop_name] += "," + value
             else:
                 cur[prop_name] = value
+            # keep params for certain props
+            if ";" in prop:
+                cur[f"__{prop_name}_params"] = prop.split(";", 1)[1]
     return events
 
-# -----------------------------------------------------------------------------
-# Field normalization
-# -----------------------------------------------------------------------------
-
+# ---------- Field helpers ----------
 _MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
 def _fmt_date_parts(dtstart: str) -> Tuple[str, str, str]:
-    """
-    Accepts DTSTART like '20251022T180000' or '20251022' (with optional Z).
-    Returns (MonthNameAbbrev, DayStr, YearStr) -> ('Oct','22','2025')
-    """
-    s = dtstart.replace("Z", "")
+    s = (dtstart or "").replace("Z", "")
     m = re.match(r"^(\d{4})(\d{2})(\d{2})", s)
     if not m:
         return "", "", ""
@@ -103,12 +76,8 @@ def _fmt_date_parts(dtstart: str) -> Tuple[str, str, str]:
     return month_name, str(int(dd)), year
 
 def _fmt_time_range(dtstart: str, dtend: str) -> str:
-    """
-    Convert to a human-ish 'h:mma – h:mma' or '' if all-day/unknown.
-    We keep it simple; your uploader can re-normalize if needed.
-    """
     def parse_time(s: str) -> Optional[Tuple[int,int]]:
-        s = s.replace("Z", "")
+        s = (s or "").replace("Z", "")
         m = re.match(r"^\d{8}T(\d{2})(\d{2})", s)
         if not m:
             return None
@@ -122,20 +91,17 @@ def _fmt_time_range(dtstart: str, dtend: str) -> str:
         h = hh % 12
         if h == 0:
             h = 12
-        if mm == 0:
-            return f"{h}{ampm}"
-        return f"{h}:{mm:02d}{ampm}"
+        return f"{h}{ampm}" if mm == 0 else f"{h}:{mm:02d}{ampm}"
     if st and en:
         return f"{fmt(*st)} – {fmt(*en)}"
-    if st and not en:
+    if st:
         return fmt(*st)
     return ""
 
 def _extract_url(evt: Dict[str, str]) -> str:
-    # Prefer URL prop; else find first http(s) in DESCRIPTION
     for k in ("URL", "X-ALT-DESC", "X-WR-URL"):
-        v = evt.get(k, "")
-        if v.startswith("http"):
+        v = evt.get(k, "") or ""
+        if isinstance(v, str) and v.startswith("http"):
             return v.strip()
     desc = evt.get("DESCRIPTION", "") or ""
     m = re.search(r"https?://\S+", desc)
@@ -145,29 +111,67 @@ def _split_categories(evt: Dict[str, str]) -> List[str]:
     raw = evt.get("CATEGORIES", "") or ""
     if not raw:
         return []
-    # Categories can be comma-joined; also some ICS escape commas as '\,'
     parts = [p.replace(r"\,", ",").strip() for p in raw.split(",")]
     return [p for p in parts if p]
 
-# -----------------------------------------------------------------------------
-# Age/Audience detection from text (title + description)
-# -----------------------------------------------------------------------------
+# ---------- Description: prefer HTML (X-ALT-DESC) ----------
+_TAG_RE = re.compile(r"<[^>]+>")
 
+def _preferred_description(evt: Dict[str, str]) -> str:
+    raw_html = evt.get("X-ALT-DESC", "") or ""
+    if raw_html:
+        # ICS often encodes \n as literal \n, unescape twice
+        txt = html.unescape(raw_html.replace("\\n", "\n"))
+        txt = _TAG_RE.sub("", txt)
+        return re.sub(r"\s+\n", "\n", txt).strip()
+    # fallback to DESCRIPTION (unescape ICS escapes)
+    desc = (evt.get("DESCRIPTION", "") or "").replace("\\n", "\n")
+    return html.unescape(desc).strip()
+
+# ---------- Venue name extraction ----------
+def _venue_from_xapple(evt: Dict[str, str]) -> str:
+    params = evt.get("__X-APPLE-STRUCTURED-LOCATION_params", "") or ""
+    # look for X-TITLE=...; or TITLE=...
+    m = re.search(r"(?:X-TITLE|TITLE)=([^;]+)", params)
+    if m:
+        return html.unescape(m.group(1)).replace("\\,", ",").strip()
+    return ""
+
+_HTML_TITLE_RE = re.compile(r"<title>(.*?)</title>", re.I | re.S)
+_META_RE = re.compile(r'<meta\s+[^>]*property=["\']og:(title|site_name)["\'][^>]*content=["\']([^"\']+)["\']', re.I)
+
+def _fetch_page_title_and_venue(url: str, timeout: int = 12) -> Tuple[str,str]:
+    """Lightweight HTML fetch to fix bad SUMMARY and venue name."""
+    if not url:
+        return "", ""
+    try:
+        r = requests.get(url, timeout=timeout)
+        if r.status_code != 200 or "text/html" not in (r.headers.get("Content-Type","")):
+            return "", ""
+        html_text = r.text
+        # og:title beats <title>
+        og = _META_RE.findall(html_text)
+        og_map = {k:v for (k,v) in og}
+        title = og_map.get("title", "")
+        if not title:
+            m = _HTML_TITLE_RE.search(html_text)
+            if m:
+                title = html.unescape(m.group(1)).strip()
+        venue = og_map.get("site_name", "")
+        return (title.strip(), venue.strip())
+    except Exception:
+        return "", ""
+
+# ---------- Age detection ----------
 AGE_RULES = [
-    # Babies / Toddlers
     (r"\b(babies|infants?|0-?12\s*months?|under\s*1)\b", "Babies (0-12 months)"),
     (r"\b(onesies|12-?24\s*months?|toddlers?)\b", "Onesies (12-24 months)"),
-    # Preschool
     (r"\b(pre[-\s]?k|pre[-\s]?school|ages?\s*3-?5|3[-–]5\s*years?)\b", "Preschool (3-5 years)"),
-    # School age
     (r"\bgrades?\s*(k|k-?1|k-?2|k-?3|k-?4|k-?5)\b|\belementary\b|\bages?\s*6-?10\b", "School Age"),
     (r"\bgrades?\s*3-?5\b|\bupper\s*elementary\b", "School Age"),
-    # Teens / Middle & High
     (r"\b(grades?\s*6-?8|middle\s*school)\b", "Grades 6-8"),
     (r"\b(grades?\s*9-?12|high\s*school|teens?)\b", "Grades 9-12"),
-    # Adults
     (r"\b(adults?\s*18\+|adult\s+only)\b", "Adults 18+"),
-    # All ages
     (r"\ball\s*ages\b", "All Ages"),
 ]
 
@@ -177,24 +181,18 @@ def detect_ages(name: str, description: str, categories: List[str]) -> List[str]
     for pattern, label in AGE_RULES:
         if re.search(pattern, text):
             hits.append(label)
-    # Deduplicate while preserving order
-    seen = set()
-    ordered = []
+    seen, ordered = set(), []
     for x in hits:
         if x not in seen:
-            ordered.append(x)
-            seen.add(x)
+            ordered.append(x); seen.add(x)
     return ordered
 
-# -----------------------------------------------------------------------------
-# Fetch & merge feeds
-# -----------------------------------------------------------------------------
-
+# ---------- Fetch & merge ----------
 def build_ics_url(audience: str, start_unix: int, end_unix: int) -> str:
     params = [
         ("filterBy[startsAt]", str(start_unix)),
         ("filterBy[endsAt]", str(end_unix)),
-        ("pinnedFilters[0]", audience),  # server-side attempt
+        ("pinnedFilters[0]", audience),
     ]
     return BASE_ICS + "?" + urllib.parse.urlencode(params)
 
@@ -217,71 +215,102 @@ def merge_events_by_uid(event_lists: List[List[Dict]]) -> List[Dict]:
         for e in lst:
             uid = e.get("UID") or (e.get("_url","") + "|" + e.get("DTSTART",""))
             if uid in merged:
-                # Union categories and ages
                 old = merged[uid]
-                old_cats = set(old.get("_categories", []))
-                new_cats = set(e.get("_categories", []))
-                old["_categories"] = list(old_cats.union(new_cats))
-                old_ages = set(old.get("_ages", []))
-                new_ages = set(e.get("_ages", []))
-                old["_ages"] = list(old_ages.union(new_ages))
+                old["_categories"] = list(set(old.get("_categories", [])) | set(e.get("_categories", [])))
+                old["_ages"] = list(set(old.get("_ages", [])) | set(e.get("_ages", [])))
             else:
                 merged[uid] = e
     return list(merged.values())
 
-# -----------------------------------------------------------------------------
-# Main scrape logic
-# -----------------------------------------------------------------------------
+# ---------- Core event builder (fixed: name, venue, desc) ----------
+_ADDR_LIKE = re.compile(r"\b(\d{2,5}\s+\w+)\b")  # crude address detector
+
+def _clean_summary(summary: str) -> str:
+    s = (summary or "").strip()
+    # drop trailing " at …"
+    s = re.sub(r"\s+at\s+.+$", "", s, flags=re.I).strip()
+    # if it still begins with "at " it's junk
+    if re.match(r"^at\s", s, flags=re.I):
+        return ""
+    return s
 
 def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
-    name = (evt.get("SUMMARY") or "").strip()
-    desc = (evt.get("DESCRIPTION") or "").strip()
-    dtstart = (evt.get("DTSTART") or "").strip()
-    dtend = (evt.get("DTEND") or "").strip()
-    location = (evt.get("LOCATION") or "").strip()
+    raw_summary = (evt.get("SUMMARY") or "").strip()
+    name = _clean_summary(raw_summary)
+
     url = _extract_url(evt).strip()
+    # if summary collapsed to empty, try from page
+    if not name:
+        page_title, _ = _fetch_page_title_and_venue(url)
+        if page_title:
+            # Some With titles look like "Event Name | Hampton, VA"
+            name = re.split(r"\s+\|\s+", page_title)[0].strip()
+
+    # description: prefer X-ALT-DESC (HTML)
+    desc = _preferred_description(evt)
+
+    # venue preference: X-APPLE… X-TITLE, else from page <meta site_name>, else from SUMMARY right-hand side, else None
+    venue = _venue_from_xapple(evt)
+    if not venue:
+        _, site_name = _fetch_page_title_and_venue(url)
+        if site_name and "hampton" not in site_name.lower():  # avoid generic "City of Hampton"
+            venue = site_name.strip()
+    if not venue and raw_summary:
+        m = re.search(r"\s+at\s+(.+)$", raw_summary, flags=re.I)
+        if m:
+            cand = m.group(1).replace("\\,", ",").strip()
+            if not _ADDR_LIKE.search(cand):  # use only if not an address
+                venue = cand
+
+    # if still no venue, last resort: LOCATION (but LOCATION is usually address; do NOT use it for title append)
+    location_prop = (evt.get("LOCATION") or "").replace("\\,", ",").strip()
+    # We'll expose address in description tail if venue unknown; but set Location to venue for uploader title appending
+    location_for_title = venue or ""
+
     cats = _split_categories(evt)
-    # Age detection from actual content; don't rely on audience hint for Ages
     ages = detect_ages(name, desc, cats)
 
-    # If nothing detected, mark as Family (per request)
-    categories = set([ "Event Location - Hampton" ])  # always-on
+    categories = set(["Event Location - Hampton"])
     if not ages:
         categories.add("Audience - Family Event")
 
-    # Build sheet fields
-    month, day, year = _fmt_date_parts(dtstart)
-    time_str = _fmt_time_range(dtstart, dtend)
+    month, day, year = _fmt_date_parts(evt.get("DTSTART",""))
+    time_str = _fmt_time_range(evt.get("DTSTART",""), evt.get("DTEND",""))
+
+    # If we still lack a decent name, synthesize from first line of desc
+    if not name:
+        first_line = (desc.splitlines()[0] if desc else "").strip()
+        name = first_line[:120] if first_line else "Community Event"
+
+    # If venue missing but LOCATION exists, append a short address hint into Description (not Location)
+    if not venue and location_prop:
+        if desc:
+            desc = f"{desc}\n\nAddress: {location_prop}"
+        else:
+            desc = f"Address: {location_prop}"
 
     return {
-        # Internal fields for merge/logic
-        "UID": evt.get("UID", "").strip(),
+        "UID": (evt.get("UID") or "").strip(),
         "_url": url,
         "_categories": list(categories.union(set(cats))),
         "_ages": ages,
 
-        # Sheet-facing fields (align with your uploader)
         "Event Link": url,
         "Name": name,                       # uploader will append (Hampton)
         "Description": desc,
         "Event Status": "Available",
         "Event Time": time_str,
         "Ages": ", ".join(ages) if ages else "",
-        "Location": location,
+        "Location": location_for_title,     # <-- venue name for title append
         "Month": month,
         "Day": day,
         "Year": year,
-        # Optional extras your pipeline may consume
         "Categories": ", ".join(sorted(categories.union(set(cats)))) if (categories or cats) else "",
         "Program Type": "",
         "Library": LIBRARY_KEY,
     }
 
 def scrape_visithampton_hmva_ical(mode: str = "full") -> List[Dict]:
-    """
-    mode: 'full' (12 weeks) or 'fast' (4 weeks)
-    Returns list of event dicts ready for upload_to_sheets.
-    """
     weeks = 12 if mode == "full" else 4
     start_unix, end_unix = _time_window(weeks)
 
@@ -292,49 +321,34 @@ def scrape_visithampton_hmva_ical(mode: str = "full") -> List[Dict]:
         vevents = _parse_vevent_blocks(ics_text)
         events_for_audience = []
         for v in vevents:
-            # Convert each VEVENT to our dict; audience_hint is not used to force Ages
             ed = _event_dict_from_vevent(v, audience_hint=audience)
             events_for_audience.append(ed)
         all_lists.append(events_for_audience)
 
     merged = merge_events_by_uid(all_lists)
 
-    # Final tidy: strip emojis (common in With feeds), trim fields
     def _strip_emojis(s: str) -> str:
         if not s:
             return s
-        # Simple BMP filter; if you have a shared util, prefer it
         return re.sub(r"[\U00010000-\U0010FFFF]", "", s)
     for e in merged:
         for k in ("Name","Description","Location","Event Time","Ages","Categories"):
             e[k] = _strip_emojis(e.get(k, "")).strip()
-
     return merged
-
-# -----------------------------------------------------------------------------
-# Optional: auto-upload if your uploader is available
-# -----------------------------------------------------------------------------
 
 def _maybe_upload(rows: List[Dict], mode: str):
     try:
-        # Expect your existing uploader with a function named `upload_events_to_sheet`
         from upload_to_sheets import upload_events_to_sheet  # type: ignore
     except Exception:
         print("Uploader not found; skipping Google Sheets upload.")
         print(f"Prepared {len(rows)} {LIBRARY_KEY} rows ({mode} mode).")
         return
-
     try:
         added, updated, skipped = upload_events_to_sheet(rows, library=LIBRARY_KEY, mode=mode)
         print(f"✅ Uploaded {LIBRARY_KEY}: +{added} new, ↻{updated} updated, ⏭ {skipped} skipped")
     except Exception as e:
         print(f"⚠️ Upload failed: {e}")
-        # Still helpful to show a sample
         print(f"Prepared {len(rows)} rows locally.")
-
-# -----------------------------------------------------------------------------
-# CLI
-# -----------------------------------------------------------------------------
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Scrape VisitHampton (With iCal)")
