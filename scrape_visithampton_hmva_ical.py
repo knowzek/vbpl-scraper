@@ -137,11 +137,6 @@ def _parse_desc_from_page(html_text: str) -> str:
         return html.unescape(m.group(1)).strip()
     return ""
 
-def _clean_html_text(s: str) -> str:
-    s = re.sub(r"<[^>]+>", " ", s or "")
-    s = html.unescape(s)
-    return re.sub(r"\s+", " ", s).strip()
-
 def _extract_venue(detail_html: str) -> str:
     """Pick a venue from the page's Tags list; ignore 'Close' and age tags."""
     if not detail_html:
@@ -151,19 +146,19 @@ def _extract_venue(detail_html: str) -> str:
         return ""
     spans = re.findall(r"<span[^>]*>(.*?)</span>", m.group(1), re.I | re.S)
 
-    candidates = []
+    cands = []
     for raw in spans:
         v = _clean_html_text(raw)
         if not v:
             continue
         vl = v.lower()
-        if vl == "close":                         # widget button
+        if vl == "close":
             continue
-        if re.search(r"\b(ages?|grades?)\b", vl): # age labels, not venues
+        if re.search(r"\b(ages?|grades?)\b", vl):
             continue
-        candidates.append(v)
+        cands.append(v)
 
-    if not candidates:
+    if not cands:
         return ""
 
     pri = ("library","center","museum","park","theatre","theater","hall",
@@ -171,9 +166,8 @@ def _extract_venue(detail_html: str) -> str:
     def score(x: str):
         xl = x.lower()
         hits = sum(p in xl for p in pri)
-        return (-hits, len(x))  # more venue-y first, then shorter
-    return sorted(dict.fromkeys(candidates), key=score)[0]
-
+        return (-hits, len(x))
+    return sorted(dict.fromkeys(cands), key=score)[0]
 def _venue_from_title(title: str) -> str:
     """Pull venue from '... at Phoebus Library (Hampton)' style titles."""
     m = re.search(r"\bat\s+(.+?)\s*\(Hampton\)\s*$", (title or ""), re.I)
@@ -421,9 +415,26 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
         name = first[:120] if first else "Community Event"
 
     # VENUE: prefer page parsing → JSON-LD → (later) fallback to address if needed
-    venue = _parse_venue_from_page(page_html) if page_html else ""
+    venue = _extract_venue(page_html) if page_html else ""
     if not venue:
         venue = (ld.get("venue") or "").strip()
+    if not venue:
+        venue = _venue_from_title(name)
+
+    final_title = name
+    if venue and not re.search(r"\bat\s+.+\(\s*Hampton\s*\)\s*$", name, re.I):
+        final_title = f"{name} at {venue} (Hampton)"
+
+    # 3) Location for the sheet
+    l# ICS LOCATION is usually an address; use it only as a last resort
+    location_prop = (evt.get("LOCATION") or "").replace("\\,", ",").strip()
+    
+    location_for_sheet = venue or location_prop or ""
+    
+    # If venue missing but address exists, keep address in Description (optional)
+    if not venue and location_prop:
+        desc = f"{desc}\n\nAddress: {location_prop}" if desc else f"Address: {location_prop}"
+
 
     # DATES/TIMES
     month, day, year = _fmt_date_parts(evt.get("DTSTART", ""))
@@ -508,7 +519,7 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
         "Event Status": "Available",
         "Time": time_str,
         "Ages": ", ".join(ages) if ages else "",
-        "Location": location_for_title,     # <-- venue name for title append
+        "Location": location_for_sheet,    # <-- venue name for title append
         "Month": month,
         "Day": day,
         "Year": year,
