@@ -29,6 +29,19 @@ ENFORCE_VENUE_MAP_FOR = {"visitchesapeake", "visityorktown", "visitnorfolk", "vi
 
 DASH_SPLIT = re.compile(r"\s+[-–—]\s+")  # space + dash + space (handles -, – , —)
 
+def _strip_halloween_from_late_events(month: str, tags: list[str]) -> list[str]:
+    """
+    If the event is in November or December, strip any Halloween-related tags.
+    """
+    m = (month or "").strip().lower()
+    if m in ["nov", "november", "dec", "december"]:
+        filtered = []
+        for t in tags:
+            if not re.search(r"halloween", t, re.I):
+                filtered.append(t)
+        return filtered
+    return tags
+
 def _strip_storytime_for_open_play(title: str, tags: list[str]) -> list[str]:
     """
     If the title contains 'open play', remove any Storytimes tag the
@@ -690,6 +703,10 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 # Remove incorrect Storytimes when VBPL titles say "Open Play"
                 if library == "vbpl":
                     tag_list = _strip_storytime_for_open_play(event.get("Event Name", ""), tag_list)
+
+                # Remove Halloween tags from November/December events
+                month_val = event.get("Month", "")
+                tag_list = _strip_halloween_from_late_events(month_val, tag_list)
 
                 # Remove school-age tag for "3s Please" titles
                 tag_list = _strip_schoolage_for_3splease(event.get("Event Name", ""), tag_list)
