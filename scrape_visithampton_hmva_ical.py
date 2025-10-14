@@ -137,69 +137,47 @@ def _parse_desc_from_page(html_text: str) -> str:
         return html.unescape(m.group(1)).strip()
     return ""
 
-def _parse_venue_from_page(html_text: str) -> str:
-    def _collect_spans(block: str) -> list[str]:
-        vals = []
-        for s in re.findall(r"<span[^>]*>(.*?)</span>", block, re.I | re.S):
-            v = _clean_html_text(s)
-            if not v:
-                continue
-            vl = v.lower()
-            if v.strip().lower() == "close":
-                continue  # ignore the widget's Close button
-            if "city of hampton" in vl:
-                continue
-            if re.search(r"\b\d{2,5}\s+\w+", vl):
-                continue  # looks like an address, not a venue name
-            vals.append(v)
-        return vals
+def _clean_html_text(s: str) -> str:
+    s = re.sub(r"<[^>]+>", " ", s or "")
+    s = html.unescape(s)
+    return re.sub(r"\s+", " ", s).strip()
 
-    candidates: list[str] = []
+def _extract_venue(detail_html: str) -> str:
+    """Pick a venue from the page's Tags list; ignore 'Close' and age tags."""
+    if not detail_html:
+        return ""
+    m = re.search(r'<ul[^>]*class="[^"]*tags-list[^"]*"[^>]*>(.*?)</ul>', detail_html, re.I | re.S)
+    if not m:
+        return ""
+    spans = re.findall(r"<span[^>]*>(.*?)</span>", m.group(1), re.I | re.S)
 
-    # A0) Tags block can live in mobile-hide/show containers
-    m = re.search(r'<div[^>]*class="[^"]*(mobile-hide|mobile-show)[^"]*"[^>]*aria-label=["\']Tags["\'][^>]*>(.*?)</div>',
-                  html_text, re.I | re.S)
-    if m:
-        candidates += _collect_spans(m.group(2))
+    candidates = []
+    for raw in spans:
+        v = _clean_html_text(raw)
+        if not v:
+            continue
+        vl = v.lower()
+        if vl == "close":                         # widget button
+            continue
+        if re.search(r"\b(ages?|grades?)\b", vl): # age labels, not venues
+            continue
+        candidates.append(v)
 
-    # A) Generic aria-label=Tags
-    m = re.search(r'<div[^>]*aria-label=["\']Tags["\'][^>]*>(.*?)</div>', html_text, re.I | re.S)
-    if m:
-        candidates += _collect_spans(m.group(1))
+    if not candidates:
+        return ""
 
-    # B) Raw <ul class="tags-list">
-    m = re.search(r'<ul[^>]*class="[^"]*tags-list[^"]*"[^>]*>(.*?)</ul>', html_text, re.I | re.S)
-    if m:
-        candidates += _collect_spans(m.group(1))
+    pri = ("library","center","museum","park","theatre","theater","hall",
+           "gallery","visitor","community","fort","rec","recreation","ymca")
+    def score(x: str):
+        xl = x.lower()
+        hits = sum(p in xl for p in pri)
+        return (-hits, len(x))  # more venue-y first, then shorter
+    return sorted(dict.fromkeys(candidates), key=score)[0]
 
-    # D) Other common classnames
-    m = re.search(r'class="[^"]*(about__place|activity-venue|event-venue|place-name)[^"]*"[^>]*>(.*?)</',
-                  html_text, re.I | re.S)
-    if m:
-        v = _clean_html_text(m.group(2))
-        if v and v.lower() != "close":
-            candidates.append(v)
-
-    # Score by how “venue-like” it is
-    if candidates:
-        pri = ("library","center","museum","park","theatre","theater","hall","gallery",
-               "rec","recreation","ymca","school","arena","auditorium","stadium","fields",
-               "ballpark","brew","café","cafe","visitor","community")
-        def score(x: str):
-            xl = x.lower()
-            hits = sum(p in xl for p in pri)
-            return (-hits, len(x))  # more hits first; then shorter
-        candidates = sorted(dict.fromkeys(candidates), key=score)
-        return candidates[0]
-
-    # E) og:site_name fallback (avoid generic)
-    site = _SITE_NAME_RE.search(html_text)
-    site_name = html.unescape(site.group(1)).strip() if site else ""
-    if site_name and "hampton" not in site_name.lower():
-        return site_name
-
-    return ""  # <-- never return None
-
+def _venue_from_title(title: str) -> str:
+    """Pull venue from '... at Phoebus Library (Hampton)' style titles."""
+    m = re.search(r"\bat\s+(.+?)\s*\(Hampton\)\s*$", (title or ""), re.I)
+    return m.group(1).strip() if m else ""
 
 def _unix(t: dt.datetime) -> int:
     return int(t.timestamp())
@@ -525,7 +503,7 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
         "_ages": ages,
 
         "Event Link": url,
-        "Event Name": name,
+        "Event Name": final_title,
         "Description": desc,
         "Event Status": "Available",
         "Time": time_str,
