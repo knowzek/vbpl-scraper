@@ -85,7 +85,18 @@ def _parse_desc_from_page(html_text: str) -> str:
     return ""
 
 def _parse_venue_from_page(html_text: str) -> str:
-    # A) The "Tags" block you showed: <div aria-label="Tags"> ... <ul class="tags-list"><li><span>Northampton Library</span>...
+    # A0) Tags block can live in either .mobile-hide or .mobile-show containers
+    m = re.search(r'<div[^>]*class="[^"]*(mobile-hide|mobile-show)[^"]*"[^>]*aria-label=["\']Tags["\'][^>]*>(.*?)</div>',
+                  html_text, re.I | re.S)
+    if m:
+        block = m.group(2)
+        spans = re.findall(r"<span[^>]*>(.*?)</span>", block, re.I | re.S)
+        for s in spans:
+            val = _clean_html_text(s)
+            if val and "city of hampton" not in val.lower() and not re.search(r"\b\d{2,5}\s+\w+", val):
+                return val
+
+    # A) The "Tags" block you showed (generic)
     m = re.search(r'<div[^>]*aria-label=["\']Tags["\'][^>]*>(.*?)</div>', html_text, re.I | re.S)
     if m:
         block = m.group(1)
@@ -102,9 +113,40 @@ def _parse_venue_from_page(html_text: str) -> str:
                 generic = 1 if "city of hampton" in xl else 0
                 return (-hits, addr_like, generic, len(x))
             candidates.sort(key=score)
-            pick = candidates[0]
-            if pick:
-                return pick
+            if candidates and candidates[0]:
+                return candidates[0]
+
+    # B) Direct <ul class="tags-list"> fallback
+    m = re.search(r'<ul[^>]*class="[^"]*tags-list[^"]*"[^>]*>(.*?)</ul>', html_text, re.I | re.S)
+    if m:
+        block = m.group(1)
+        spans = re.findall(r"<span[^>]*>(.*?)</span>", block, re.I | re.S)
+        for s in spans:
+            val = _clean_html_text(s)
+            if val and "city of hampton" not in val.lower() and not re.search(r"\b\d{2,5}\s+\w+", val):
+                return val
+
+    # C) Labeled blocks
+    m = re.search(r'(Location|Venue)\s*:</?[^>]*>\s*<[^>]*>(.*?)</', html_text, re.I | re.S)
+    if m:
+        return _clean_html_text(m.group(2))
+
+    # D) Other common classnames
+    m = re.search(r'class="[^"]*(about__place|activity-venue|event-venue|place-name)[^"]*"[^>]*>(.*?)</',
+                  html_text, re.I | re.S)
+    if m:
+        val = _clean_html_text(m.group(2))
+        if val:
+            return val
+
+    # E) og:site_name (avoid generic)
+    site = _SITE_NAME_RE.search(html_text)
+    site_name = html.unescape(site.group(1)).strip() if site else ""
+    if site_name and "hampton" not in site_name.lower():
+        return site_name
+
+    return ""
+
 
     # B) Direct <ul class="tags-list"> fallback (some pages put it outside the aria-label div)
     m = re.search(r'<ul[^>]*class="[^"]*tags-list[^"]*"[^>]*>(.*?)</ul>', html_text, re.I | re.S)
@@ -410,6 +452,16 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
     if not venue and location_prop:
         desc = f"{desc}\n\nAddress: {location_prop}" if desc else f"Address: {location_prop}"
 
+    if page_html == "":
+        print(f"[vh] empty HTML → {url}")
+    if not name:
+        print(f"[vh] name missing → {url}")
+    if not venue:
+        print(f"[vh] venue missing → {url}")
+    if not time_str:
+        print(f"[vh] time missing → {url}")
+
+
     return {
         "UID": (evt.get("UID") or "").strip(),
         "_url": url,
@@ -420,7 +472,7 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
         "Name": name,                       # uploader will append (Hampton)
         "Description": desc,
         "Event Status": "Available",
-        "Event Time": time_str,
+        "Time": time_str,
         "Ages": ", ".join(ages) if ages else "",
         "Location": location_for_title,     # <-- venue name for title append
         "Month": month,
