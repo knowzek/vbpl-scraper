@@ -293,28 +293,6 @@ def _venue_from_xapple(evt: Dict[str, str]) -> str:
         return html.unescape(m.group(1)).replace("\\,", ",").strip()
     return ""
 
-def _fetch_page_title_and_venue(url: str, timeout: int = 12) -> Tuple[str,str]:
-    """Lightweight HTML fetch to fix bad SUMMARY and venue name."""
-    if not url:
-        return "", ""
-    try:
-        r = requests.get(url, timeout=timeout)
-        if r.status_code != 200 or "text/html" not in (r.headers.get("Content-Type","")):
-            return "", ""
-        html_text = r.text
-        # og:title beats <title>
-        og = _META_RE.findall(html_text)
-        og_map = {k:v for (k,v) in og}
-        title = og_map.get("title", "")
-        if not title:
-            m = _HTML_TITLE_RE.search(html_text)
-            if m:
-                title = html.unescape(m.group(1)).strip()
-        venue = og_map.get("site_name", "")
-        return (title.strip(), venue.strip())
-    except Exception:
-        return "", ""
-
 # ---------- Age detection ----------
 AGE_RULES = [
     (r"\b(babies|infants?|0-?12\s*months?|under\s*1)\b", "Babies (0-12 months)"),
@@ -403,50 +381,43 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
         name = (ld.get("name") or "").strip()
     if not name:
         name = _clean_summary(raw_summary)
-    if not name:
-        name = raw_summary  # last-resort: don’t let it be empty
 
     # DESCRIPTION: prefer page block; then X-ALT-DESC; then DESCRIPTION
     desc = _parse_desc_from_page(page_html) if page_html else ""
     if not desc:
         desc = _preferred_description(evt)
-    if not name:  # final guard from description
+    if not name:
         first = next((ln.strip() for ln in (desc or "").splitlines() if ln.strip()), "")
         name = first[:120] if first else "Community Event"
 
-    # VENUE: prefer page parsing → JSON-LD → (later) fallback to address if needed
+    # VENUE: page tags → JSON-LD → title fallback
     venue = _extract_venue(page_html) if page_html else ""
     if not venue:
         venue = (ld.get("venue") or "").strip()
     if not venue:
         venue = _venue_from_title(name)
 
+    # Build display title AFTER venue is known
     final_title = name
     if venue and not re.search(r"\bat\s+.+\(\s*Hampton\s*\)\s*$", name, re.I):
         final_title = f"{name} at {venue} (Hampton)"
 
-    # 3) Location for the sheet
-    l# ICS LOCATION is usually an address; use it only as a last resort
+    # LOCATION (sheet column): prefer venue; fall back to ICS LOCATION (address)
     location_prop = (evt.get("LOCATION") or "").replace("\\,", ",").strip()
-    
     location_for_sheet = venue or location_prop or ""
-    
-    # If venue missing but address exists, keep address in Description (optional)
     if not venue and location_prop:
         desc = f"{desc}\n\nAddress: {location_prop}" if desc else f"Address: {location_prop}"
 
-
-    # DATES/TIMES
+    # DATE/TIME
     month, day, year = _fmt_date_parts(evt.get("DTSTART", ""))
     time_str = _fmt_time_range(evt.get("DTSTART", ""), evt.get("DTEND", ""))
 
-    # If ICS didn’t include time, fallback to page time; then JSON-LD start/end
+    # fallback: pull time from page if ICS had none; then JSON-LD
     if not time_str and page_html:
         page_time = _parse_time_from_page(page_html)
         if page_time:
             time_str = page_time
     if not time_str and (ld.get("start") or ld.get("end")):
-        # try to format ISO datetimes like 2025-10-15T15:30:00-04:00 → "3:30pm – 4pm"
         def _fmt_iso(t):
             m = re.search(r"T(\d{2}):(\d{2})", t or "")
             if not m: return ""
@@ -458,41 +429,14 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
         en = _fmt_iso(ld.get("end") or "")
         time_str = f"{st} – {en}".strip(" –") if (st or en) else time_str
 
-    # define ICS LOCATION address; used only as fallback or to append to Description
-    location_prop = (evt.get("LOCATION") or "").replace("\\,", ",").strip()
-
-    # Prefer venue; if unknown, TEMP fall back to address so Location column isn't blank
-    location_for_title = venue or location_prop
-
-
+    # Categories & Ages
     cats = _split_categories(evt)
     ages = detect_ages(name, desc, cats)
-
     categories = set(["Event Location - Hampton"])
     if not ages:
         categories.add("Audience - Family Event")
 
-    month, day, year = _fmt_date_parts(evt.get("DTSTART", ""))
-    time_str = _fmt_time_range(evt.get("DTSTART", ""), evt.get("DTEND", ""))
-
-    # define this unconditionally (used later for address fallback)
-    location_prop = (evt.get("LOCATION") or "").replace("\\,", ",").strip()
-
-    # fallback: pull time from page if ICS had none
-    if not time_str and page_html:
-        page_time = _parse_time_from_page(page_html)
-        if page_time:
-            time_str = page_time
-    
-    # (keep this single fallback after desc is built)
-    if not name:
-        first = next((ln.strip() for ln in (desc or "").splitlines() if ln.strip()), "")
-        name = first[:120] if first else "Community Event"
-    
-    # If venue missing but LOCATION exists, append address to Description (not Location)
-    if not venue and location_prop:
-        desc = f"{desc}\n\nAddress: {location_prop}" if desc else f"Address: {location_prop}"
-
+    # Debug prints
     if page_html == "":
         print(f"[vh] empty HTML → {url}")
     if not name:
@@ -519,7 +463,7 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
         "Event Status": "Available",
         "Time": time_str,
         "Ages": ", ".join(ages) if ages else "",
-        "Location": location_for_sheet,    # <-- venue name for title append
+        "Location": location_for_sheet,   # <-- this is what your sheet uses
         "Month": month,
         "Day": day,
         "Year": year,
@@ -527,6 +471,7 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
         "Program Type": "",
         "Library": LIBRARY_KEY,
     }
+
 
 def scrape_visithampton_hmva_ical(mode: str = "full") -> List[Dict]:
     weeks = 12 if mode == "full" else 4
@@ -550,8 +495,9 @@ def scrape_visithampton_hmva_ical(mode: str = "full") -> List[Dict]:
             return s
         return re.sub(r"[\U00010000-\U0010FFFF]", "", s)
     for e in merged:
-        for k in ("Name","Description","Location","Event Time","Ages","Categories"):
-            e[k] = _strip_emojis(e.get(k, "")).strip()
+        for k in ("Event Name","Description","Location","Time","Ages","Categories"):
+            if k in e and isinstance(e[k], str):
+                e[k] = _strip_emojis(e.get(k, "")).strip()
     return merged
 
 def _maybe_upload(rows: List[Dict], mode: str):
