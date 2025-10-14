@@ -595,7 +595,6 @@ LIBRARY_CONSTANTS = {
         "always_on_categories": [
             "Event Location - Hampton",
             "Audience - Free Event",
-            "Audience - Family Event",
             "Audience - Military Only"
         ],
         "event_name_suffix": " (Hampton)",
