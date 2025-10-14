@@ -29,6 +29,17 @@ ENFORCE_VENUE_MAP_FOR = {"visitchesapeake", "visityorktown", "visitnorfolk", "vi
 
 DASH_SPLIT = re.compile(r"\s+[-–—]\s+")  # space + dash + space (handles -, – , —)
 
+def _strip_storytime_for_open_play(title: str, tags: list[str]) -> list[str]:
+    """
+    If the title contains 'open play', remove any Storytimes tag the
+    pipeline might have added from Program Type or keyword hits.
+    """
+    t = (title or "").lower()
+    if re.search(r"\bopen\s*play\b", t):  # matches 'Open Play', 'open-play', 'open  play'
+        return [c for c in tags if not re.search(r"\bList\s*-\s*Storytimes\b", c, re.I)]
+    return tags
+
+
 def _strip_room_suffix(loc: str) -> str:
     """
     'Russell Memorial Library - Activity Room, Atrium' → 'Russell Memorial Library'
@@ -675,6 +686,10 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                         
                 # Remove preschool tag for "Just 2s / Just 2's" titles
                 tag_list = _strip_preschool_for_just2s(event.get("Event Name", ""), tag_list)
+
+                # Remove incorrect Storytimes when VBPL titles say "Open Play"
+                if library == "vbpl":
+                    tag_list = _strip_storytime_for_open_play(event.get("Event Name", ""), tag_list)
 
                 # Remove school-age tag for "3s Please" titles
                 tag_list = _strip_schoolage_for_3splease(event.get("Event Name", ""), tag_list)
