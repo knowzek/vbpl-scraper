@@ -117,6 +117,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Trunk or Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
     "Trunk-or-Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
     "fall festival": "List - Fall - Fall Festivals",
+    "Dia de los Muertos": "List - Fall - Dia de los Muertos",
     "corn maze": "List - Fall - Fall Festivals",
     "Diwali": "List - Fall - Diwali Events (November)",
     "christmas": "Audience - Holiday Events",
