@@ -545,9 +545,9 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
         print(f"[vh] time missing → {url}")
 
     if os.getenv("DEBUG_VH") == "1":
-    print(f"[vh] ok? name={bool(name)} time={bool(time_str)} venue={bool(venue)} "
-          f"ld.name={bool(ld.get('name'))} ld.venue={bool(ld.get('venue'))} "
-          f"url={url}")
+        print(f"[vh] ok? name={bool(name)} time={bool(time_str)} venue={bool(venue)} "
+              f"ld.name={bool(ld.get('name'))} ld.venue={bool(ld.get('venue'))} "
+              f"url={url}")
 
     return {
         "UID": (evt.get("UID") or "").strip(),
