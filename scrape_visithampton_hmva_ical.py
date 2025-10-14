@@ -464,6 +464,7 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
         "Time": time_str,
         "Ages": ", ".join(ages) if ages else "",
         "Location": location_for_sheet,   # <-- this is what your sheet uses
+        "Venue": venue,
         "Month": month,
         "Day": day,
         "Year": year,
@@ -508,8 +509,9 @@ def _maybe_upload(rows: List[Dict], mode: str):
         print(f"Prepared {len(rows)} {LIBRARY_KEY} rows ({mode} mode).")
         return
     try:
-        added, updated, skipped = upload_events_to_sheet(rows, library=LIBRARY_KEY, mode=mode)
-        print(f"✅ Uploaded {LIBRARY_KEY}: +{added} new, ↻{updated} updated, ⏭ {skipped} skipped")
+        upload_events_to_sheet(rows, library=LIBRARY_KEY, mode=mode)
+        print(f"✅ Upload attempted for {LIBRARY_KEY}. Prepared {len(rows)} rows.")
+
     except Exception as e:
         print(f"⚠️ Upload failed: {e}")
         print(f"Prepared {len(rows)} rows locally.")
