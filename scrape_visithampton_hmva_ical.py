@@ -9,7 +9,7 @@ import sys
 import time
 import urllib.parse
 from typing import Dict, List, Tuple, Optional
-
+import json
 import requests
 
 BASE_ICS = "https://api.withapps.io/api/v2/organizations/30/calendar/ical"
@@ -25,6 +25,59 @@ _SITE_NAME_RE = re.compile(r'<meta\s+property=["\']og:site_name["\']\s+content=[
 # strip tags but preserve newlines between block elements
 _BLOCK_TAGS = re.compile(r"</?(p|div|br|li|ul|ol|section|article|h\d)[^>]*>", re.I)
 _TAG_RE = re.compile(r"<[^>]+>")
+
+def _parse_from_ldjson(html_text: str) -> dict:
+    """
+    Return dict with keys that might exist: name, venue, start, end.
+    Parses <script type="application/ld+json"> blocks and looks for @type=Event.
+    """
+    out = {"name": "", "venue": "", "start": "", "end": ""}
+    for m in re.finditer(r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+                         html_text, re.I | re.S):
+        raw = m.group(1).strip()
+        try:
+            data = json.loads(raw)
+        except Exception:
+            continue
+
+        # data can be dict or list
+        candidates = data if isinstance(data, list) else [data]
+        for item in candidates:
+            if not isinstance(item, dict):
+                continue
+            t = (item.get("@type") or item.get("type") or "")
+            if isinstance(t, list):
+                t = ",".join(t)
+            if "Event" not in str(t):
+                continue
+
+            # name
+            if not out["name"]:
+                out["name"] = (item.get("name") or "").strip()
+
+            # venue (location.name or location.@type=Place)
+            loc = item.get("location")
+            if loc and not out["venue"]:
+                if isinstance(loc, list):
+                    for L in loc:
+                        nm = (L.get("name") or "").strip() if isinstance(L, dict) else ""
+                        if nm:
+                            out["venue"] = nm
+                            break
+                elif isinstance(loc, dict):
+                    nm = (loc.get("name") or "").strip()
+                    if nm:
+                        out["venue"] = nm
+
+            # times
+            out["start"] = out["start"] or (item.get("startDate") or "").strip()
+            out["end"] = out["end"] or (item.get("endDate") or "").strip()
+
+            # if we’ve got a name and either venue or time, that’s good enough
+            if out["name"] and (out["venue"] or out["start"]):
+                return out
+    return out
+
 
 def _parse_time_from_page(html_text: str) -> str:
     # e.g. <div class="activity-time bold">03:30 PM - 04:00 PM</div>
@@ -396,33 +449,63 @@ def _clean_summary(summary: str) -> str:
 def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
     raw_summary = (evt.get("SUMMARY") or "").strip()
     url = _extract_url(evt).strip()
-    
+
     # Pull the page once (most reliable source)
     page_html = _fetch_event_page(url) if url else ""
-    
-    # NAME: prefer page H1; fallback to cleaned SUMMARY; then first desc line
+
+    # Try JSON-LD first (very reliable on With pages)
+    ld = _parse_from_ldjson(page_html) if page_html else {"name":"","venue":"","start":"","end":""}
+
+    # NAME: prefer page H1 → JSON-LD → cleaned SUMMARY → raw SUMMARY → first desc line
     name = _parse_name_from_page(page_html) if page_html else ""
     if not name:
-        name = _clean_summary((evt.get("SUMMARY") or ""))
-    
+        name = (ld.get("name") or "").strip()
+    if not name:
+        name = _clean_summary(raw_summary)
+    if not name:
+        name = raw_summary  # last-resort: don’t let it be empty
+
     # DESCRIPTION: prefer page block; then X-ALT-DESC; then DESCRIPTION
     desc = _parse_desc_from_page(page_html) if page_html else ""
     if not desc:
         desc = _preferred_description(evt)
-    
-    # If name still empty, use first non-empty line of desc
-    if not name:
+    if not name:  # final guard from description
         first = next((ln.strip() for ln in (desc or "").splitlines() if ln.strip()), "")
         name = first[:120] if first else "Community Event"
-    
-    # VENUE: parse page explicitly; avoid addresses
+
+    # VENUE: prefer page parsing → JSON-LD → (later) fallback to address if needed
     venue = _parse_venue_from_page(page_html) if page_html else ""
     if not venue:
-        # try Apple param
-        venue = _venue_from_xapple(evt) or ""
-    
-    # Do NOT fall back to plain address as venue; keep blank if unknown
-    location_for_title = venue  # this is what uploader appends in the title
+        venue = (ld.get("venue") or "").strip()
+
+    # DATES/TIMES
+    month, day, year = _fmt_date_parts(evt.get("DTSTART", ""))
+    time_str = _fmt_time_range(evt.get("DTSTART", ""), evt.get("DTEND", ""))
+
+    # If ICS didn’t include time, fallback to page time; then JSON-LD start/end
+    if not time_str and page_html:
+        page_time = _parse_time_from_page(page_html)
+        if page_time:
+            time_str = page_time
+    if not time_str and (ld.get("start") or ld.get("end")):
+        # try to format ISO datetimes like 2025-10-15T15:30:00-04:00 → "3:30pm – 4pm"
+        def _fmt_iso(t):
+            m = re.search(r"T(\d{2}):(\d{2})", t or "")
+            if not m: return ""
+            hh, mm = int(m.group(1)), int(m.group(2))
+            ampm = "am" if hh < 12 else "pm"
+            h = (hh % 12) or 12
+            return f"{h}{ampm}" if mm == 0 else f"{h}:{mm:02d}{ampm}"
+        st = _fmt_iso(ld.get("start") or "")
+        en = _fmt_iso(ld.get("end") or "")
+        time_str = f"{st} – {en}".strip(" –") if (st or en) else time_str
+
+    # define ICS LOCATION address; used only as fallback or to append to Description
+    location_prop = (evt.get("LOCATION") or "").replace("\\,", ",").strip()
+
+    # Prefer venue; if unknown, TEMP fall back to address so Location column isn't blank
+    location_for_title = venue or location_prop
+
 
     cats = _split_categories(evt)
     ages = detect_ages(name, desc, cats)
@@ -461,6 +544,10 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
     if not time_str:
         print(f"[vh] time missing → {url}")
 
+    if os.getenv("DEBUG_VH") == "1":
+    print(f"[vh] ok? name={bool(name)} time={bool(time_str)} venue={bool(venue)} "
+          f"ld.name={bool(ld.get('name'))} ld.venue={bool(ld.get('venue'))} "
+          f"url={url}")
 
     return {
         "UID": (evt.get("UID") or "").strip(),
