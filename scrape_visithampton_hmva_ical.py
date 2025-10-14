@@ -138,99 +138,68 @@ def _parse_desc_from_page(html_text: str) -> str:
     return ""
 
 def _parse_venue_from_page(html_text: str) -> str:
-    # A0) Tags block can live in either .mobile-hide or .mobile-show containers
+    def _collect_spans(block: str) -> list[str]:
+        vals = []
+        for s in re.findall(r"<span[^>]*>(.*?)</span>", block, re.I | re.S):
+            v = _clean_html_text(s)
+            if not v:
+                continue
+            vl = v.lower()
+            if v.strip().lower() == "close":
+                continue  # ignore the widget's Close button
+            if "city of hampton" in vl:
+                continue
+            if re.search(r"\b\d{2,5}\s+\w+", vl):
+                continue  # looks like an address, not a venue name
+            vals.append(v)
+        return vals
+
+    candidates: list[str] = []
+
+    # A0) Tags block can live in mobile-hide/show containers
     m = re.search(r'<div[^>]*class="[^"]*(mobile-hide|mobile-show)[^"]*"[^>]*aria-label=["\']Tags["\'][^>]*>(.*?)</div>',
                   html_text, re.I | re.S)
     if m:
-        block = m.group(2)
-        spans = re.findall(r"<span[^>]*>(.*?)</span>", block, re.I | re.S)
-        for s in spans:
-            val = _clean_html_text(s)
-            if val and "city of hampton" not in val.lower() and not re.search(r"\b\d{2,5}\s+\w+", val):
-                return val
+        candidates += _collect_spans(m.group(2))
 
-    # A) The "Tags" block you showed (generic)
+    # A) Generic aria-label=Tags
     m = re.search(r'<div[^>]*aria-label=["\']Tags["\'][^>]*>(.*?)</div>', html_text, re.I | re.S)
     if m:
-        block = m.group(1)
-        spans = re.findall(r"<span[^>]*>(.*?)</span>", block, re.I | re.S)
-        candidates = [_clean_html_text(s) for s in spans if _clean_html_text(s)]
-        if candidates:
-            pri = ("library","center","museum","park","theatre","theater","club","hall","gallery",
-                   "rec","recreation","ymca","school","arena","auditorium","stadium","fields",
-                   "ballpark","brew","café","cafe","visitor","community")
-            def score(x: str):
-                xl = x.lower()
-                hits = sum(p in xl for p in pri)
-                addr_like = 1 if re.search(r"\b\d{2,5}\s+\w+", xl) else 0
-                generic = 1 if "city of hampton" in xl else 0
-                return (-hits, addr_like, generic, len(x))
-            candidates.sort(key=score)
-            if candidates and candidates[0]:
-                return candidates[0]
+        candidates += _collect_spans(m.group(1))
 
-    # B) Direct <ul class="tags-list"> fallback
+    # B) Raw <ul class="tags-list">
     m = re.search(r'<ul[^>]*class="[^"]*tags-list[^"]*"[^>]*>(.*?)</ul>', html_text, re.I | re.S)
     if m:
-        block = m.group(1)
-        spans = re.findall(r"<span[^>]*>(.*?)</span>", block, re.I | re.S)
-        for s in spans:
-            val = _clean_html_text(s)
-            if val and "city of hampton" not in val.lower() and not re.search(r"\b\d{2,5}\s+\w+", val):
-                return val
-
-    # C) Labeled blocks
-    m = re.search(r'(Location|Venue)\s*:</?[^>]*>\s*<[^>]*>(.*?)</', html_text, re.I | re.S)
-    if m:
-        return _clean_html_text(m.group(2))
+        candidates += _collect_spans(m.group(1))
 
     # D) Other common classnames
     m = re.search(r'class="[^"]*(about__place|activity-venue|event-venue|place-name)[^"]*"[^>]*>(.*?)</',
                   html_text, re.I | re.S)
     if m:
-        val = _clean_html_text(m.group(2))
-        if val:
-            return val
+        v = _clean_html_text(m.group(2))
+        if v and v.lower() != "close":
+            candidates.append(v)
 
-    # E) og:site_name (avoid generic)
+    # Score by how “venue-like” it is
+    if candidates:
+        pri = ("library","center","museum","park","theatre","theater","hall","gallery",
+               "rec","recreation","ymca","school","arena","auditorium","stadium","fields",
+               "ballpark","brew","café","cafe","visitor","community")
+        def score(x: str):
+            xl = x.lower()
+            hits = sum(p in xl for p in pri)
+            return (-hits, len(x))  # more hits first; then shorter
+        candidates = sorted(dict.fromkeys(candidates), key=score)
+        return candidates[0]
+
+    # E) og:site_name fallback (avoid generic)
     site = _SITE_NAME_RE.search(html_text)
     site_name = html.unescape(site.group(1)).strip() if site else ""
     if site_name and "hampton" not in site_name.lower():
         return site_name
 
-    return ""
+    return ""  # <-- never return None
 
-
-    # B) Direct <ul class="tags-list"> fallback (some pages put it outside the aria-label div)
-    m = re.search(r'<ul[^>]*class="[^"]*tags-list[^"]*"[^>]*>(.*?)</ul>', html_text, re.I | re.S)
-    if m:
-        block = m.group(1)
-        spans = re.findall(r"<span[^>]*>(.*?)</span>", block, re.I | re.S)
-        for s in spans:
-            val = _clean_html_text(s)
-            if val and "city of hampton" not in val.lower() and not re.search(r"\b\d{2,5}\s+\w+", val):
-                return val
-
-    # C) Labeled blocks
-    m = re.search(r'(Location|Venue)\s*:</?[^>]*>\s*<[^>]*>(.*?)</', html_text, re.I | re.S)
-    if m:
-        return _clean_html_text(m.group(2))
-
-    # D) Other common classnames
-    m = re.search(r'class="[^"]*(about__place|activity-venue|event-venue|place-name)[^"]*"[^>]*>(.*?)</',
-                  html_text, re.I | re.S)
-    if m:
-        val = _clean_html_text(m.group(2))
-        if val:
-            return val
-
-    # E) og:site_name (avoid generic)
-    site = _SITE_NAME_RE.search(html_text)
-    site_name = html.unescape(site.group(1)).strip() if site else ""
-    if site_name and "hampton" not in site_name.lower():
-        return site_name
-
-    return ""
 
 def _unix(t: dt.datetime) -> int:
     return int(t.timestamp())
@@ -556,7 +525,7 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
         "_ages": ages,
 
         "Event Link": url,
-        "Name": name,                       # uploader will append (Hampton)
+        "Event Name": name,
         "Description": desc,
         "Event Status": "Available",
         "Time": time_str,
