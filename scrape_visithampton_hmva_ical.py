@@ -26,6 +26,16 @@ _SITE_NAME_RE = re.compile(r'<meta\s+property=["\']og:site_name["\']\s+content=[
 _BLOCK_TAGS = re.compile(r"</?(p|div|br|li|ul|ol|section|article|h\d)[^>]*>", re.I)
 _TAG_RE = re.compile(r"<[^>]+>")
 
+def _parse_time_from_page(html_text: str) -> str:
+    # e.g. <div class="activity-time bold">03:30 PM - 04:00 PM</div>
+    m = re.search(r'<div[^>]*class="[^"]*activity-time[^"]*bold[^"]*"[^>]*>(.*?)</div>',
+                  html_text, re.I | re.S)
+    if m:
+        txt = _clean_html_text(m.group(1))
+        return re.sub(r"\s*-\s*", " – ", txt)
+    return ""
+
+
 def _clean_html_text(html_text: str) -> str:
     txt = _BLOCK_TAGS.sub("\n", html_text)
     txt = _TAG_RE.sub("", txt)
@@ -46,18 +56,22 @@ def _fetch_event_page(url: str, timeout: int = 12) -> str:
     return ""
 
 def _parse_name_from_page(html_text: str) -> str:
-    # Prefer the in-page H1 (actual event name)
-    m = _H1_RE.search(html_text)
+    # Exact block: <div class="home-title"><h1>...</h1></div>
+    m = re.search(r'<div[^>]*class="[^"]*home-title[^"]*"[^>]*>.*?<h1[^>]*>(.*?)</h1>',
+                  html_text, re.I | re.S)
     if m:
         return _clean_html_text(m.group(1))
-    # Fallback to og:title or <title>
+    m = re.search(r"<h1[^>]*>(.*?)</h1>", html_text, re.I | re.S)
+    if m:
+        return _clean_html_text(m.group(1))
     m = re.search(r'<meta\s+property=["\']og:title["\']\s+content=["\']([^"\']+)["\']', html_text, re.I)
     if m:
         return html.unescape(m.group(1)).strip()
-    m = _HTML_TITLE_RE.search(html_text)
+    m = re.search(r"<title>(.*?)</title>", html_text, re.I | re.S)
     if m:
         return _clean_html_text(m.group(1)).split(" | ")[0]
     return ""
+
 
 def _parse_desc_from_page(html_text: str) -> str:
     # Target the block in your screenshot: .section-activity-text .text
@@ -70,53 +84,58 @@ def _parse_desc_from_page(html_text: str) -> str:
         return html.unescape(m.group(1)).strip()
     return ""
 
-# --- replace this whole function ---
 def _parse_venue_from_page(html_text: str) -> str:
-    # 0) New: tags list block (your screenshot) → first/ best-looking <span>
-    #    <ul class="tags-list"><li><span>Northampton Library</span></li>...</ul>
-    m = re.search(r'<ul[^>]*class="[^"]*tags-list[^"]*"[^>]*>(.*?)</ul>',
-                  html_text, re.I | re.S)
+    # A) The "Tags" block you showed: <div aria-label="Tags"> ... <ul class="tags-list"><li><span>Northampton Library</span>...
+    m = re.search(r'<div[^>]*aria-label=["\']Tags["\'][^>]*>(.*?)</div>', html_text, re.I | re.S)
     if m:
         block = m.group(1)
         spans = re.findall(r"<span[^>]*>(.*?)</span>", block, re.I | re.S)
         candidates = [_clean_html_text(s) for s in spans if _clean_html_text(s)]
         if candidates:
-            # Prefer venue-y names
-            pri = ("library","center","museum","park","theatre","theater","club",
-                   "hall","gallery","rec","recreation","ymca","school","arena",
-                   "auditorium","stadium","fields","ballpark","pub","brew","café","cafe")
-            def score(x: str) -> tuple:
+            pri = ("library","center","museum","park","theatre","theater","club","hall","gallery",
+                   "rec","recreation","ymca","school","arena","auditorium","stadium","fields",
+                   "ballpark","brew","café","cafe","visitor","community")
+            def score(x: str):
                 xl = x.lower()
                 hits = sum(p in xl for p in pri)
-                # penalize addresses
-                addr_like = 1 if re.search(r"\d{2,5}\s+\w+", xl) else 0
-                return (-hits, addr_like, len(x))
+                addr_like = 1 if re.search(r"\b\d{2,5}\s+\w+", xl) else 0
+                generic = 1 if "city of hampton" in xl else 0
+                return (-hits, addr_like, generic, len(x))
             candidates.sort(key=score)
             pick = candidates[0]
-            # avoid generic site names like "City of Hampton, VA"
-            if "hampton" not in pick.lower() or "library" in pick.lower():
+            if pick:
                 return pick
 
-    # 1) Existing heuristics: labeled blocks
+    # B) Direct <ul class="tags-list"> fallback (some pages put it outside the aria-label div)
+    m = re.search(r'<ul[^>]*class="[^"]*tags-list[^"]*"[^>]*>(.*?)</ul>', html_text, re.I | re.S)
+    if m:
+        block = m.group(1)
+        spans = re.findall(r"<span[^>]*>(.*?)</span>", block, re.I | re.S)
+        for s in spans:
+            val = _clean_html_text(s)
+            if val and "city of hampton" not in val.lower() and not re.search(r"\b\d{2,5}\s+\w+", val):
+                return val
+
+    # C) Labeled blocks
     m = re.search(r'(Location|Venue)\s*:</?[^>]*>\s*<[^>]*>(.*?)</', html_text, re.I | re.S)
     if m:
         return _clean_html_text(m.group(2))
 
-    # 2) Other common classnames
+    # D) Other common classnames
     m = re.search(r'class="[^"]*(about__place|activity-venue|event-venue|place-name)[^"]*"[^>]*>(.*?)</',
                   html_text, re.I | re.S)
     if m:
-        return _clean_html_text(m.group(2))
+        val = _clean_html_text(m.group(2))
+        if val:
+            return val
 
-    # 3) og:site_name (skip if generic)
+    # E) og:site_name (avoid generic)
     site = _SITE_NAME_RE.search(html_text)
     site_name = html.unescape(site.group(1)).strip() if site else ""
     if site_name and "hampton" not in site_name.lower():
         return site_name
 
     return ""
-
-
 
 def _unix(t: dt.datetime) -> int:
     return int(t.timestamp())
@@ -342,10 +361,7 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
     # NAME: prefer page H1; fallback to cleaned SUMMARY; then first desc line
     name = _parse_name_from_page(page_html) if page_html else ""
     if not name:
-        name = _clean_summary(raw_summary)
-    if not name:
-        # last resort: from description below
-        pass  # set after we compute desc
+        name = _clean_summary((evt.get("SUMMARY") or ""))
     
     # DESCRIPTION: prefer page block; then X-ALT-DESC; then DESCRIPTION
     desc = _parse_desc_from_page(page_html) if page_html else ""
@@ -366,7 +382,6 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
     # Do NOT fall back to plain address as venue; keep blank if unknown
     location_for_title = venue  # this is what uploader appends in the title
 
-
     cats = _split_categories(evt)
     ages = detect_ages(name, desc, cats)
 
@@ -374,21 +389,26 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
     if not ages:
         categories.add("Audience - Family Event")
 
-    month, day, year = _fmt_date_parts(evt.get("DTSTART",""))
-    time_str = _fmt_time_range(evt.get("DTSTART",""), evt.get("DTEND",""))
+    month, day, year = _fmt_date_parts(evt.get("DTSTART", ""))
+    time_str = _fmt_time_range(evt.get("DTSTART", ""), evt.get("DTEND", ""))
+
+    # define this unconditionally (used later for address fallback)
     location_prop = (evt.get("LOCATION") or "").replace("\\,", ",").strip()
 
-    # If we still lack a decent name, synthesize from first line of desc
+    # fallback: pull time from page if ICS had none
+    if not time_str and page_html:
+        page_time = _parse_time_from_page(page_html)
+        if page_time:
+            time_str = page_time
+    
+    # (keep this single fallback after desc is built)
     if not name:
-        first_line = (desc.splitlines()[0] if desc else "").strip()
-        name = first_line[:120] if first_line else "Community Event"
-
-    # If venue missing but LOCATION exists, append a short address hint into Description (not Location)
+        first = next((ln.strip() for ln in (desc or "").splitlines() if ln.strip()), "")
+        name = first[:120] if first else "Community Event"
+    
+    # If venue missing but LOCATION exists, append address to Description (not Location)
     if not venue and location_prop:
-        if desc:
-            desc = f"{desc}\n\nAddress: {location_prop}"
-        else:
-            desc = f"Address: {location_prop}"
+        desc = f"{desc}\n\nAddress: {location_prop}" if desc else f"Address: {location_prop}"
 
     return {
         "UID": (evt.get("UID") or "").strip(),
