@@ -131,8 +131,8 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
 }
 
 TITLE_KEYWORD_TO_AGE_CATEGORIES_PPL = {
-    "storytime": "Audience - Preschool Age, Audience - School Age, Audience - Family Event, Audience - Free Event",
-    "story time": "Audience - Preschool Age, Audience - School Age, Audience - Family Event, Audience - Free Event",
+    "storytime": "Audience - Preschool Age, Audience - School Age, Audience - Free Event",
+    "story time": "Audience - Preschool Age, Audience - School Age, Audience - Free Event",
     "lego": "Audience - School Age, Audience - Free Event",
     "steam": "Audience - School Age, Audience - Free Event",
     "stem": "Audience - School Age, Audience - Free Event",
@@ -151,12 +151,12 @@ TITLE_KEYWORD_TO_AGE_CATEGORIES_PPL = {
 TITLE_KEYWORD_TO_CATEGORY = {k.lower(): v for k, v in TITLE_KEYWORD_TO_CATEGORY_RAW.items()}
 
 COMBINED_KEYWORD_TO_CATEGORY_RAW = {
-    ("storytime", "toddler"): "List - Toddler Time Events, Audience - Family Event, Audience - Toddler/Infant, List - Storytimes",
-    ("storytime", "baby"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event",
-    ("storytime", "infant"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event",
-    ("story time", "toddler"): "List - Toddler Time Events, Audience - Family Event, Audience - Toddler/Infant, List - Storytimes",
-    ("story time", "baby"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event",
-    ("story time", "infant"): "Audience - Toddler/Infant, List - Storytimes, Audience - Family Event",
+    ("storytime", "toddler"): "List - Toddler Time Events, Audience - Toddler/Infant, List - Storytimes",
+    ("storytime", "baby"): "Audience - Toddler/Infant, List - Storytimes",
+    ("storytime", "infant"): "Audience - Toddler/Infant, List - Storytimes",
+    ("story time", "toddler"): "List - Toddler Time Events, Audience - Toddler/Infant, List - Storytimes",
+    ("story time", "baby"): "Audience - Toddler/Infant, List - Storytimes",
+    ("story time", "infant"): "Audience - Toddler/Infant, List - Storytimes",
     ("kids", "elementary"): "Audience - School Age",
     ("kids", "grades"): "Audience - School Age"
 }
