@@ -42,7 +42,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "stargazing": "List - Planetarium Programs & Astronomy Events",
     "fish": "List - Fishing",
     "fishing": "List - Fishing",
-    #"liveart": "Audience - Family Event, List - Arts & Crafts",
+    "liveart": "List - Art and Crafting Events",
     "Crochet": "List - Art and Crafting Events",
     #"Terrarium": "Audience - Family Event, List - Arts & Crafts",
     "watercolor": "List - Art and Crafting Events",
