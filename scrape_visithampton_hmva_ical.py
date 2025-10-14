@@ -16,6 +16,108 @@ BASE_ICS = "https://api.withapps.io/api/v2/organizations/30/calendar/ical"
 AUDIENCE_FILTERS = ["Kids", "Family", "Youth"]
 LIBRARY_KEY = "visithampton"
 
+# --- PAGE PARSERS (robust for calendar.hampton.gov) ---
+_HTML_TITLE_RE = re.compile(r"<title>(.*?)</title>", re.I | re.S)
+_H1_RE = re.compile(r"<h1[^>]*>(.*?)</h1>", re.I | re.S)
+_META_DESC_RE = re.compile(r'<meta\s+name=["\']description["\']\s+content=["\']([^"\']+)["\']', re.I)
+_SITE_NAME_RE = re.compile(r'<meta\s+property=["\']og:site_name["\']\s+content=["\']([^"\']+)["\']', re.I)
+
+# strip tags but preserve newlines between block elements
+_BLOCK_TAGS = re.compile(r"</?(p|div|br|li|ul|ol|section|article|h\d)[^>]*>", re.I)
+_TAG_RE = re.compile(r"<[^>]+>")
+
+def _clean_html_text(html_text: str) -> str:
+    txt = _BLOCK_TAGS.sub("\n", html_text)
+    txt = _TAG_RE.sub("", txt)
+    txt = html.unescape(txt)
+    txt = re.sub(r"[ \t\u00A0]+", " ", txt)
+    txt = re.sub(r"\n\s*\n\s*\n+", "\n\n", txt)
+    return txt.strip()
+
+def _fetch_event_page(url: str, timeout: int = 12) -> str:
+    if not url:
+        return ""
+    try:
+        r = requests.get(url, timeout=timeout, headers={"User-Agent":"Mozilla/5.0"})
+        if r.status_code == 200 and "text/html" in r.headers.get("Content-Type",""):
+            return r.text
+    except Exception:
+        pass
+    return ""
+
+def _parse_name_from_page(html_text: str) -> str:
+    # Prefer the in-page H1 (actual event name)
+    m = _H1_RE.search(html_text)
+    if m:
+        return _clean_html_text(m.group(1))
+    # Fallback to og:title or <title>
+    m = re.search(r'<meta\s+property=["\']og:title["\']\s+content=["\']([^"\']+)["\']', html_text, re.I)
+    if m:
+        return html.unescape(m.group(1)).strip()
+    m = _HTML_TITLE_RE.search(html_text)
+    if m:
+        return _clean_html_text(m.group(1)).split(" | ")[0]
+    return ""
+
+def _parse_desc_from_page(html_text: str) -> str:
+    # Target the block in your screenshot: .section-activity-text .text
+    m = re.search(r'<section[^>]*class="[^"]*section-activity-text[^"]*"[^>]*>(.*?)</section>', html_text, re.I | re.S)
+    if m:
+        return _clean_html_text(m.group(1))
+    # Fallback to meta description
+    m = _META_DESC_RE.search(html_text)
+    if m:
+        return html.unescape(m.group(1)).strip()
+    return ""
+
+# --- replace this whole function ---
+def _parse_venue_from_page(html_text: str) -> str:
+    # 0) New: tags list block (your screenshot) → first/ best-looking <span>
+    #    <ul class="tags-list"><li><span>Northampton Library</span></li>...</ul>
+    m = re.search(r'<ul[^>]*class="[^"]*tags-list[^"]*"[^>]*>(.*?)</ul>',
+                  html_text, re.I | re.S)
+    if m:
+        block = m.group(1)
+        spans = re.findall(r"<span[^>]*>(.*?)</span>", block, re.I | re.S)
+        candidates = [_clean_html_text(s) for s in spans if _clean_html_text(s)]
+        if candidates:
+            # Prefer venue-y names
+            pri = ("library","center","museum","park","theatre","theater","club",
+                   "hall","gallery","rec","recreation","ymca","school","arena",
+                   "auditorium","stadium","fields","ballpark","pub","brew","café","cafe")
+            def score(x: str) -> tuple:
+                xl = x.lower()
+                hits = sum(p in xl for p in pri)
+                # penalize addresses
+                addr_like = 1 if re.search(r"\d{2,5}\s+\w+", xl) else 0
+                return (-hits, addr_like, len(x))
+            candidates.sort(key=score)
+            pick = candidates[0]
+            # avoid generic site names like "City of Hampton, VA"
+            if "hampton" not in pick.lower() or "library" in pick.lower():
+                return pick
+
+    # 1) Existing heuristics: labeled blocks
+    m = re.search(r'(Location|Venue)\s*:</?[^>]*>\s*<[^>]*>(.*?)</', html_text, re.I | re.S)
+    if m:
+        return _clean_html_text(m.group(2))
+
+    # 2) Other common classnames
+    m = re.search(r'class="[^"]*(about__place|activity-venue|event-venue|place-name)[^"]*"[^>]*>(.*?)</',
+                  html_text, re.I | re.S)
+    if m:
+        return _clean_html_text(m.group(2))
+
+    # 3) og:site_name (skip if generic)
+    site = _SITE_NAME_RE.search(html_text)
+    site_name = html.unescape(site.group(1)).strip() if site else ""
+    if site_name and "hampton" not in site_name.lower():
+        return site_name
+
+    return ""
+
+
+
 def _unix(t: dt.datetime) -> int:
     return int(t.timestamp())
 
@@ -115,7 +217,6 @@ def _split_categories(evt: Dict[str, str]) -> List[str]:
     return [p for p in parts if p]
 
 # ---------- Description: prefer HTML (X-ALT-DESC) ----------
-_TAG_RE = re.compile(r"<[^>]+>")
 
 def _preferred_description(evt: Dict[str, str]) -> str:
     raw_html = evt.get("X-ALT-DESC", "") or ""
@@ -136,9 +237,6 @@ def _venue_from_xapple(evt: Dict[str, str]) -> str:
     if m:
         return html.unescape(m.group(1)).replace("\\,", ",").strip()
     return ""
-
-_HTML_TITLE_RE = re.compile(r"<title>(.*?)</title>", re.I | re.S)
-_META_RE = re.compile(r'<meta\s+[^>]*property=["\']og:(title|site_name)["\'][^>]*content=["\']([^"\']+)["\']', re.I)
 
 def _fetch_page_title_and_venue(url: str, timeout: int = 12) -> Tuple[str,str]:
     """Lightweight HTML fetch to fix bad SUMMARY and venue name."""
@@ -236,36 +334,38 @@ def _clean_summary(summary: str) -> str:
 
 def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
     raw_summary = (evt.get("SUMMARY") or "").strip()
-    name = _clean_summary(raw_summary)
-
     url = _extract_url(evt).strip()
-    # if summary collapsed to empty, try from page
+    
+    # Pull the page once (most reliable source)
+    page_html = _fetch_event_page(url) if url else ""
+    
+    # NAME: prefer page H1; fallback to cleaned SUMMARY; then first desc line
+    name = _parse_name_from_page(page_html) if page_html else ""
     if not name:
-        page_title, _ = _fetch_page_title_and_venue(url)
-        if page_title:
-            # Some With titles look like "Event Name | Hampton, VA"
-            name = re.split(r"\s+\|\s+", page_title)[0].strip()
-
-    # description: prefer X-ALT-DESC (HTML)
-    desc = _preferred_description(evt)
-
-    # venue preference: X-APPLE… X-TITLE, else from page <meta site_name>, else from SUMMARY right-hand side, else None
-    venue = _venue_from_xapple(evt)
+        name = _clean_summary(raw_summary)
+    if not name:
+        # last resort: from description below
+        pass  # set after we compute desc
+    
+    # DESCRIPTION: prefer page block; then X-ALT-DESC; then DESCRIPTION
+    desc = _parse_desc_from_page(page_html) if page_html else ""
+    if not desc:
+        desc = _preferred_description(evt)
+    
+    # If name still empty, use first non-empty line of desc
+    if not name:
+        first = next((ln.strip() for ln in (desc or "").splitlines() if ln.strip()), "")
+        name = first[:120] if first else "Community Event"
+    
+    # VENUE: parse page explicitly; avoid addresses
+    venue = _parse_venue_from_page(page_html) if page_html else ""
     if not venue:
-        _, site_name = _fetch_page_title_and_venue(url)
-        if site_name and "hampton" not in site_name.lower():  # avoid generic "City of Hampton"
-            venue = site_name.strip()
-    if not venue and raw_summary:
-        m = re.search(r"\s+at\s+(.+)$", raw_summary, flags=re.I)
-        if m:
-            cand = m.group(1).replace("\\,", ",").strip()
-            if not _ADDR_LIKE.search(cand):  # use only if not an address
-                venue = cand
+        # try Apple param
+        venue = _venue_from_xapple(evt) or ""
+    
+    # Do NOT fall back to plain address as venue; keep blank if unknown
+    location_for_title = venue  # this is what uploader appends in the title
 
-    # if still no venue, last resort: LOCATION (but LOCATION is usually address; do NOT use it for title append)
-    location_prop = (evt.get("LOCATION") or "").replace("\\,", ",").strip()
-    # We'll expose address in description tail if venue unknown; but set Location to venue for uploader title appending
-    location_for_title = venue or ""
 
     cats = _split_categories(evt)
     ages = detect_ages(name, desc, cats)
@@ -276,6 +376,7 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
 
     month, day, year = _fmt_date_parts(evt.get("DTSTART",""))
     time_str = _fmt_time_range(evt.get("DTSTART",""), evt.get("DTEND",""))
+    location_prop = (evt.get("LOCATION") or "").replace("\\,", ",").strip()
 
     # If we still lack a decent name, synthesize from first line of desc
     if not name:
