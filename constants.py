@@ -25,6 +25,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "card game": "List - Gaming Events",
     "dungeons": "List - Gaming Events",
     "Cubetto": "List - Gaming Events",
+    "Cubetto!": "List - Gaming Events",
     "history": "List - Virginia History Events",
     "cars": "List - Car Shows & Events",
     "anime": "List - Cosplay Anime Comics",
