@@ -737,7 +737,16 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 # Final clean & dedupe
                 categories = ", ".join(dict.fromkeys([t.replace("\u00A0", " ").replace("Â", "").strip() for t in tag_list if t.strip()]))
-        
+
+                # --- Hampton (VisitHampton) custom rule: mark library events as free ---
+                if library == "visithampton":
+                    venue = (event.get("Venue", "") or "").lower()
+                    location = (event.get("Location", "") or "").lower()
+                    if "library" in venue or "library" in location:
+                        if "Audience - Free Event" not in categories:
+                            categories += ", Audience - Free Event"
+                            print(f"🏷️ Added Free Event tag (library venue) → {event.get('Event Name')}")
+
                 # === Normalize title and (maybe) suffix ===
                 name_original = event.get("Event Name", "")
                 name_without_at = re.sub(r"\s*@\s*[^@,;:\\/]+", "", name_original, flags=re.IGNORECASE).strip()
