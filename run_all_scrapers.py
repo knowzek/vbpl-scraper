@@ -12,7 +12,7 @@ from scrape_ppl_events import scrape_ppl_events
 from scrape_events import scrape_vbpl_events
 from scrape_ypl_events import scrape_YPL_events
 from scrape_vbpr_events import scrape_vbpr_events
-from scrap_visithampton_events import scrap_visithampton
+from scrape_visithampton_hmva_ical import scrape_visithampton_hmva_ical
 from scrap_visitchesapeake_events import scrap_visitchesapeake
 from scrap_visitnewportnews_events import scrap_visitnewportnews
 from scrap_portsvaevents_events import scrap_portsvaevents
@@ -66,7 +66,7 @@ CALL_MAP = {
     "ppl": scrape_ppl_events,
     "ypl": scrape_YPL_events,
     "vbpr": scrape_vbpr_events,
-    "visithampton": scrap_visithampton,
+    "visithampton": scrape_visithampton_hmva_ical,
     "visitchesapeake": scrap_visitchesapeake,
     "visitnewportnews": scrap_visitnewportnews,
     "portsvaevents": scrap_portsvaevents,
