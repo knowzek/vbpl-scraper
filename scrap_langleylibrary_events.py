@@ -185,7 +185,7 @@ def get_events_data(soup: BeautifulSoup, url: str):
 
         all_tags = _dedupe_preserve_order(base_tags + keyword_tags + age_tags)
 
-
+        title = f"Military {title}" if title else None
         events.append({
             "Event Name": title,
             "Event Link": link,
