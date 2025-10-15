@@ -55,7 +55,6 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "toddler": "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
     "onesie":  "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
     "onesies": "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
-    "babies":  "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events",
     "preschool": "Audience - Preschool Age",
     "tiny tot": "Audience - Toddler/Infant, Audience - Parent & Me",
     "steam": "List - STEM/STEAM",
