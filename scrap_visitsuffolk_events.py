@@ -216,10 +216,11 @@ def get_events(html_content):
             event_json['weekday'] = events[i]['weekday']
             event_json['Event Name'] = remove_html_entities(event_json.get('name', ''))
             
-            # ✅ Use raw HTML if you have it; otherwise fall back to whatever is present
-            raw_desc_html = (event_json.get('description_html')
-                             or event_json.get('description', ''))
-            event_json['Event Description'] = html_to_text_with_breaks(raw_desc_html)
+            # Prefer an HTML field if your detail fetch put it there, else fall back to description as-is
+            raw_html = (event_json.get('description_html')
+                        or event_json.get('description', ''))
+            event_json['Event Description'] = raw_html  # ⬅ keep tags
+
             event_json['Event Status'] = event_json.get('status', '')
             event_json['Time'] = event_json.get('time', '')
             event_json['Event Link'] = event_json.get('url', '')
