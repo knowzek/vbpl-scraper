@@ -5,6 +5,36 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from helpers import rJson, wJson, infer_age_categories_from_description
 from constants import TITLE_KEYWORD_TO_CATEGORY_RAW
 
+def html_to_text_with_breaks(html: str) -> str:
+    if not html:
+        return ""
+    soup = BeautifulSoup(html, "html.parser")
+
+    # turn <br> into newlines
+    for br in soup.find_all("br"):
+        br.replace_with("\n")
+
+    # make bullet points from <li>
+    for li in soup.find_all("li"):
+        txt = li.get_text(" ", strip=True)
+        li.clear()
+        li.append(f"• {txt}\n")
+
+    # collect paragraphs and list items as blocks
+    blocks = []
+    for tag in soup.find_all(["p", "li", "div"]):
+        t = tag.get_text(" ", strip=True)
+        if t:
+            blocks.append(t)
+
+    text = "\n\n".join(blocks) if blocks else soup.get_text("\n", strip=True)
+
+    # tidy whitespace
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    text = re.sub(r"\n{3,}", "\n\n", text).strip()
+    return text
+
+
 # Adult/18+ style filters (word-boundary matches)
 ADULT_KEYWORDS = [
     "adult", "adults", "18+", "21+",
@@ -185,6 +215,10 @@ def get_events(html_content):
             event_json.update(event_info)
             event_json['weekday'] = events[i]['weekday']
             event_json['Event Name'] = remove_html_entities(event_json.get('name', ''))
+            
+            # ✅ Description: convert HTML to readable text with line breaks & bullets
+            raw_desc_html = event_json.get('description', '')
+            event_json['Event Description'] = html_to_text_with_breaks(raw_desc_html)
             event_json['Event Description'] = remove_html_entities(event_json.get('description', ''))
             event_json['Event Status'] = event_json.get('status', '')
             event_json['Time'] = event_json.get('time', '')
