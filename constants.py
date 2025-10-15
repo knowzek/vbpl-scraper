@@ -51,6 +51,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "paint": "List - Art and Crafting Events",
     "craft": "List - Art and Crafting Events",
     "crafts": "List - Art and Crafting Events",
+    "crafty": "List - Art and Crafting Events",
     "baby": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events",
     "toddler": "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
     "onesie":  "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
