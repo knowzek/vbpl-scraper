@@ -315,6 +315,7 @@ LIBRARY_CONSTANTS = {
             "Hampton History Museum": "Hampton History Museum",
             "The Charles H. Taylor Visual Arts Center": "Charles H. Taylor Visual Arts Center",
             "Hampton Roads Convention Center": "Hampton Roads Convention Center",
+            "Hampton Carousel": "Hampton Carousel",
             "Mill Point Park": "Mill Point Park",
             "Bluebird Gap Farm": "Bluebird Gap Farm",
             "St. George Brewing Company": "St. George Brewing Company",
