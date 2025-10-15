@@ -113,6 +113,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Happy Halloween": "List - Fall - Halloween Day Events",
     "October 31": "List - Fall - Halloween Day Events",
     "Oct 31st": "List - Fall - Halloween Day Events",
+    "Halloween candy": "List - Fall - Trick/Trunk or Treat",
     "Trick or Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events",
     "Trick or Treating": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
     "Trick-or-Treat": "List - Fall - Trick/Trunk or Treat, List - Fall - Family Halloween Events, List - Fall - Halloween Day Events",
@@ -742,7 +743,7 @@ LIBRARY_CONSTANTS = {
         "age_to_categories": {
             #"Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Chesapeake",
             "Elementary School": "Audience - School Age, Audience - Free Event, Event Location - Chesapeake",
-            "Middle School": "Audience - Teens, Audience - Free Event, Audience - School Age, Event Location - Chesapeake",
+            "Middle School": "Audience - Free Event, Audience - School Age, Event Location - Chesapeake",
             "High School": "Audience - Teens, Audience - Free Event, Event Location - Chesapeake",
             "Families": "Audience - Family Event, Audience - Free Event, Event Location - Chesapeake",
             "All Ages": "Audience - Free Event, Event Location - Chesapeake, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Family Event, Audience - Teens",
