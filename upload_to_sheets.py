@@ -635,6 +635,26 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 )
                 title_text = (event.get("Event Name", "") or "")
                 age_haystack = f"{title_text} {desc_value} {ages_raw}"
+                # normalize fancy dashes/hyphens so K–5/K—5/K-5 all behave like K-5
+                age_haystack = (
+                    age_haystack
+                    .replace("\u2011", "-")  # non-breaking hyphen
+                    .replace("\u2012", "-")
+                    .replace("\u2013", "-")  # en dash
+                    .replace("\u2014", "-")  # em dash
+                )
+                is_school_age_phrase  = re.search(r"\bschool age\b", age_haystack, re.I)
+                mentions_elementary   = re.search(r"\belementary\b", age_haystack, re.I)
+                
+                # Elementary → School Age (accept K/kindergarten and 1–5, with "-" or "to")
+                mentions_grades_elm = re.search(
+                    r"\bgrades?\s*(k|kindergarten|[1-5])(st|nd|rd|th)?(?:\s*(?:-|to)\s*(k|kindergarten|[1-5])(st|nd|rd|th)?)?\b",
+                    age_haystack,
+                    re.I
+                )
+            
+                mentions_high_school   = re.search(r"\bhigh\s+school\b", age_haystack, re.I)
+                mentions_middle_school = re.search(r"\bmiddle\s+school\b", age_haystack, re.I)
                 age_tags = _spans_to_audience_tags(_extract_year_spans(age_haystack))
         
                 def _has_audience_tag(tags):
@@ -668,6 +688,10 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 if always_on:
                     tag_list.extend(always_on)
 
+                # ✅ add the School Age tag based on grades K–5 detection
+                if (is_school_age_phrase or mentions_elementary or mentions_grades_elm) and not (mentions_high_school or mentions_middle_school):
+                    _ensure(tag_list, "Audience - School Age")
+    
                 # --- YPL: always add base tags ---
                 if library == "ypl":
                     _ensure(tag_list, "Audience - Free Event")
@@ -898,7 +922,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
         if new_rows:
             # Optional: comment this out if it's too chatty
             # print("🔍 Full row to upload:", full_row)
-            sheet.append_rows(new_rows, value_input_option="RAW")
+            sheet.append_rows(new_rows, value_input_option="USER_ENTERED")
         
         try:
             log_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
