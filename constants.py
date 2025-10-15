@@ -741,7 +741,7 @@ LIBRARY_CONSTANTS = {
     },
     "chpl": {
         "age_to_categories": {
-            #"Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Chesapeake",
+            "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Chesapeake",
             "Elementary School": "Audience - School Age, Audience - Free Event, Event Location - Chesapeake",
             "Middle School": "Audience - Free Event, Audience - School Age, Event Location - Chesapeake",
             "High School": "Audience - Teens, Audience - Free Event, Event Location - Chesapeake",
