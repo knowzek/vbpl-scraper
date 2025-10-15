@@ -132,6 +132,17 @@ def get_event_byurl(url):
     soup2 = BeautifulSoup(response.text, "html.parser")
     event_meta = soup2.find("div", class_="mec-event-meta")
 
+    desc_el = soup2.select_one(
+        ".mec-single-event-description, .mec-event-content, .mec-single-event .mec-event-content, [itemprop='description']"
+    )
+    if desc_el:
+        # keep tags
+        event_dict["description_html"] = str(desc_el)
+    else:
+        # fallback: try decode_contents on a known container if present
+        mec = soup2.find("div", class_="mec-event-content")
+        event_dict["description_html"] = mec.decode_contents() if mec else ""
+
     if event_meta:
         event_date = event_meta.find("div", class_="mec-single-event-date")
         if event_date:
