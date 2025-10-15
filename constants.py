@@ -156,7 +156,29 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Father's Day": "List - Summer - Fathers Day (June)",
     "Juneteenth": "List - Summer - Juneteenth",
     "Neighborhood Night Out": "List - Summer - Neighborhood Night Out (NNO) (August)",
-    "Shark Week": "List - Summer - Shark Week (July)"
+    "Shark Week": "List - Summer - Shark Week (July)",
+    "Black History Month": "List - Winter - Black History Month (February)",
+    "Grinch": "List - Winter - Grinch Events",
+    "Groundhog Day": "List - Winter - Groundhog Day",
+    "Hanukkah Events": "List - Winter - Hanukkah Events",
+    "Bethlehem": "List - Winter - Holiday Bethlehem Events",
+    "Holiday Crafts": "List - Winter - Holiday Crafts & Gift Making",
+    "Holiday Gifts": "List - Winter - Holiday Crafts & Gift Making",
+    "Holiday Movie": "List - Winter - Holiday Movies",
+    "Kwanzaa": "List - Winter - Kwanzaa Celebrations",
+    "Leap Day": "List - Winter - Leap Day/Year Celebrations",
+    "Leap Year": "List - Winter - Leap Day/Year Celebrations",
+    "Lunar New Year": "List - Winter - Lunar New Year",
+    "MLK Jr": "List - Winter - MLK Jr",
+    "Martin Luther King": "List - Winter - MLK Jr",
+    "Nativity": "List - Winter - Nativity Scenes",
+    "New Years": "List - Winter - New Years Celebrations",
+    "Santa": "List - Winter - Santa All",
+    "Trees For Troops": "List - Winter - Trees For Troops",
+    "Valentines Day": "List - Winter - Valentines Day",
+    "Valentine's Day": "List - Winter - Valentines Day",
+    "Valentine": "List - Winter - Valentines Day",
+    "Winter Break": "List - Winter - Winter Break Events"
     
 }
 
