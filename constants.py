@@ -184,6 +184,11 @@ UNWANTED_TITLE_KEYWORDS = [
     "business",
     "lecture",
     "food drive",
+    "childbirth",
+    "canceled",
+    "human services",
+    "court mandated",
+    "cancelled",
     "closed"
 ]
 
