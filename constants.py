@@ -193,6 +193,7 @@ UNWANTED_TITLE_KEYWORDS = [
     "human services",
     "court mandated",
     "cancelled",
+    "bookmobile",
     "closed"
 ]
 
