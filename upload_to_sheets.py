@@ -895,11 +895,10 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 #            config["email_recipient"]
 #           )
 
-
         if new_rows:
             # Optional: comment this out if it's too chatty
             # print("🔍 Full row to upload:", full_row)
-            sheet.append_rows(new_rows, value_input_option="USER_ENTERED")
+            sheet.append_rows(new_rows, value_input_option="RAW")
         
         try:
             log_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
