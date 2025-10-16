@@ -555,13 +555,16 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
             link_to_row_index[clean_link] = idx + 2
             existing_data[clean_link] = row
 
+        # NEW: de-dupe guard for this run (sheet links + anything we queue below)
+        seen_links = set(existing_data.keys())
+
         added = 0
         updated = 0
         skipped = 0
 
-        added = updated = skipped = error_count = 0  # <-- make sure this is before the loop
         new_rows = []
         update_requests = []
+
         
         for event in events:
             try:
@@ -572,6 +575,12 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     continue
         
                 link = _clean_link(raw_link)
+
+                # NEW: prevent duplicates within the same upload run (same Event Link)
+                if link in seen_links:
+                    print(f"⏭️ Skipping duplicate-in-run: {link}")
+                    skipped += 1
+                    continue
         
                 title_for_filter = (event.get("Event Name", "") or "").strip()
                 if _has_unwanted_title(title_for_filter):
@@ -894,6 +903,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 if link not in existing_data:
                     print("🔍 New row to append:", full_row)
                     new_rows.append(full_row)
+                    seen_links.add(link)   
                     added += 1
                 elif new_core != existing_core:
                     print(f"🔄 Updated row {link_to_row_index[link]}:", full_row)
