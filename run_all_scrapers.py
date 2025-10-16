@@ -10,7 +10,7 @@ from scrape_nnpl_events import scrape_nnpl_events
 from scrape_spl_events import scrape_spl_events
 from scrape_ppl_events import scrape_ppl_events
 from scrape_events import scrape_vbpl_events
-from scrape_ypl_events import scrape_YPL_events
+from scrape_ypl_events import scrape_ypl_events
 from scrape_vbpr_events import scrape_vbpr_events
 from scrape_visithampton_hmva_ical import scrape_visithampton_hmva_ical
 from scrap_visitchesapeake_events import scrap_visitchesapeake
