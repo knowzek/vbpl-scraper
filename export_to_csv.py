@@ -58,7 +58,7 @@ MASTER_SPREADSHEET_ID = os.environ.get("MASTER_SPREADSHEET_ID")
 MASTER_SPREADSHEET_NAME = os.environ.get("MASTER_SPREADSHEET_NAME", "Master Events")
 MASTER_WORKSHEET_NAME = os.environ.get("MASTER_WORKSHEET_NAME", "Master Events")
 
-def _write_chunked_csvs(df, base_name: str, library: str, chunk_size: int = 75):
+def _write_chunked_csvs(df, base_name: str, library: str, chunk_size: int = 45):
     """
     Split df into multiple CSVs of <= chunk_size rows.
     Returns list of file paths in order.
@@ -598,8 +598,8 @@ def export_events_to_csv(library="master", return_df=False, needs_bucket=None, s
         export_df[col] = export_df[col].map(_ascii_normalize).map(_ascii_quotes)
 
 
-    # Chunked write: 75 rows per CSV
-    paths = _write_chunked_csvs(export_df, base_name="events_for_upload", library=str(library), chunk_size=75)
+    # Chunked write: 45 rows per CSV
+    paths = _write_chunked_csvs(export_df, base_name="events_for_upload", library=str(library), chunk_size=45)
     print(f"📦 Exported {len(export_df)} events across {len(paths)} CSV file(s) (from {original_row_count} original rows)")
     
     # Optional email for per-library (Master emailing handled in __main__)
@@ -693,7 +693,7 @@ if __name__ == "__main__":
     master_df = export_events_to_csv(library="master", return_df=True, needs_bucket=needs_bucket, send_email=False)
 
     if master_df is not None and not master_df.empty:
-        paths = _write_chunked_csvs(master_df, base_name="combined_events_export", library="master", chunk_size=75)
+        paths = _write_chunked_csvs(master_df, base_name="combined_events_export", library="master", chunk_size=45)
         print(f"✅ Wrote combined CSVs ({len(master_df)} events) → {len(paths)} file(s)")
     
         recipient = os.environ.get("EXPORT_RECIPIENT", "knowzek@gmail.com")
