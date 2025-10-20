@@ -139,6 +139,20 @@ def _strip_schoolage_for_3splease(title: str, tags: list[str]) -> list[str]:
         return [c for c in tags if c not in {"Audience - School Age"}]
     return tags
 
+def _strip_infant_parentme_for_preschool_storytime(title: str, tags: list[str]) -> list[str]:
+    """
+    If the title contains 'Preschool Storytime' (any case variation),
+    remove Infant/Toddler and Parent & Me audience tags.
+    """
+    t = (title or "").lower()
+    if "preschool storytime" in t or "preschool story time" in t:
+        return [c for c in tags if c not in {
+            "Audience - Toddler/Infant",
+            "Audience - Parent & Me"
+        }]
+    return tags
+
+
 def _ensure(lst, item):
     if item not in lst:
         lst.append(item)
@@ -732,6 +746,9 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                         
                 # Remove preschool tag for "Just 2s / Just 2's" titles
                 tag_list = _strip_preschool_for_just2s(event.get("Event Name", ""), tag_list)
+
+                # Remove infant/toddler + parent & me tags for Preschool Storytime titles
+                tag_list = _strip_infant_parentme_for_preschool_storytime(event.get("Event Name", ""), tag_list)
 
                 # Remove incorrect Storytimes when VBPL titles say "Open Play"
                 if library == "vbpl":
