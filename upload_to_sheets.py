@@ -142,10 +142,14 @@ def _strip_schoolage_for_3splease(title: str, tags: list[str]) -> list[str]:
 def _strip_infant_parentme_for_preschool_storytime(title: str, tags: list[str]) -> list[str]:
     """
     If the title contains 'Preschool Storytime' (any case variation),
-    remove Infant/Toddler and Parent & Me audience tags.
+    remove Infant/Toddler and Parent & Me audience tags —
+    EXCEPT when the title includes 'Toddler & Preschool Storytime'.
     """
     t = (title or "").lower()
     if "preschool storytime" in t or "preschool story time" in t:
+        # skip stripping if it's a combined toddler/preschool event
+        if "toddler & preschool storytime" in t or "toddler and preschool storytime" in t:
+            return tags
         return [c for c in tags if c not in {
             "Audience - Toddler/Infant",
             "Audience - Parent & Me"
