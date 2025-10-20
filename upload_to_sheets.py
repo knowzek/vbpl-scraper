@@ -152,6 +152,16 @@ def _strip_infant_parentme_for_preschool_storytime(title: str, tags: list[str]) 
         }]
     return tags
 
+def _strip_family_for_babies_in_bloom(title: str, tags: list[str]) -> list[str]:
+    """
+    If the title contains 'Babies in Bloom' (any case variation),
+    remove the Family audience tag.
+    """
+    t = (title or "").lower()
+    if "babies in bloom" in t:
+        return [c for c in tags if c not in {"Audience - Family Event"}]
+    return tags
+
 
 def _ensure(lst, item):
     if item not in lst:
@@ -749,6 +759,9 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 # Remove infant/toddler + parent & me tags for Preschool Storytime titles
                 tag_list = _strip_infant_parentme_for_preschool_storytime(event.get("Event Name", ""), tag_list)
+
+                # Remove Family tag for "Babies in Bloom"
+                tag_list = _strip_family_for_babies_in_bloom(event.get("Event Name", ""), tag_list)
 
                 # Remove incorrect Storytimes when VBPL titles say "Open Play"
                 if library == "vbpl":
