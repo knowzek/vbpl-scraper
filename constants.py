@@ -553,17 +553,17 @@ LIBRARY_CONSTANTS = {
         "program_type_to_categories": {},
     
         "age_to_categories": {
-            "Infant":     "Audience - Toddler/Infant, Audience - Free Event, Event Location - Yorktown",
-            "Preschool":  "Audience - Preschool Age, Audience - Free Event, Event Location - Yorktown",
-            "School Age": "Audience - School Age, Audience - Free Event, Event Location - Yorktown",
-            "Tweens":     "Audience - School Age, Audience - Free Event, Event Location - Yorktown",
-            "Teens":      "Audience - Teens, Audience - Free Event, Event Location - Yorktown",
-            "All Ages":   "Audience - Free Event, Event Location - Yorktown",
-            "Adults 18+": "Audience - Free Event, Event Location - Yorktown"
+            "Infant":     "Audience - Toddler/Infant, Audience - Free Event, Event Location - Yorktown / York County",
+            "Preschool":  "Audience - Preschool Age, Audience - Free Event, vent Location - Yorktown / York County",
+            "School Age": "Audience - School Age, Audience - Free Event, vent Location - Yorktown / York County",
+            "Tweens":     "Audience - School Age, Audience - Free Event, vent Location - Yorktown / York County",
+            "Teens":      "Audience - Teens, Audience - Free Event, vent Location - Yorktown / York County",
+            "All Ages":   "Audience - Free Event, vent Location - Yorktown / York County",
+            "Adults 18+": "Audience - Free Event, vent Location - Yorktown / York County"
         },
     
         "always_on_categories": [
-            "Event Location - Yorktown",
+            "vent Location - Yorktown / York County",
             "Audience - Family Event",
         ],
     
