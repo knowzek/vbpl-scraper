@@ -22,11 +22,13 @@ def _ics_to_local(dtstr: str, params: str = ""):
     m = re.match(r"^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?)?(Z)?$", s)
     if not m:
         return None
+
     y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
     H, M = int(m.group(4) or 0), int(m.group(5) or 0)
+    has_time = m.group(4) is not None
     has_z = bool(m.group(7))
 
-    # choose source tz
+    # choose source timezone
     if has_z:
         src_tz = dt.timezone.utc
     else:
@@ -34,13 +36,19 @@ def _ics_to_local(dtstr: str, params: str = ""):
         m_tz = re.search(r"(?:^|;)TZID=([^;:]+)", params or "", re.I)
         if m_tz:
             tzid = m_tz.group(1).strip()
-        try:
-            src_tz = ZoneInfo(tzid) if tzid else EASTERN
-        except Exception:
-            src_tz = EASTERN
+            try:
+                src_tz = ZoneInfo(tzid)
+            except Exception:
+                src_tz = EASTERN
+        else:
+            # ✅ Key fix:
+            # If the value includes a time but no Z/TZID, treat as UTC.
+            # If it's a date-only value, keep as local Eastern.
+            src_tz = dt.timezone.utc if has_time else EASTERN
 
     aware = dt.datetime(y, mo, d, H, M, tzinfo=src_tz)
     return aware.astimezone(EASTERN)
+
 
 
 BASE_ICS = "https://api.withapps.io/api/v2/organizations/30/calendar/ical"
