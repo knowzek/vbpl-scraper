@@ -14,16 +14,17 @@ import requests
 from zoneinfo import ZoneInfo
 EASTERN = ZoneInfo("America/New_York")
 
-
 def _ics_to_local(dtstr: str, params: str = ""):
     """
-    Convert an iCal datetime string plus its prop params (e.g., 'TZID=America/New_York')
-    into a timezone-aware datetime in America/New_York. Respects TZID and Z.
-    If time-of-day exists but neither Z nor TZID is present, we assume UTC.
-    DATE-only values (no time) are treated as local Eastern (no shift).
+    Convert an iCal datetime string into America/New_York local time.
+    - If ends with 'Z' → treat as UTC and convert to Eastern.
+    - If has TZID=America/New_York → treat as already local.
+    - If has no tz info but includes a time → assume Eastern (not UTC).
+    - If it's all-day (date only) → keep as-is.
     """
     if not dtstr:
         return None
+
     s = dtstr.strip()
     m = re.match(r"^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?)?(Z)?$", s)
     if not m:
@@ -35,26 +36,35 @@ def _ics_to_local(dtstr: str, params: str = ""):
     has_time = m.group(4) is not None
     has_z = bool(m.group(7))
 
-    # Choose source timezone
-    if has_z:
-        src_tz = dt.timezone.utc
-    else:
-        # Respect TZID if present
-        tzid = ""
-        m_tz = re.search(r"(?:^|;)TZID=([^;:]+)", params or "", re.I)
-        if m_tz:
-            tzid = m_tz.group(1).strip()
-            try:
-                src_tz = ZoneInfo(tzid)
-            except Exception:
-                src_tz = EASTERN
-        else:
-            # If there is a time-of-day but no Z/TZID, assume UTC (server often emits UTC).
-            # If it's a date-only DTSTART, keep as local Eastern to avoid date shifts.
-            src_tz = dt.timezone.utc if has_time else EASTERN
+    # check for TZID param
+    tzid = ""
+    m_tz = re.search(r"(?:^|;)TZID=([^;:]+)", params or "", re.I)
+    if m_tz:
+        tzid = m_tz.group(1).strip()
 
-    aware = dt.datetime(y, mo, d, hh, mm, tzinfo=src_tz)
-    return aware.astimezone(EASTERN)
+    # --- main logic ---
+    if has_z:
+        # Z means UTC → convert to Eastern
+        src_tz = dt.timezone.utc
+        aware = dt.datetime(y, mo, d, hh, mm, tzinfo=src_tz)
+        return aware.astimezone(EASTERN)
+
+    elif tzid:
+        # Explicit TZID (like America/New_York): trust it, don't reconvert
+        try:
+            src_tz = ZoneInfo(tzid)
+        except Exception:
+            src_tz = EASTERN
+        return dt.datetime(y, mo, d, hh, mm, tzinfo=src_tz)
+
+    elif has_time:
+        # Has a time but no tzid and no Z → assume already local Eastern
+        return dt.datetime(y, mo, d, hh, mm, tzinfo=EASTERN)
+
+    else:
+        # All-day date → keep date only
+        return dt.datetime(y, mo, d)
+
 
 BASE_ICS = "https://api.withapps.io/api/v2/organizations/30/calendar/ical"
 AUDIENCE_FILTERS = ["Kids", "Family", "Youth"]
