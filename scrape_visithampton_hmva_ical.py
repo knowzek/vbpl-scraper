@@ -11,6 +11,37 @@ import urllib.parse
 from typing import Dict, List, Tuple, Optional
 import json
 import requests
+from zoneinfo import ZoneInfo
+EASTERN = ZoneInfo("America/New_York")
+
+def _ics_to_local(dtstr: str, params: str = ""):
+    if not dtstr:
+        return None
+    s = dtstr.strip()
+    # basic YYYYMMDD or YYYYMMDDTHHMM[SS][Z]
+    m = re.match(r"^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?)?(Z)?$", s)
+    if not m:
+        return None
+    y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
+    H, M = int(m.group(4) or 0), int(m.group(5) or 0)
+    has_z = bool(m.group(7))
+
+    # choose source tz
+    if has_z:
+        src_tz = dt.timezone.utc
+    else:
+        tzid = ""
+        m_tz = re.search(r"(?:^|;)TZID=([^;:]+)", params or "", re.I)
+        if m_tz:
+            tzid = m_tz.group(1).strip()
+        try:
+            src_tz = ZoneInfo(tzid) if tzid else EASTERN
+        except Exception:
+            src_tz = EASTERN
+
+    aware = dt.datetime(y, mo, d, H, M, tzinfo=src_tz)
+    return aware.astimezone(EASTERN)
+
 
 BASE_ICS = "https://api.withapps.io/api/v2/organizations/30/calendar/ical"
 AUDIENCE_FILTERS = ["Kids", "Family", "Youth"]
@@ -223,37 +254,26 @@ def _parse_vevent_blocks(ics_text: str) -> List[Dict[str, str]]:
 # ---------- Field helpers ----------
 _MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
-def _fmt_date_parts(dtstart: str) -> Tuple[str, str, str]:
-    s = (dtstart or "").replace("Z", "")
-    m = re.match(r"^(\d{4})(\d{2})(\d{2})", s)
-    if not m:
+def _fmt_date_parts(dtstart: str, params: str = "") -> Tuple[str, str, str]:
+    local = _ics_to_local(dtstart, params)
+    if not local:
         return "", "", ""
-    year, mm, dd = m.group(1), m.group(2), m.group(3)
-    month_name = _MONTHS[int(mm) - 1] if 1 <= int(mm) <= 12 else ""
-    return month_name, str(int(dd)), year
+    return local.strftime("%b"), str(local.day), str(local.year)
 
-def _fmt_time_range(dtstart: str, dtend: str) -> str:
-    def parse_time(s: str) -> Optional[Tuple[int,int]]:
-        s = (s or "").replace("Z", "")
-        m = re.match(r"^\d{8}T(\d{2})(\d{2})", s)
-        if not m:
-            return None
-        return int(m.group(1)), int(m.group(2))
-    st = parse_time(dtstart)
-    en = parse_time(dtend) if dtend else None
+
+def _fmt_time_range(dtstart: str, dtend: str, start_params: str = "", end_params: str = "") -> str:
+    st = _ics_to_local(dtstart, start_params)
+    en = _ics_to_local(dtend,   end_params) if dtend else None
     if not st and not en:
         return ""
-    def fmt(hh: int, mm: int) -> str:
-        ampm = "am" if hh < 12 else "pm"
-        h = hh % 12
-        if h == 0:
-            h = 12
-        return f"{h}{ampm}" if mm == 0 else f"{h}:{mm:02d}{ampm}"
-    if st and en:
-        return f"{fmt(*st)} – {fmt(*en)}"
-    if st:
-        return fmt(*st)
-    return ""
+
+    if st and not en:
+        en = st + dt.timedelta(hours=1)  # default 60-min duration
+
+    def fmt(x: dt.datetime) -> str:
+        return x.strftime("%-I:%M %p").lstrip("0").replace(":00", "")
+    return f"{fmt(st)} – {fmt(en)}" if (st and en) else (fmt(st) if st else "")
+
 
 def _extract_url(evt: Dict[str, str]) -> str:
     for k in ("URL", "X-ALT-DESC", "X-WR-URL"):
@@ -409,8 +429,14 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
         desc = f"{desc}\n\nAddress: {location_prop}" if desc else f"Address: {location_prop}"
 
     # DATE/TIME
-    month, day, year = _fmt_date_parts(evt.get("DTSTART", ""))
-    time_str = _fmt_time_range(evt.get("DTSTART", ""), evt.get("DTEND", ""))
+    month, day, year = _fmt_date_parts(evt.get("DTSTART", ""), evt.get("__DTSTART_params", ""))
+
+    time_str = _fmt_time_range(
+        evt.get("DTSTART", ""),
+        evt.get("DTEND",   ""),
+        evt.get("__DTSTART_params", ""),
+        evt.get("__DTEND_params",   "")
+    )
 
     # fallback: pull time from page if ICS had none; then JSON-LD
     if not time_str and page_html:
