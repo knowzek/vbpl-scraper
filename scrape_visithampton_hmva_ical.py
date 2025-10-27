@@ -58,8 +58,9 @@ def _ics_to_local(dtstr: str, params: str = ""):
         return dt.datetime(y, mo, d, hh, mm, tzinfo=src_tz)
 
     elif has_time:
-        # Has a time but no tzid and no Z → assume already local Eastern
-        return dt.datetime(y, mo, d, hh, mm, tzinfo=EASTERN)
+        # Has a time but no Z/TZID → WithApps emits these as UTC.
+        aware = dt.datetime(y, mo, d, hh, mm, tzinfo=dt.timezone.utc)
+        return aware.astimezone(EASTERN)
 
     else:
         # All-day date → keep date only
