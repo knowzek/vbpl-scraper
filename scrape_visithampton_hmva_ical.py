@@ -279,18 +279,28 @@ _MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","De
 
 def _fmt_date_parts(dtstart: str, start_params: str = ""):
     local = _ics_to_local(dtstart, start_params)
-    return (local.strftime("%b"), str(local.day), str(local.year)) if local else ("", "", "")
+    if not local:
+        return "", "", ""
+    local = local.astimezone(EASTERN)  # ✅ ensure local conversion
+    return local.strftime("%b"), str(local.day), str(local.year)
+
 
 def _fmt_time_range(dtstart: str, dtend: str, start_params: str = "", end_params: str = ""):
     st = _ics_to_local(dtstart, start_params)
-    en = _ics_to_local(dtend,   end_params) if dtend else None
+    en = _ics_to_local(dtend, end_params) if dtend else None
     if not st and not en:
         return ""
     if st and not en:
-        en = st + dt.timedelta(hours=1)  # sensible default
+        en = st + dt.timedelta(hours=1)
+    # ✅ ensure both are in Eastern local time
+    st = st.astimezone(EASTERN)
+    en = en.astimezone(EASTERN) if en else None
+
     def fmt(x: dt.datetime) -> str:
         return x.strftime("%-I:%M %p").lstrip("0")
-    return f"{fmt(st)} - {fmt(en)}" if (st and en) else (fmt(st) if st else "")
+
+    return f"{fmt(st)} - {fmt(en)}" if en else fmt(st)
+
 
 def _extract_url(evt: Dict[str, str]) -> str:
     for k in ("URL", "X-ALT-DESC", "X-WR-URL"):
