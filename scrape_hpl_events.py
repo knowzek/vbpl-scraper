@@ -79,6 +79,9 @@ def scrape_hpl_events(mode="all"):
                     end_raw = end_raw.replace(tzinfo=eastern)
                 end_dt_local = end_raw.astimezone(eastern)
 
+            if not end_dt_local:
+                end_dt_local = start_dt_local + timedelta(minutes=60)
+
             # Use local time for range checks
             if start_dt_local < date_range_start or start_dt_local > date_range_end:
                 continue
@@ -140,8 +143,8 @@ def scrape_hpl_events(mode="all"):
                 continue
 
             # Format time
-            start_time = start_dt_local.strftime("%-I:%M %p")
-            end_time = end_dt_local.strftime("%-I:%M %p") if end_dt_local else ""
+            start_time = event.begin.datetime.astimezone(eastern).strftime("%-I:%M %p")
+            end_time = event.end.datetime.astimezone(eastern).strftime("%-I:%M %p") if event.end else ""
             time_str = f"{start_time} - {end_time}" if end_time else start_time
 
             events.append({
