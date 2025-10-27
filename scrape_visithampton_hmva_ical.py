@@ -14,24 +14,32 @@ import requests
 from zoneinfo import ZoneInfo
 EASTERN = ZoneInfo("America/New_York")
 
+
 def _ics_to_local(dtstr: str, params: str = ""):
+    """
+    Convert an iCal datetime string plus its prop params (e.g., 'TZID=America/New_York')
+    into a timezone-aware datetime in America/New_York. Respects TZID and Z.
+    If time-of-day exists but neither Z nor TZID is present, we assume UTC.
+    DATE-only values (no time) are treated as local Eastern (no shift).
+    """
     if not dtstr:
         return None
     s = dtstr.strip()
-    # basic YYYYMMDD or YYYYMMDDTHHMM[SS][Z]
     m = re.match(r"^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?)?(Z)?$", s)
     if not m:
         return None
 
     y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
-    H, M = int(m.group(4) or 0), int(m.group(5) or 0)
+    hh = int(m.group(4) or 0)
+    mm = int(m.group(5) or 0)
     has_time = m.group(4) is not None
     has_z = bool(m.group(7))
 
-    # choose source timezone
+    # Choose source timezone
     if has_z:
         src_tz = dt.timezone.utc
     else:
+        # Respect TZID if present
         tzid = ""
         m_tz = re.search(r"(?:^|;)TZID=([^;:]+)", params or "", re.I)
         if m_tz:
@@ -41,15 +49,12 @@ def _ics_to_local(dtstr: str, params: str = ""):
             except Exception:
                 src_tz = EASTERN
         else:
-            # ✅ Key fix:
-            # If the value includes a time but no Z/TZID, treat as UTC.
-            # If it's a date-only value, keep as local Eastern.
+            # If there is a time-of-day but no Z/TZID, assume UTC (server often emits UTC).
+            # If it's a date-only DTSTART, keep as local Eastern to avoid date shifts.
             src_tz = dt.timezone.utc if has_time else EASTERN
 
-    aware = dt.datetime(y, mo, d, H, M, tzinfo=src_tz)
+    aware = dt.datetime(y, mo, d, hh, mm, tzinfo=src_tz)
     return aware.astimezone(EASTERN)
-
-
 
 BASE_ICS = "https://api.withapps.io/api/v2/organizations/30/calendar/ical"
 AUDIENCE_FILTERS = ["Kids", "Family", "Youth"]
@@ -262,26 +267,20 @@ def _parse_vevent_blocks(ics_text: str) -> List[Dict[str, str]]:
 # ---------- Field helpers ----------
 _MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
-def _fmt_date_parts(dtstart: str, params: str = "") -> Tuple[str, str, str]:
-    local = _ics_to_local(dtstart, params)
-    if not local:
-        return "", "", ""
-    return local.strftime("%b"), str(local.day), str(local.year)
+def _fmt_date_parts(dtstart: str, start_params: str = ""):
+    local = _ics_to_local(dtstart, start_params)
+    return (local.strftime("%b"), str(local.day), str(local.year)) if local else ("", "", "")
 
-
-def _fmt_time_range(dtstart: str, dtend: str, start_params: str = "", end_params: str = "") -> str:
+def _fmt_time_range(dtstart: str, dtend: str, start_params: str = "", end_params: str = ""):
     st = _ics_to_local(dtstart, start_params)
     en = _ics_to_local(dtend,   end_params) if dtend else None
     if not st and not en:
         return ""
-
     if st and not en:
-        en = st + dt.timedelta(hours=1)  # default 60-min duration
-
+        en = st + dt.timedelta(hours=1)  # sensible default
     def fmt(x: dt.datetime) -> str:
-        return x.strftime("%-I:%M %p").lstrip("0").replace(":00", "")
-    return f"{fmt(st)} – {fmt(en)}" if (st and en) else (fmt(st) if st else "")
-
+        return x.strftime("%-I:%M %p").lstrip("0")
+    return f"{fmt(st)} - {fmt(en)}" if (st and en) else (fmt(st) if st else "")
 
 def _extract_url(evt: Dict[str, str]) -> str:
     for k in ("URL", "X-ALT-DESC", "X-WR-URL"):
@@ -506,7 +505,6 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
         "Program Type": "",
         "Library": LIBRARY_KEY,
     }
-
 
 def scrape_visithampton_hmva_ical(mode: str = "full") -> List[Dict]:
     weeks = 12 if mode == "full" else 4
