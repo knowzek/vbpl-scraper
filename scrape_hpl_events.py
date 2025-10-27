@@ -8,7 +8,6 @@ from constants import UNWANTED_TITLE_KEYWORDS
 from constants import TITLE_KEYWORD_TO_CATEGORY
 from zoneinfo import ZoneInfo
 
-
 ICAL_URL = "https://www.hampton.gov/common/modules/iCalendar/iCalendar.aspx?catID=24&feed=calendar"
 
 def is_likely_adult_event(text):
@@ -42,19 +41,33 @@ def scrape_hpl_events(mode="all"):
     print("📚 Scraping Hampton Public Library events from iCal feed...")
 
     today = datetime.now(eastern)
+    today_d = today.date()
     if mode == "weekly":
-        date_range_start = today
-        date_range_end   = today + timedelta(days=7)
+        date_range_start = today_d
+        date_range_end   = today_d + timedelta(days=7)
     elif mode == "monthly":
-        date_range_start = today
-        date_range_end   = today + timedelta(days=30)   # rolling 30 days
+        date_range_start = today_d
+        date_range_end   = today_d + timedelta(days=30)   # rolling 30 days
     else:
-        date_range_start = today
-        date_range_end   = today + timedelta(days=90)
+        date_range_start = today_d
+        date_range_end   = today_d + timedelta(days=90)
 
 
-    resp = requests.get(ICAL_URL)
-    calendar = Calendar(resp.text)
+    # ✅ Ask CivicPlus for the whole window (falls back to default if not supported)
+    ranged_url = (
+        f"{ICAL_URL}"
+        f"&startdate={date_range_start:%Y-%m-%d}"
+        f"&enddate={date_range_end:%Y-%m-%d}"
+    )
+    print(f"🔎 HPL iCal URL: {ranged_url}")
+    resp = requests.get(ranged_url, timeout=30)
+    text = resp.text
+    # Fallback if ranged request returns nothing for some reason
+    if not text.strip():
+        print("↩️  Empty ranged feed, retrying base iCal…")
+        text = requests.get(ICAL_URL, timeout=30).text
+    calendar = Calendar(text)
+
     program_type_to_categories = LIBRARY_CONSTANTS["hpl"].get("program_type_to_categories", {})
     HPL_LOCATION_MAP = LIBRARY_CONSTANTS["hpl"].get("location_map", {})
 
@@ -82,8 +95,9 @@ def scrape_hpl_events(mode="all"):
             if not end_dt_local:
                 end_dt_local = start_dt_local + timedelta(minutes=60)
 
-            # Use local time for range checks
-            if start_dt_local < date_range_start or start_dt_local > date_range_end:
+            # Use *dates* for range checks so “earlier today” isn’t excluded
+            s_date = start_dt_local.date()
+            if s_date < date_range_start or s_date > date_range_end:
                 continue
                 
             name = event.name.strip() if event.name else ""
