@@ -4,6 +4,8 @@ from datetime import datetime, timedelta, timezone
 from helpers import wJson, rJson
 import re
 from constants import TITLE_KEYWORD_TO_CATEGORY_RAW
+from zoneinfo import ZoneInfo
+eastern = ZoneInfo("America/New_York")
 
 
 def check_keyword(word, text):
@@ -125,6 +127,30 @@ def get_events(soup, date, page_no):
                     pass
 
         event['Time'] = event_time
+
+        # Normalize UTC-ish time strings to Eastern using the known event date
+        try:
+            date_prefix = event.get('date')  # e.g., "2025-10-31"
+            if date_prefix and event_time:
+                # match "H[:MM] AM/PM" or "H[:MM] AM/PM - H[:MM] AM/PM"
+                m = re.match(r'^\s*(\d{1,2}(?::\d{2})?\s*[ap]m)\s*(?:-\s*(\d{1,2}(?::\d{2})?\s*[ap]m))?\s*$', event_time, re.I)
+                if m:
+                    def _parse_local(tstr):
+                        # treat the scraped time as UTC (server output), then convert to Eastern
+                        dt_utc = datetime.strptime(f"{date_prefix} {tstr.upper().replace('.', '')}", "%Y-%m-%d %I:%M %p")
+                        dt_utc = dt_utc.replace(tzinfo=timezone.utc)
+                        return dt_utc.astimezone(eastern)
+        
+                    start_dt = _parse_local(m.group(1))
+                    end_dt = _parse_local(m.group(2)) if m.group(2) else (start_dt + timedelta(minutes=60))
+        
+                    start_out = start_dt.strftime("%-I:%M %p")
+                    end_out   = end_dt.strftime("%-I:%M %p")
+                    event_time = f"{start_out} - {end_out}" if end_out else start_out
+                    event['Time'] = event_time
+        except Exception as _:
+            # swallow and keep original string if parsing fails
+            pass
 
         event_series = event_meta_details.find('dd', class_ = 'tec-events-pro-series-meta-detail--link')
         try:
