@@ -17,10 +17,14 @@ EASTERN = ZoneInfo("America/New_York")
 def _ics_to_local(dtstr: str, params: str = ""):
     """
     Convert an iCal datetime string into America/New_York local time.
-    - If ends with 'Z' → treat as UTC and convert to Eastern.
-    - If has TZID=America/New_York → treat as already local.
-    - If has no tz info but includes a time → assume Eastern (not UTC).
-    - If it's all-day (date only) → keep as-is.
+    WithApps quirk: timestamps often include TZID=America/New_York but
+    the *clock* is actually UTC. We detect that and convert UTC->Eastern.
+    Rules:
+      - Ends with 'Z'              -> UTC -> Eastern
+      - TZID=America/New_York      -> treat clock as UTC -> Eastern  (quirk)
+      - Other TZID                 -> use that tz -> Eastern
+      - Timed, no Z/TZID           -> assume UTC -> Eastern          (quirk)
+      - Date-only (no time)        -> keep date in local
     """
     if not dtstr:
         return None
@@ -36,35 +40,38 @@ def _ics_to_local(dtstr: str, params: str = ""):
     has_time = m.group(4) is not None
     has_z = bool(m.group(7))
 
-    # check for TZID param
+    # Extract TZID param if present
     tzid = ""
     m_tz = re.search(r"(?:^|;)TZID=([^;:]+)", params or "", re.I)
     if m_tz:
         tzid = m_tz.group(1).strip()
 
-    # --- main logic ---
+    # --- handling ---
     if has_z:
-        # Z means UTC → convert to Eastern
-        src_tz = dt.timezone.utc
-        aware = dt.datetime(y, mo, d, hh, mm, tzinfo=src_tz)
-        return aware.astimezone(EASTERN)
-
-    elif tzid:
-        # Explicit TZID (like America/New_York): trust it, don't reconvert
-        try:
-            src_tz = ZoneInfo(tzid)
-        except Exception:
-            src_tz = EASTERN
-        return dt.datetime(y, mo, d, hh, mm, tzinfo=src_tz)
-
-    elif has_time:
-        # Has a time but no Z/TZID → WithApps emits these as UTC.
+        # UTC explicitly -> convert to Eastern
         aware = dt.datetime(y, mo, d, hh, mm, tzinfo=dt.timezone.utc)
         return aware.astimezone(EASTERN)
 
-    else:
-        # All-day date → keep date only
-        return dt.datetime(y, mo, d)
+    if tzid:
+        if tzid.lower() in ("america/new_york", "us/eastern") and has_time:
+            # 🔧 WithApps quirk: clock is UTC even though TZID says Eastern
+            aware = dt.datetime(y, mo, d, hh, mm, tzinfo=dt.timezone.utc)
+            return aware.astimezone(EASTERN)
+        # Any other real TZID: respect it, then show in Eastern
+        try:
+            src = ZoneInfo(tzid)
+        except Exception:
+            src = EASTERN
+        return dt.datetime(y, mo, d, hh, mm, tzinfo=src).astimezone(EASTERN)
+
+    if has_time:
+        # Timed, no Z/TZID: WithApps usually means UTC
+        aware = dt.datetime(y, mo, d, hh, mm, tzinfo=dt.timezone.utc)
+        return aware.astimezone(EASTERN)
+
+    # Date-only
+    return dt.datetime(y, mo, d)
+
 
 
 BASE_ICS = "https://api.withapps.io/api/v2/organizations/30/calendar/ical"
