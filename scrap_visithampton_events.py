@@ -27,8 +27,8 @@ def clean_data(full_data):
         categories = set()
         tags = event['Tags']
         tags = [t['tag'] for t in tags]
-        if not "Things to Do with Kids" in tags:
-            continue
+        #if not "Things to Do with Kids" in tags:
+        #    continue
 
         for keyword, categorie in TITLE_KEYWORD_TO_CATEGORY_RAW.items():
             if check_keyword(keyword.lower(), event['Event Name'].lower()) or check_keyword(keyword, event['Event Description'].lower()):
