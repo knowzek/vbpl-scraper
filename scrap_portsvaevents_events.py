@@ -5,6 +5,22 @@ from helpers import wJson, rJson, infer_age_categories_from_description
 import re
 from constants import TITLE_KEYWORD_TO_CATEGORY_RAW
 
+def _first_text(root: BeautifulSoup, selectors: list[str], replace_at=True) -> str:
+    if not root:
+        return ""
+    for sel in selectors:
+        el = root.select_one(sel)
+        if el:
+            txt = el.get_text(strip=True)
+            return txt.replace("@", "at") if replace_at else txt
+    return ""
+
+def _is_all_day(card: BeautifulSoup) -> bool:
+    # TEC marks all-day items with a variety of classes depending on theme
+    classes = " ".join(card.get("class", [])).lower()
+    return ("all-day" in classes) or bool(card.select_one(".tribe-events-calendar-list__event--all-day, .tribe-events-event-meta--all-day"))
+
+
 def is_too_late(time_str: str) -> bool:
     """
     Return True if the event ends at 7:00 PM or later.
@@ -121,22 +137,35 @@ def get_events(soup, date, page_no):
         event_description = event_soup.find('div', class_ = 'tribe-events-single-event-description').get_text().strip()
         event['Event Description'] = event_description
 
-        event_meta_details = event_soup.find('div', class_ = 'tribe-events-meta-group-details')
+        # Prefer the details group, but fall back to the whole page if it's missing
+        event_meta_details = event_soup.find('div', class_='tribe-events-meta-group-details') or event_soup
+        
+        # Try several known locations for start time
+        event_time = _first_text(event_meta_details, [
+            "div.tribe-recurring-event-time",
+            "div.tribe-events-start-time",
+            "abbr.tribe-events-start-datetime",
+            "div.tribe-event-date-start",
+            ".tribe-events-calendar-list__event-time",
+            "time"
+        ])
+        
+        # All-day fallback
+        if not event_time and _is_all_day(event_soup):
+            event_time = "All Day"
+        
+        # Optional: append end time if present and meaningful
+        event_endtime = _first_text(event_meta_details, [
+            "abbr.tribe-events-end-datetime",
+            "div.tribe-events-end-time",
+            ".tribe-events-calendar-list__event-time-end",
+        ])
+        
+        if event_time and event_endtime and "All Day" not in event_time and event_endtime not in event_time:
+            event_time = f"{event_time} - {event_endtime}"
+        
+        event['Time'] = event_time or ""
 
-        try:
-            event_time = event_meta_details.find('div', class_ = 'tribe-recurring-event-time').get_text().strip()
-        except:
-            try:
-                event_time = event_meta_details.find('div', class_ = 'tribe-events-start-time').get_text().strip()
-            except:
-                event_time = event_meta_details.find('abbr', class_ = 'tribe-events-start-datetime').get_text().strip().replace("@", "at")
-                try:
-                    event_endtime = event_meta_details.find('abbr', class_ = 'tribe-events-end-datetime').get_text().strip().replace("@", "at")
-                    event_time += f" - {event_endtime}"
-                except:
-                    pass
-
-        event['Time'] = event_time
 
 
         try:
