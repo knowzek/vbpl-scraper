@@ -62,16 +62,17 @@ def get_events(soup, date, page_no):
 
     events = []
 
-    # Find the main container
-    main_div = soup.find('div', class_='tribe-events-calendar-list',
-                         attrs={'class': lambda x: isinstance(x, list) and x == ['tribe-events-calendar-list']})
-    if not main_div:
+    # Find the main container (tolerant CSS selector: div OR section)
+    container = soup.select_one("div.tribe-events-calendar-list, section.tribe-events-calendar-list")
+    if not container:
         return events
-
-    event_divs = main_div.find_all(
-        'div',
-        class_='tribe-events-calendar-list__event-row--featured'
+    
+    # Get ALL rows: normal + featured
+    event_divs = container.select(
+        "div.tribe-events-calendar-list__event-row, "
+        "div.tribe-events-calendar-list__event-row--featured"
     )
+
 
     for div in event_divs:
         event = {}
