@@ -230,8 +230,12 @@ def get_soup_from_url(url, retrys=5):
         return get_soup_from_url(url, retrys -1)
 
 
-def scrap_portsvaevents(mode = "all"):
+def scrap_portsvaevents(mode="all", cutoff_date=None, **kwargs):
     print("start scrapping from portsvaevents.com ...")
+    """
+    mode: "all" | "weekly" | "monthly"
+    cutoff_date: datetime.date or None (stop once events exceed this)
+    """
     today = datetime.now(timezone.utc)
     if mode == "weekly":
         date_range_end = today + timedelta(days=7)
