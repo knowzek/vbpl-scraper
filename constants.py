@@ -131,6 +131,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Dia de los Muertos": "List - Fall - Dia de los Muertos",
     "corn maze": "List - Fall - Fall Festivals",
     "Diwali": "List - Fall - Diwali Events (November)",
+    "holiday gift": "Audience - Holiday Events",
     "trim the tree": "Audience - Holiday Events",
     "trim the library tree": "Audience - Holiday Events",
     "rudolph": "Audience - Holiday Events",
