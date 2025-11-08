@@ -102,7 +102,7 @@ def get_categories(event):
 
     event["Categories"] = ", ".join(tags)
 
-def get_events(soup, date, page_no):
+def get_events(soup, date, page_no, seen_event_links):
 
     events = []
 
@@ -138,24 +138,26 @@ def get_events(soup, date, page_no):
         event_details = event_wrapper.find('div', class_='tribe-events-calendar-list__event-details')
         h3_tag = event_details.find('h3')
         title = h3_tag.get_text().strip()
-        link = h3_tag.find('a')['href']
+        link = h3_tag.find('a')['href'].strip()
+
+        if link in seen_event_links:
+            continue
+        seen_event_links.add(link)
+        
+        event_soup = fetch_event_page(link)  # your retrying helper
+        time.sleep(0.1)
+        if event_soup is None:
+            event['Status'] = 'Unavailable'
+            event['Event Description'] = ''
+            event['Time'] = event.get('Time', '')
+            events.append(event)
+            continue
 
         print("Event Name:", title)
         event['Event Name'] = title
 
         print("Event Link: ", link)
         event['Event Link'] = link
-
-        event_soup = fetch_event_page(link)  # retries + headers
-        time.sleep(0.1)
-        
-        if event_soup is None:
-            # mark and continue so one bad page doesn't kill the batch
-            event['Status'] = 'Unavailable'
-            event['Event Description'] = ''
-            event['Time'] = event.get('Time', '')
-            events.append(event)
-            continue
         
         # null-safe description
         event_description = _first_text(
@@ -272,7 +274,8 @@ def get_events(soup, date, page_no):
         # wJson(events, f'jsons/events({date})(page {page_no}).json')
 
 
-    return events
+    has_more = bool(soup.select_one("a.tribe-events-c-nav__next, a.tribe-events-nav-next, a.next"))
+    return events, has_more
 
 def get_soup_from_url(url, retrys=5):
     if retrys == 0:
@@ -292,54 +295,89 @@ def get_soup_from_url(url, retrys=5):
         time.sleep(6-retrys)
         return get_soup_from_url(url, retrys -1)
 
-
 def scrap_portsvaevents(mode="all", cutoff_date=None, **kwargs):
-    print("start scrapping from portsvaevents.com ...")
     """
     mode: "all" | "weekly" | "monthly"
-    cutoff_date: datetime.date or None (stop once events exceed this)
+    cutoff_date: datetime.date or None (hard stop once list window passes this date)
     """
-    today = datetime.now(timezone.utc)
-    if mode == "weekly":
-        date_range_end = today + timedelta(days=7)
-    elif mode == "monthly":
-        date_range_end = today + timedelta(days=30)
-    else:
-        date_range_end = today + timedelta(days=90)
+    print("start scrapping from portsvaevents.com ...")
 
+    # Set a default cutoff from mode if not provided
+    today = datetime.now(timezone.utc).date()
+    if cutoff_date is None:
+        horizon = {"weekly": 7, "monthly": 30}.get(mode, 90)
+        cutoff_date = today + timedelta(days=horizon)
+
+    # iteration state
+    date_st = today.strftime("%Y-%m-%d")  # tribe-bar-date seed
     page_st = 1
-    MAX_PAGES = 50
-    # date_st = "2025-08-01"
-
+    seen_pages = set()          # guards against re-processing same (date|page)
+    seen_event_links = set()    # prevents retrying bad detail URLs
     all_events = []
-    while page_st < MAX_PAGES:
-        date_st = today.date()
-        print("=====================================================")
-        print(f"page: {page_st}")
-        url = f"https://portsvaevents.com/events/list/page/{page_st}/?tribe-bar-date={date_st}"
-        print(f"url: {url}")
-        print("=====================================================")
-        soup = get_soup_from_url(url)
-        events = get_events(soup, date_st, page_st)
-        if len(events) > 0:
-            tmp_date = datetime.strptime(events[-1]['date'], "%Y-%m-%d").replace(tzinfo=timezone.utc)
-            for event in events:
-                curr_date = event['date']
-                if curr_date == str(date_st):
-                    all_events.append(event)
-                else:
-                    today = today + timedelta(days=1)
-                    page_st = 0
-                    break
-            if tmp_date > date_range_end:
+
+    MAX_PAGE_ITERS = 1000  # hard cap just in case
+    iters = 0
+
+    while iters < MAX_PAGE_ITERS:
+        iters += 1
+
+        # stop when we’ve moved beyond cutoff_date
+        try:
+            window_date = datetime.strptime(date_st, "%Y-%m-%d").date()
+            if window_date > cutoff_date:
                 print("reach date limit, stop scraping...")
                 break
-        # all_events.extend(events)
-        page_st += 1
-        time.sleep(0.1)
-    # wJson(all_events, 'events.json')
+        except Exception:
+            pass
+
+        page_key = f"{date_st}|{page_st}"
+        if page_key in seen_pages:
+            # loop guard: move the window forward one day
+            print(f"[LoopGuard] Already processed page {page_st} for {date_st}. Advancing date.")
+            try:
+                window_date = datetime.strptime(date_st, "%Y-%m-%d").date() + timedelta(days=1)
+                date_st = window_date.strftime("%Y-%m-%d")
+            except Exception:
+                break
+            page_st = 1
+            continue
+        seen_pages.add(page_key)
+
+        list_url = f"https://portsvaevents.com/events/list/page/{page_st}/?tribe-bar-date={date_st}"
+        print("=====================================================")
+        print("page:", page_st)
+        print("url:", list_url)
+        print("=====================================================")
+
+        soup = get_soup_from_url(list_url)
+        if not soup:
+            # fail-soft: push the window forward
+            try:
+                window_date = datetime.strptime(date_st, "%Y-%m-%d").date() + timedelta(days=1)
+                date_st = window_date.strftime("%Y-%m-%d")
+            except Exception:
+                pass
+            page_st = 1
+            continue
+
+        # NOTE: update get_events signature to accept seen_event_links and return (events, has_more)
+        batch, has_more = get_events(soup, date_st, page_st, seen_event_links)
+        all_events.extend(batch)
+
+        if has_more:
+            page_st += 1
+        else:
+            # advance the tribe-bar-date window by one day
+            try:
+                window_date = datetime.strptime(date_st, "%Y-%m-%d").date() + timedelta(days=1)
+                date_st = window_date.strftime("%Y-%m-%d")
+            except Exception:
+                break
+            page_st = 1
+
     return all_events
 
+
 if __name__ == "__main__": 
-    # scrap_portsvaevents("weekly")
+
     pass
