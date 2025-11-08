@@ -25,8 +25,16 @@ def clean_data(full_data):
 
     for i, event in enumerate(full_data):
         categories = set()
-        tags = event['Tags']
-        tags = [t['tag'] for t in tags]
+
+        # Make Tags optional and normalized
+        raw_tags = event.get('Tags') or []
+        tags = []
+        for t in raw_tags:
+            if isinstance(t, dict):
+                tags.append((t.get('tag') or '').strip())
+            elif isinstance(t, str):
+                tags.append(t.strip())
+
         #if not "Things to Do with Kids" in tags:
         #    continue
 
@@ -121,6 +129,7 @@ def get_events(soup, date, page_no):
         # Fetch detail page to get description/time/location
         event_soup = get_soup_from_url(link)
         if not event_soup:
+            event["Tags"] = event.get("Tags") or []
             events.append(event)
             continue
 
@@ -151,7 +160,7 @@ def get_events(soup, date, page_no):
             ".tribe-venue-location, .tribe-events-venue__address, .tribe-events-venue, dd.tribe-venue-location"
         )
         event["Location"] = venue.get_text(strip=True) if venue else ""
-
+        event["Tags"] = event.get("Tags") or []
         events.append(event)
 
     return events
@@ -171,7 +180,7 @@ def get_soup_from_url(url):
         return None
 
 
-def scrap_visithampton(mode = "all"):
+def scrap_visithampton(mode="monthly", cutoff_date=None, **_):
     print("start scrapping from visithampton.com ...")
     today = datetime.now(timezone.utc)
     if mode == "weekly":
