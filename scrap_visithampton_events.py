@@ -59,224 +59,103 @@ def clean_data(full_data):
     return full_data_new
 
 def get_events(soup, date, page_no):
-
     events = []
-
-    # Find the main container (tolerant CSS selector: div OR section)
-    container = soup.select_one("div.tribe-events-calendar-list, section.tribe-events-calendar-list")
-    if not container:
+    if not soup:
         return events
-    
-    # Get ALL rows: normal + featured
-    event_divs = container.select(
+
+    # Try multiple containers/row patterns across TEC versions
+    rows = soup.select(
+        # TEC v6 list view uses <li> rows
+        "li.tribe-events-calendar-list__event, "
+        # TEC v5/v6 variants
         "div.tribe-events-calendar-list__event-row, "
-        "div.tribe-events-calendar-list__event-row--featured"
+        "div.tribe-events-calendar-list__event-row--featured, "
+        # Some themes wrap as <article> rows
+        "article.tribe-events-calendar-list__event"
     )
 
+    if not rows:
+        # helpful debug: show notice if present
+        notice = soup.select_one(".tribe-events-c-messages__message, .tribe-events-notices")
+        msg = notice.get_text(strip=True) if notice else "(no notice found)"
+        print(f"⚠️ No event rows detected on page {page_no}. Notice: {msg}")
+        return events
 
-    for div in event_divs:
+    for row in rows:
         event = {}
         print("=====================================================")
-        time_tag = div.find('time')
-        if time_tag and time_tag.has_attr('datetime'):
-            event_date = time_tag['datetime'].strip()
-            event['date'] = event_date
-        
+
+        # Date (prefer <time datetime="YYYY-MM-DD">)
+        t = row.select_one("time[datetime]")
+        if t and t.get("datetime"):
+            event_date = t["datetime"].strip()
+            event["date"] = event_date
             try:
                 dt = datetime.strptime(event_date, "%Y-%m-%d")
-                event['Month'] = dt.strftime("%b")   # e.g., "Aug"
-                event['Day'] = str(dt.day)           # e.g., "11"
-                event['Year'] = str(dt.year)         # e.g., "2025"
+                event["Month"] = dt.strftime("%b")
+                event["Day"] = str(dt.day)
+                event["Year"] = str(dt.year)
             except Exception:
-                event['Month'] = event['Day'] = event['Year'] = ""
+                event["Month"] = event["Day"] = event["Year"] = ""
 
-        
-        event_wrapper = div.find('div', class_='tribe-events-calendar-list__event-wrapper')
-        event_details = event_wrapper.find('div', class_='tribe-events-calendar-list__event-details')
-        h3_tag = event_details.find('h3')
-        title = h3_tag.get_text().strip()
-        link = h3_tag.find('a')['href']
+        # Title + link (be forgiving about wrappers)
+        details = row.select_one(
+            ".tribe-events-calendar-list__event-details, "
+            ".tribe-events-calendar-list__event, "
+            ".tribe-events-calendar-list__event-wrapper, "
+            "article.tribe-events-calendar-list__event"
+        ) or row
+        h3 = details.find("h3") if details else None
+        a = (h3.find("a") if h3 else None) or row.select_one("h3 a, a.tribe-events-calendar-list__event-title-link")
+        if not a:
+            # Skip rows we can’t identify
+            continue
 
+        title = a.get_text(strip=True)
+        link = a.get("href", "").strip()
         print("Event Name:", title)
-        event['Event Name'] = title
+        print("Event Link:", link)
+        event["Event Name"] = title
+        event["Event Link"] = link
 
-        print("Event Link: ", link)
-        event['Event Link'] = link
-
+        # Fetch detail page to get description/time/location
         event_soup = get_soup_from_url(link)
+        if not event_soup:
+            events.append(event)
+            continue
 
-        # event_schedule = event_soup.find('div', class_ = 'tribe-events-schedule')
-        # event_date_start = event_schedule.find('span', class_ = 'tribe-event-date-start').get_text().strip()
-        # event_time = event_schedule.find('span', class_ = 'tribe-event-time').get_text().strip()
-        
-        event_description = event_soup.find('div', class_ = 'tribe-events-single-event-description').get_text().strip()
-        event['Event Description'] = event_description
+        # Description
+        desc = event_soup.select_one(".tribe-events-single-event-description, .tribe-events-pro__event-description")
+        event["Event Description"] = desc.get_text(strip=True) if desc else ""
 
-        event_meta_details = event_soup.find('div', class_ = 'tribe-events-meta-group-details')
+        # Time (handle recurring/single variants)
+        meta = event_soup.select_one(".tribe-events-meta-group-details, .tribe-events-pro__event-details")
+        time_txt = ""
+        if meta:
+            # recurring time
+            span = meta.select_one(".tribe-recurring-event-time")
+            if span:
+                time_txt = span.get_text(strip=True)
+            else:
+                start = meta.select_one(".tribe-events-start-time, abbr.tribe-events-start-datetime")
+                end = meta.select_one(".tribe-events-end-time, abbr.tribe-events-end-datetime")
+                if start:
+                    time_txt = start.get_text(strip=True).replace("@", "at")
+                if end:
+                    et = end.get_text(strip=True).replace("@", "at")
+                    time_txt = f"{time_txt} - {et}" if time_txt else et
+        event["Time"] = time_txt
 
-        try:
-            event_time = event_meta_details.find('div', class_ = 'tribe-recurring-event-time').get_text().strip()
-        except:
-            try:
-                event_time = event_meta_details.find('div', class_ = 'tribe-events-start-time').get_text().strip()
-            except:
-                event_time = event_meta_details.find('abbr', class_ = 'tribe-events-start-datetime').get_text().strip().replace("@", "at")
-                try:
-                    event_endtime = event_meta_details.find('abbr', class_ = 'tribe-events-end-datetime').get_text().strip().replace("@", "at")
-                    event_time += f" - {event_endtime}"
-                except:
-                    pass
+        # Location (be generous about selectors)
+        venue = event_soup.select_one(
+            ".tribe-venue-location, .tribe-events-venue__address, .tribe-events-venue, dd.tribe-venue-location"
+        )
+        event["Location"] = venue.get_text(strip=True) if venue else ""
 
-        event['Time'] = event_time
-
-        # Normalize UTC-ish time strings to Eastern using the known event date
-        try:
-            date_prefix = event.get('date')  # e.g., "2025-10-31"
-            if date_prefix and event_time:
-                # match "H[:MM] AM/PM" or "H[:MM] AM/PM - H[:MM] AM/PM"
-                m = re.match(r'^\s*(\d{1,2}(?::\d{2})?\s*[ap]m)\s*(?:-\s*(\d{1,2}(?::\d{2})?\s*[ap]m))?\s*$', event_time, re.I)
-                if m:
-                    def _parse_local(tstr):
-                        # treat the scraped time as UTC (server output), then convert to Eastern
-                        dt_utc = datetime.strptime(f"{date_prefix} {tstr.upper().replace('.', '')}", "%Y-%m-%d %I:%M %p")
-                        dt_utc = dt_utc.replace(tzinfo=timezone.utc)
-                        return dt_utc.astimezone(eastern)
-        
-                    start_dt = _parse_local(m.group(1))
-                    end_dt = _parse_local(m.group(2)) if m.group(2) else (start_dt + timedelta(minutes=60))
-        
-                    start_out = start_dt.strftime("%-I:%M %p")
-                    end_out   = end_dt.strftime("%-I:%M %p")
-                    event_time = f"{start_out} - {end_out}" if end_out else start_out
-                    event['Time'] = event_time
-        except Exception as _:
-            # swallow and keep original string if parsing fails
-            pass
-
-        event_series = event_meta_details.find('dd', class_ = 'tec-events-pro-series-meta-detail--link')
-        try:
-            event['Series'] = event_series.get_text().strip()
-            event['Series Link'] = event_series.find('a')['href']
-        except:
-            event['Series'] = ""
-            event['Series Link'] = ""
-
-        event['Tags'] = []
-        try:
-            event_tags = event_meta_details.find('dd', class_ = 'tribe-event-tags').find_all('a')
-            for tag in event_tags:
-                event['Tags'].append(
-                    {
-                        'tag': tag.get_text().strip(),
-                        'link': tag['href']
-                    }
-                )
-        except:
-            pass
-
-        try:
-            event_website = event_meta_details.find('dd', class_ = 'tribe-events-event-url').find('a')['href']
-            event['Event Website'] = event_website
-        except:
-            event['Event Website'] = ""
-
-        event_meta_organizer = event_soup.find('div', class_ = 'tribe-events-meta-group-organizer')
-
-
-        try:
-            event_organizer = event_meta_organizer.find('dd', class_ = 'tribe-organizer')
-            event['Organizer'] = event_organizer.get_text().strip()
-            event['Organizer Link'] = event_organizer.find('a')['href']
-        except:
-            event['Organizer'] = ""
-            event['Organizer Link'] = ""
-
-        try:
-            organizer_phone = event_meta_organizer.find('dd', class_ = 'tribe-organizer-tel')
-            event['Organizer Phone'] = organizer_phone.get_text().strip()
-        except:
-            event['Organizer Phone'] = ""
-
-        try:
-            organizer_website = event_meta_organizer.find('dd', class_ = 'tribe-organizer-url')
-            event['Organizer Website'] = organizer_website.find('a')['href']
-        except:
-            event['Organizer Website'] = ""
-
-        event_meta_venue = event_soup.find('div', class_ = 'tribe-events-meta-group-venue')
-
-        try:
-            event_venue = event_meta_venue.find('dd', class_ = 'tribe-venue')
-            event['Venue'] = event_venue.get_text().strip()
-            event['Venue Link'] = event_venue.find('a')['href']
-        except:
-            event['Venue'] = ""
-            event['Venue Link'] = ""
-
-        try:
-            venue_website = event_meta_venue.find('dd', class_ = 'tribe-venue-url')
-            event['Venue Website'] = venue_website.find('a')['href']
-        except:
-            event['Venue Website'] = ""
-
-        try:
-            venue_phone = event_meta_venue.find('dd', class_ = 'tribe-venue-tel')
-            event['Venue Phone'] = venue_phone.get_text().strip()
-        except:
-            event['Venue Phone'] = ""
-
-        
-
-
-        try:
-            event_location = event_meta_venue.find('dd', class_ = 'tribe-venue-location')
-            event['Location'] = event_location.get_text().strip()
-            
-            # event['Location'] = {
-            #     "full": event_location.get_text().strip(),
-            # }
-            # street_address = event_location.find('span', class_ = 'tribe-street-address')
-            # if street_address:
-            #     event['Location']['street address'] = street_address.get_text().strip()
-            # else:
-            #     event['Location']['street address'] = ""
-            
-            # locality = event_location.find('span', class_ = 'tribe-locality')
-            # if locality:
-            #     event['Location']['locality'] = locality.get_text().strip()
-            # else:
-            #     event['Location']['locality'] = ""
-
-            # region = event_location.find('abbr', class_ = 'tribe-region')
-            # if region:
-            #     event['Location']['region'] = region.get_text().strip()
-            #     event['Location']['full region'] = region['title']
-            # else:
-            #     event['Location']['region'] = ""
-            #     event['Location']['full region'] = ""
-
-            # postal_code = event_location.find('span', class_ = 'tribe-postal-code')
-            # if postal_code:
-            #     event['Location']['postal code'] = postal_code.get_text().strip()
-            # else:
-            #     event['Location']['postal code'] = ""
-
-            # country_name = event_location.find('span', class_ = 'tribe-country-name')
-            # if country_name:
-            #     event['Location']['country name'] = country_name.get_text().strip()
-            # else:
-            #     event['Location']['country name'] = ""
-
-        except:
-            # event['Location'] = {}
-            event['Location'] = ""
-            
         events.append(event)
 
-        # wJson(events, f'jsons/events({date})(page {page_no}).json')
-
-
     return events
+
 
 def get_soup_from_url(url):
     headers = {
