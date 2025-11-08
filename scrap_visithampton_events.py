@@ -119,19 +119,29 @@ def get_events(soup, date, page_no):
             # Skip rows we can’t identify
             continue
 
-        title = a.get_text(strip=True)
-        link = a.get("href", "").strip()
         print("Event Name:", title)
         print("Event Link:", link)
         event["Event Name"] = title
         event["Event Link"] = link
-
+        
         # Fetch detail page to get description/time/location
         event_soup = get_soup_from_url(link)
         if not event_soup:
             event["Tags"] = event.get("Tags") or []
             events.append(event)
             continue
+        
+        # --- NEW: Extract & print Event Tags ---
+        event["Tags"] = []
+        tag_section = event_soup.select_one("dd.tribe-event-tags")
+        if tag_section:
+            for tag_a in tag_section.select("a"):
+                tag_name = tag_a.get_text(strip=True)
+                tag_link = tag_a.get("href", "")
+                event["Tags"].append({"tag": tag_name, "link": tag_link})
+            print("Event Tags:", [t["tag"] for t in event["Tags"]])
+        else:
+            print("Event Tags: none")
 
         # Description
         desc = event_soup.select_one(".tribe-events-single-event-description, .tribe-events-pro__event-description")
