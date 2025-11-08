@@ -18,15 +18,21 @@ def fetch_event_page(url: str, *, retries: int = 5, timeout: int = 25) -> Beauti
     print(f"[Skip] Giving up on {url} after {retries} retries.")
     return None
 
-def _first_text(root: BeautifulSoup, selectors: list[str], replace_at=True) -> str:
-    if not root:
-        return ""
-    for sel in selectors:
-        el = root.select_one(sel)
+def _first_text(root, selectors, *, replace_at=True, default="") -> str:
+    """
+    Return the first matching element's text among CSS selectors.
+    - replace_at: if True, replace '@' with 'at'
+    - default: value to return if nothing found or root is None
+    """
+    if root is None:
+        return default
+    for css in selectors:
+        el = root.select_one(css)
         if el:
             txt = el.get_text(strip=True)
             return txt.replace("@", "at") if replace_at else txt
-    return ""
+    return default
+
 
 def _is_all_day(card: BeautifulSoup) -> bool:
     # TEC marks all-day items with a variety of classes depending on theme
