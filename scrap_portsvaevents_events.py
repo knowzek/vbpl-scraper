@@ -1,9 +1,22 @@
-import requests, time
+import requests, time, requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta, timezone
 from helpers import wJson, rJson, infer_age_categories_from_description
 import re
 from constants import TITLE_KEYWORD_TO_CATEGORY_RAW
+
+def fetch_event_page(url: str, *, retries: int = 5, timeout: int = 25) -> BeautifulSoup | None:
+    for i in range(retries):
+        try:
+            resp = requests.get(url, timeout=timeout, headers={"User-Agent":"Mozilla/5.0"})
+            resp.raise_for_status()
+            return BeautifulSoup(resp.text, "html.parser")
+        except Exception as e:
+            wait = i + 1
+            print(f"[Error] Failed to fetch {url} - {e}\ntry again after {wait} sec...")
+            time.sleep(wait)
+    print(f"[Skip] Giving up on {url} after {retries} retries.")
+    return None
 
 def _first_text(root: BeautifulSoup, selectors: list[str], replace_at=True) -> str:
     if not root:
@@ -127,15 +140,30 @@ def get_events(soup, date, page_no):
         print("Event Link: ", link)
         event['Event Link'] = link
 
-        event_soup = get_soup_from_url(link)
+        event_soup = fetch_event_page(link)  # retries + headers
         time.sleep(0.1)
-
-        # event_schedule = event_soup.find('div', class_ = 'tribe-events-schedule')
-        # event_date_start = event_schedule.find('span', class_ = 'tribe-event-date-start').get_text().strip()
-        # event_time = event_schedule.find('span', class_ = 'tribe-event-time').get_text().strip()
         
-        event_description = event_soup.find('div', class_ = 'tribe-events-single-event-description').get_text().strip()
+        if event_soup is None:
+            # mark and continue so one bad page doesn't kill the batch
+            event['Status'] = 'Unavailable'
+            event['Event Description'] = ''
+            event['Time'] = event.get('Time', '')
+            events.append(event)
+            continue
+        
+        # null-safe description
+        event_description = _first_text(
+            event_soup,
+            [
+                "div.tribe-events-single-event-description",
+                "div.tribe-events-content",
+                "div.tribe-events-single-event-content",
+                "article .entry-content",
+            ],
+            default=""
+        )
         event['Event Description'] = event_description
+
 
         # Prefer the details group, but fall back to the whole page if it's missing
         event_meta_details = event_soup.find('div', class_='tribe-events-meta-group-details') or event_soup
