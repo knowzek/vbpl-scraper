@@ -113,16 +113,23 @@ def get_events(soup, date, page_no):
             ".tribe-events-calendar-list__event-wrapper, "
             "article.tribe-events-calendar-list__event"
         ) or row
+        
         h3 = details.find("h3") if details else None
         a = (h3.find("a") if h3 else None) or row.select_one("h3 a, a.tribe-events-calendar-list__event-title-link")
+        
         if not a:
-            # Skip rows we can’t identify
+            # Nothing we can identify; skip this row safely BEFORE printing
+            print("⚠️ Skipping a row on this page: no title/link found.")
             continue
-
+        
+        title = a.get_text(strip=True)
+        link  = a.get("href", "").strip()
+        
         print("Event Name:", title)
         print("Event Link:", link)
         event["Event Name"] = title
         event["Event Link"] = link
+
         
         # Fetch detail page to get description/time/location
         event_soup = get_soup_from_url(link)
