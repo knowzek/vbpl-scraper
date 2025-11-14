@@ -8,7 +8,12 @@ from constants import UNWANTED_TITLE_KEYWORDS
 from constants import TITLE_KEYWORD_TO_CATEGORY
 from zoneinfo import ZoneInfo
 
-ICAL_URL = "https://www.hampton.gov/common/modules/iCalendar/iCalendar.aspx?catID=24&feed=calendar"
+ICAL_URL = (
+    "https://api.withapps.io/api/v2/organizations/30/calendar/ical"
+    "?calendarId=68879053e01e77ea3beeeba1"
+    "&communityIds%5B0%5D=114"
+    "&pinnedFilters%5B0%5D=Libraries"
+)
 
 def is_likely_adult_event(text):
     text = text.lower()
@@ -53,20 +58,17 @@ def scrape_hpl_events(mode="all"):
         date_range_end   = today_d + timedelta(days=90)
 
 
-    # ✅ Ask CivicPlus for the whole window (falls back to default if not supported)
-    ranged_url = (
-        f"{ICAL_URL}"
-        f"&startdate={date_range_start:%Y-%m-%d}"
-        f"&enddate={date_range_end:%Y-%m-%d}"
-    )
-    print(f"🔎 HPL iCal URL: {ranged_url}")
-    resp = requests.get(ranged_url, timeout=30)
+    # New withapps ICS – we pull the full feed and filter dates ourselves
+    print(f"🔎 HPL iCal URL: {ICAL_URL}")
+    resp = requests.get(ICAL_URL, timeout=30)
     text = resp.text
-    # Fallback if ranged request returns nothing for some reason
+
     if not text.strip():
-        print("↩️  Empty ranged feed, retrying base iCal…")
-        text = requests.get(ICAL_URL, timeout=30).text
+        raise RuntimeError("Empty HPL iCal feed for Hampton Public Library")
+
     calendar = Calendar(text)
+    print(f"📊 HPL raw events in feed: {len(calendar.events)}")
+
 
     program_type_to_categories = LIBRARY_CONSTANTS["hpl"].get("program_type_to_categories", {})
     HPL_LOCATION_MAP = LIBRARY_CONSTANTS["hpl"].get("location_map", {})
@@ -146,15 +148,26 @@ def scrape_hpl_events(mode="all"):
                 location = raw_location  # fallback so we still export it
 
 
-            # Extract event link from description
+            # === EVENT LINK EXTRACTION ===
             event_link = None
-            if description:
-                url_match = re.search(r"https://www\.hampton\.gov/calendar\.aspx\?EID=\d+", description)
+
+            # 1) Prefer the ICS event URL field (withapps puts it here)
+            if getattr(event, "url", None):
+                event_link = str(event.url)
+
+            # 2) Fallback: scan description for known URL patterns
+            if not event_link and description:
+                url_match = (
+                    re.search(r"https://calendar\.hampton\.gov/hamptonva/\d+", description)
+                    or re.search(r"https://www\.hampton\.gov/calendar\.aspx\?EID=\d+", description)
+                )
                 if url_match:
                     event_link = url_match.group(0)
+
             if not event_link:
                 print(f"⚠️  Skipping malformed event (missing link): {name} @ {location}")
                 continue
+
 
             # Format time
             start_time = event.begin.datetime.astimezone(eastern).strftime("%-I:%M %p")
