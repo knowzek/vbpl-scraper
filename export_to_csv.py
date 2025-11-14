@@ -58,7 +58,7 @@ MASTER_SPREADSHEET_ID = os.environ.get("MASTER_SPREADSHEET_ID")
 MASTER_SPREADSHEET_NAME = os.environ.get("MASTER_SPREADSHEET_NAME", "Master Events")
 MASTER_WORKSHEET_NAME = os.environ.get("MASTER_WORKSHEET_NAME", "Master Events")
 
-def _write_chunked_csvs(df, base_name: str, library: str, chunk_size: int = 45):
+def _write_chunked_csvs(df, base_name: str, library: str, chunk_size: int = 100):
     """
     Split df into multiple CSVs of <= chunk_size rows.
     Returns list of file paths in order.
