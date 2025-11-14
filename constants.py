@@ -574,7 +574,7 @@ LIBRARY_CONSTANTS = {
         "name_suffix_map": {
             "Mary D. Pretlow Anchor Branch Library": "Pretlow Library",
             "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks - Wards Corner",
-            "Yorktown Waterfront": "Yorktown Waterfront"
+            "Yorktown Waterfront": "Yorktown Waterfront",
             "Riverwalk Restaurant": "Yorktown Riverwalk Landing"
         },
     
