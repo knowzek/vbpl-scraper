@@ -445,7 +445,9 @@ LIBRARY_CONSTANTS = {
             "That Art Store": "That Art Store",
             "Paradise Creek Nature Park": "Paradise Creek Nature Park",
             "Portsmouth Welcome Center": "Portsmouth Welcome Center",
-            "Afton Square": "Afton Square"
+            "Afton Square": "Afton Square",
+            "Commodore Theatre": "Commodore Theatre",
+            "Children's Museum of Virginia": "Children’s Museum of Virginia"
             
         },
         "event_name_suffix": " (Portsmouth)"
