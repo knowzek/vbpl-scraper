@@ -138,21 +138,34 @@ def get_events(soup, date, page_no):
             events.append(event)
             continue
         
-        # --- NEW: Extract & print Event Tags ---
+        # --- Extract & print Event Tags (covers li/span/dd variants) ---
         event["Tags"] = []
-        tag_section = event_soup.select_one("dd.tribe-event-tags")
-        if tag_section:
-            for tag_a in tag_section.select("a"):
-                tag_name = tag_a.get_text(strip=True)
-                tag_link = tag_a.get("href", "")
-                event["Tags"].append({"tag": tag_name, "link": tag_link})
+        tag_selectors = [
+            "li.tribe-events-meta-group-tags a[rel=tag]",                   # <li> group wrapper (common)
+            "span.tribe-event-tags.tribe-events-meta-value a[rel=tag]",     # your screenshot
+            "dd.tribe-event-tags a[rel=tag]",                               # older TEC markup
+        ]
+        for css in tag_selectors:
+            tag_links = event_soup.select(css)
+            if tag_links:
+                for tag_a in tag_links:
+                    tag_name = tag_a.get_text(strip=True)
+                    tag_link = tag_a.get("href", "")
+                    if tag_name:
+                        event["Tags"].append({"tag": tag_name, "link": tag_link})
+                break  # stop on the first selector that worked
+        
+        if event["Tags"]:
             print("Event Tags:", [t["tag"] for t in event["Tags"]])
         else:
             print("Event Tags: none")
-
+        
         # Description
-        desc = event_soup.select_one(".tribe-events-single-event-description, .tribe-events-pro__event-description")
+        desc = event_soup.select_one(
+            ".tribe-events-single-event-description, .tribe-events-pro__event-description"
+        )
         event["Event Description"] = desc.get_text(strip=True) if desc else ""
+
 
         # Time (handle recurring/single variants)
         meta = event_soup.select_one(".tribe-events-meta-group-details, .tribe-events-pro__event-details")
