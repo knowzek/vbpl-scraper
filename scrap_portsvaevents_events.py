@@ -107,19 +107,20 @@ def get_events(soup, date, page_no, seen_event_links):
     events = []
 
     # Find the main container
-    main_div = soup.find('div', class_='tribe-events-calendar-list',
-                         attrs={'class': lambda x: isinstance(x, list) and x == ['tribe-events-calendar-list']})
-    if not main_div:
-        return events
-
-    event_divs = main_div.find_all(
+    main_div = soup.find(
         'div',
-        class_='tribe-events-calendar-list__event-row'
+        class_='tribe-events-calendar-list',
+        attrs={'class': lambda x: isinstance(x, list) and x == ['tribe-events-calendar-list']}
     )
+    if not main_div:
+        return events, False  
+
+    event_divs = main_div.find_all('div', class_='tribe-events-calendar-list__event-row')
 
     for div in event_divs:
         event = {}
         print("=====================================================")
+
         time_tag = div.find('time')
         if time_tag and time_tag.has_attr('datetime'):
             event_date = time_tag['datetime'].strip()
@@ -202,8 +203,6 @@ def get_events(soup, date, page_no, seen_event_links):
         
         event['Time'] = event_time or ""
 
-
-
         try:
             event_website = event_meta_details.find('dd', class_ = 'tribe-events-event-url').find('a')['href']
             event['Event Website'] = event_website
@@ -237,9 +236,6 @@ def get_events(soup, date, page_no, seen_event_links):
             event['Venue Phone'] = venue_phone.get_text().strip()
         except:
             event['Venue Phone'] = ""
-
-        
-
 
         try:
             event_location = event_meta_venue.find('dd', class_ = 'tribe-venue-location')
