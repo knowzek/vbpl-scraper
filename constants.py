@@ -319,6 +319,7 @@ LIBRARY_CONSTANTS = {
             "Bergey's Breadbasket": "Bergey’s Breadbasket / Bergey’s Barnyard",
             "Northwest River Park & Campground": "Northwest River Park",
             "Dismal Swamp Canal Trail Head": "Great Dismal Swamp Canal Trail - Ches.",
+            "Great Dismal Swamp National Wildlife Refuge - Washington Ditch Boardwalk Parking Lot": "Great Dismal Swamp Canal Trail - Ches.",
             "Great Bridge Pumpkin Patch": "Great Bridge Pumpkin Patch",
             "Greenbrier Farms": "Historic Greenbrier Farms",
             "Lilley Farms": "Lilley Farms",
@@ -327,7 +328,14 @@ LIBRARY_CONSTANTS = {
             "Big Ugly Brewing": "Big Ugly Brewing",
             "Major Hillard Library": "Major Hillard Library",
             "Great Bridge High School": "Great Bridge High School",
-            "Hickory Ridge Farm": "Hickory Ridge Farm"
+            "Hickory Ridge Farm": "Hickory Ridge Farm",
+            "Check in at Baseball Field across street from Great Bridge Community Church": "Great Bridge Community Church",
+            "Triple R Ranch": "Triple R Ranch",
+            "Oak Grove Lake Park": "Oak Grove Lake Park",
+            "Chesapeake Central Library": "Chesapeake Central Library",
+            "Zulekia Court #35": "Zulekia Court"
+
+            
         },
         "event_name_suffix": " (Chesapeake)"
     },
@@ -389,6 +397,10 @@ LIBRARY_CONSTANTS = {
             "Endview Plantation / Historic Endview": "Endview Plantation / Historic Endview",
             "Great Lawn": "Ferguson Center",
             "Tradition Brewing Company": "Tradition Brewing Company",
+            "The Mariners' Museum and Park": "The Mariners’ Museum and Park",
+            "Downing-Gross Cultural Arts Center": "Downing-Gross Cultural Arts Center",
+            "Port Warwick": "Port Warwick",
+            "Newport News Park": "Newport News Park",
             
         },
         "event_name_suffix": " (Newport News)"
@@ -419,7 +431,19 @@ LIBRARY_CONSTANTS = {
             "Lake Meade Park": "Lake Meade Park",
             "Nansemond Brewing Station": "Nansemond Brewing Station",
             "Boat Ramp at Bennett's Creek Park": "Bennett’s Creek Park",
-            "Bennett's Creek Park": "Bennett's Creek Park"
+            "Bennett's Creek Park": "Bennett's Creek Park",
+            "Stillwater Tea House": "Stillwater Tea House",
+            "Suffolk Visitor Center": "Suffolk Visitor’s Center",
+            "Suffolk Visitor Center Pavilion": "Suffolk Visitor’s Center",
+            "Sojourn Fermentory": "Sojourn Fermentory",
+            "Kay's Acres": "Kay's Acres",
+            "Decoys Seafood": "Decoys",
+            "Maelynn Meadows": "Maelynn Meadows",'
+            "Downtown Suffolk": "Downtown Suffolk",
+            "East Suffolk Recreation Center": "East Suffolk Recreation Center",
+            "Departs from Suffolk Visitor Center": "Suffolk Visitor Center",
+            "Great Dismal Swamp National Wildlife Refuge - Washington Ditch Boardwalk Parking Lot": "Great Dismal Swamp National Wildlife Refuge",
+            "Chuckatuck Library": "Chuckatuck Library"
             
         },
         "event_name_suffix": " (Suffolk)"
@@ -447,7 +471,9 @@ LIBRARY_CONSTANTS = {
             "Portsmouth Welcome Center": "Portsmouth Welcome Center",
             "Afton Square": "Afton Square",
             "Commodore Theatre": "Commodore Theatre",
-            "Children's Museum of Virginia": "Children’s Museum of Virginia"
+            "Children's Museum of Virginia": "Children’s Museum of Virginia",
+            "Portsmouth Pavilion": "Portsmouth Pavilion",
+            "St Johns Episcopal Church": "St. John’s Episcopal Church"
             
         },
         "event_name_suffix": " (Portsmouth)"
@@ -547,7 +573,9 @@ LIBRARY_CONSTANTS = {
     "visityorktown": {
         "name_suffix_map": {
             "Mary D. Pretlow Anchor Branch Library": "Pretlow Library",
-            "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks - Wards Corner"
+            "Starbucks at Wards Corner 7550 Granby St. Norfolk VA 23505": "Starbucks - Wards Corner",
+            "Yorktown Waterfront": "Yorktown Waterfront"
+            "Riverwalk Restaurant": "Yorktown Riverwalk Landing"
         },
     
         # Raw ICS "Location" → preferred display name
