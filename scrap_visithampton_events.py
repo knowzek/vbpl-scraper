@@ -185,15 +185,22 @@ def get_events(soup, date, page_no):
                     time_txt = f"{time_txt} - {et}" if time_txt else et
         event["Time"] = time_txt
 
-        # Location = venue name
-        venue_a = event_soup.select_one(
-            "li.tribe-events-meta-item.tribe-venue a, "
-            "li.tribe-venue a, "
-            ".tribe-venue a"
+        # --- Venue = Location (very tolerant) ---
+        venue_group = event_soup.select_one(
+            "div.tribe-events-meta-group-venue, "
+            "div.tribe-events-meta-group.tribe-events-meta-group-venue"
         )
         
-        location_name = venue_a.get_text(strip=True) if venue_a else ""
+        location_name = ""
+        if venue_group:
+            # any anchor inside the venue group (first one is the venue name)
+            venue_a = venue_group.select_one("a")
+            if venue_a:
+                location_name = venue_a.get_text(strip=True)
+        
+        print("Location:", location_name)
         event["Location"] = location_name
+
 
         event["Tags"] = event.get("Tags") or []
         events.append(event)
