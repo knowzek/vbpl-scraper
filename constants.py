@@ -438,7 +438,7 @@ LIBRARY_CONSTANTS = {
             "Sojourn Fermentory": "Sojourn Fermentory",
             "Kay's Acres": "Kay's Acres",
             "Decoys Seafood": "Decoys",
-            "Maelynn Meadows": "Maelynn Meadows",'
+            "Maelynn Meadows": "Maelynn Meadows",
             "Downtown Suffolk": "Downtown Suffolk",
             "East Suffolk Recreation Center": "East Suffolk Recreation Center",
             "Departs from Suffolk Visitor Center": "Suffolk Visitor Center",
