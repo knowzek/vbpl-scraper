@@ -119,7 +119,6 @@ def get_events(soup, date, page_no, seen_event_links):
 
     for div in event_divs:
         event = {}
-        print("=====================================================")
 
         time_tag = div.find('time')
         if time_tag and time_tag.has_attr('datetime'):
@@ -154,6 +153,7 @@ def get_events(soup, date, page_no, seen_event_links):
             events.append(event)
             continue
 
+        print("=====================================================")
         print("Event Name:", title)
         event['Event Name'] = title
 
