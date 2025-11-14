@@ -369,7 +369,9 @@ LIBRARY_CONSTANTS = {
             "Hampton History Museum": "Hampton History Museum",
             "The American Theatre": "The American Theatre",
             "Hampton Roads Convention Center": "Hampton Roads Convention Center",
-            "Fort Monroe Visitor & Education Center": "Fort Monroe Visitor & Education Center"
+            "Fort Monroe Visitor & Education Center": "Fort Monroe Visitor & Education Center",
+            "Hampton Carousel": "Hampton Carousel",
+            "Downtown Hampton": "Downtown Hampton"
         },
         "event_name_suffix": " (Hampton)"
     },
