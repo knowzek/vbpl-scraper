@@ -880,7 +880,10 @@ LIBRARY_CONSTANTS = {
         "Children's Department": "Hampton Main Library",
         "Willow Oaks Village Square 227 Fox Hill Rd. Hampton VA 23669": "Willow Oaks Branch Library",
         "Outside library building - 4207 Victoria Blvd.  Hampton VA 23669": "Hampton Main Library",
-        "Outside at Main Entrance": "Hampton Main Library"
+        "Outside at Main Entrance": "Hampton Main Library",
+        "1 South Mallory Street, Hampton, VA, USA": "Phoebus Branch Library",
+        "227 Fox Hill Road, Hampton, VA, USA": "Willow Oaks Branch Library",
+        "936 Big Bethel Road, Hampton, VA, USA": "Northampton Branch Library"
     },
     "name_suffix_map": {
         "Hampton Main Library": "Hamption Main Library",
