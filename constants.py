@@ -365,6 +365,11 @@ LIBRARY_CONSTANTS = {
             "Outside library building - 4207 Victoria Blvd.  Hampton VA 23669": "Hampton Main Library",
             "Outside at Main Entrance": "Hampton Main Library",
             "Hampton Main Library": "Hamption Main Library",
+            "Hampton Coliseum": "Hampton Coliseum",
+            "Hampton History Museum": "Hampton History Museum",
+            "The American Theatre": "The American Theatre",
+            "Hampton Roads Convention Center": "Hampton Roads Convention Center",
+            "Fort Monroe Visitor & Education Center": "Fort Monroe Visitor & Education Center"
         },
         "event_name_suffix": " (Hampton)"
     },
