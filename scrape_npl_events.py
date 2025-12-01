@@ -26,7 +26,7 @@ def scrape_npl_events(mode="all"):
     else:
         # Default to pulling a wide range (1st of current month to 1st of next-next month)
         start_date = today.replace(day=1)
-        end_date = start_date + timedelta(days=60)
+        end_date = start_date + timedelta(days=84)
 
     current = start_date
     while current <= end_date:
