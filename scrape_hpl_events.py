@@ -80,35 +80,35 @@ def scrape_hpl_events(mode="all"):
             if event.begin is None:
                 continue
 
-            # get start – treat naive times as UTC, then convert to Eastern
+            # get start – HPL bug: feed appears to use UTC time but labels it America/New_York
             start_raw = event.begin.datetime
-            print(
-                "🟦 HPL DEBUG:",
-                "| NAME:", (event.name or "").strip(),
-                "| RAW BEGIN:", event.begin,
-                "| RAW BEGIN .datetime:", start_raw,
-                "| tzinfo:", start_raw.tzinfo,
-            )
 
-            if start_raw.tzinfo is None:
-                # withapps feed is effectively UTC; attach UTC then convert
-                start_raw = start_raw.replace(tzinfo=timezone.utc)
-            start_dt_local = start_raw.astimezone(eastern)
+            if isinstance(start_raw.tzinfo, ZoneInfo) and start_raw.tzinfo.key == "America/New_York":
+                # Treat the WALL CLOCK as UTC, then convert to Eastern
+                # Example: 18:00-05:00 (really 18:00Z) → 13:00-05:00
+                start_wall = start_raw.replace(tzinfo=None)              # 18:00 (naive)
+                start_as_utc = start_wall.replace(tzinfo=timezone.utc)  # 18:00Z
+                start_dt_local = start_as_utc.astimezone(eastern)       # 13:00-05:00
+            else:
+                # Fallback: normal behavior
+                if start_raw.tzinfo is None:
+                    start_raw = start_raw.replace(tzinfo=timezone.utc)
+                start_dt_local = start_raw.astimezone(eastern)
 
             # get end – same logic as start
             end_dt_local = None
             if event.end and event.end.datetime:
                 end_raw = event.end.datetime
-                print(
-                    "🟪 HPL DEBUG END:",
-                    "| NAME:", (event.name or "").strip(),
-                    "| RAW END:", event.end,
-                    "| RAW END .datetime:", end_raw,
-                    "| tzinfo:", end_raw.tzinfo,
-                )
-                if end_raw.tzinfo is None:
-                    end_raw = end_raw.replace(tzinfo=timezone.utc)
-                end_dt_local = end_raw.astimezone(eastern)
+
+                if isinstance(end_raw.tzinfo, ZoneInfo) and end_raw.tzinfo.key == "America/New_York":
+                    end_wall = end_raw.replace(tzinfo=None)
+                    end_as_utc = end_wall.replace(tzinfo=timezone.utc)
+                    end_dt_local = end_as_utc.astimezone(eastern)
+                else:
+                    if end_raw.tzinfo is None:
+                        end_raw = end_raw.replace(tzinfo=timezone.utc)
+                    end_dt_local = end_raw.astimezone(eastern)
+
 
             if not end_dt_local:
                 end_dt_local = start_dt_local + timedelta(minutes=60)
