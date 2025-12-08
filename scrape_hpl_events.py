@@ -82,6 +82,14 @@ def scrape_hpl_events(mode="all"):
 
             # get start – treat naive times as UTC, then convert to Eastern
             start_raw = event.begin.datetime
+            print(
+                "🟦 HPL DEBUG:",
+                "| NAME:", (event.name or "").strip(),
+                "| RAW BEGIN:", event.begin,
+                "| RAW BEGIN .datetime:", start_raw,
+                "| tzinfo:", start_raw.tzinfo,
+            )
+
             if start_raw.tzinfo is None:
                 # withapps feed is effectively UTC; attach UTC then convert
                 start_raw = start_raw.replace(tzinfo=timezone.utc)
@@ -91,6 +99,13 @@ def scrape_hpl_events(mode="all"):
             end_dt_local = None
             if event.end and event.end.datetime:
                 end_raw = event.end.datetime
+                print(
+                    "🟪 HPL DEBUG END:",
+                    "| NAME:", (event.name or "").strip(),
+                    "| RAW END:", event.end,
+                    "| RAW END .datetime:", end_raw,
+                    "| tzinfo:", end_raw.tzinfo,
+                )
                 if end_raw.tzinfo is None:
                     end_raw = end_raw.replace(tzinfo=timezone.utc)
                 end_dt_local = end_raw.astimezone(eastern)
