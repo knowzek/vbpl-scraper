@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import requests
 from ics import Calendar
 from bs4 import BeautifulSoup
@@ -80,18 +80,19 @@ def scrape_hpl_events(mode="all"):
             if event.begin is None:
                 continue
 
-            # get start
+            # get start – treat naive times as UTC, then convert to Eastern
             start_raw = event.begin.datetime
             if start_raw.tzinfo is None:
-                start_raw = start_raw.replace(tzinfo=eastern)
+                # withapps feed is effectively UTC; attach UTC then convert
+                start_raw = start_raw.replace(tzinfo=timezone.utc)
             start_dt_local = start_raw.astimezone(eastern)
-            
-            # get end
+
+            # get end – same logic as start
             end_dt_local = None
             if event.end and event.end.datetime:
                 end_raw = event.end.datetime
                 if end_raw.tzinfo is None:
-                    end_raw = end_raw.replace(tzinfo=eastern)
+                    end_raw = end_raw.replace(tzinfo=timezone.utc)
                 end_dt_local = end_raw.astimezone(eastern)
 
             if not end_dt_local:
@@ -169,10 +170,11 @@ def scrape_hpl_events(mode="all"):
                 continue
 
 
-            # Format time
-            start_time = event.begin.datetime.astimezone(eastern).strftime("%-I:%M %p")
-            end_time = event.end.datetime.astimezone(eastern).strftime("%-I:%M %p") if event.end else ""
+            # Format time using the already-localized datetimes
+            start_time = start_dt_local.strftime("%-I:%M %p")
+            end_time = end_dt_local.strftime("%-I:%M %p") if end_dt_local else ""
             time_str = f"{start_time} - {end_time}" if end_time else start_time
+
 
             events.append({
                 "Event Name": name,
