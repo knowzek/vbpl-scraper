@@ -82,8 +82,9 @@ def scrape_hpl_events(mode="all"):
 
             # get start – HPL bug: feed appears to use UTC time but labels it America/New_York
             start_raw = event.begin.datetime
+            tz = start_raw.tzinfo
 
-            if isinstance(start_raw.tzinfo, ZoneInfo) and start_raw.tzinfo.key == "America/New_York":
+            if tz and "America/New_York" in str(tz):
                 # Treat the WALL CLOCK as UTC, then convert to Eastern
                 # Example: 18:00-05:00 (really 18:00Z) → 13:00-05:00
                 start_wall = start_raw.replace(tzinfo=None)              # 18:00 (naive)
@@ -99,8 +100,9 @@ def scrape_hpl_events(mode="all"):
             end_dt_local = None
             if event.end and event.end.datetime:
                 end_raw = event.end.datetime
+                end_tz = end_raw.tzinfo
 
-                if isinstance(end_raw.tzinfo, ZoneInfo) and end_raw.tzinfo.key == "America/New_York":
+                if end_tz and "America/New_York" in str(end_tz):
                     end_wall = end_raw.replace(tzinfo=None)
                     end_as_utc = end_wall.replace(tzinfo=timezone.utc)
                     end_dt_local = end_as_utc.astimezone(eastern)
@@ -108,7 +110,6 @@ def scrape_hpl_events(mode="all"):
                     if end_raw.tzinfo is None:
                         end_raw = end_raw.replace(tzinfo=timezone.utc)
                     end_dt_local = end_raw.astimezone(eastern)
-
 
             if not end_dt_local:
                 end_dt_local = start_dt_local + timedelta(minutes=60)
@@ -189,6 +190,9 @@ def scrape_hpl_events(mode="all"):
             start_time = start_dt_local.strftime("%-I:%M %p")
             end_time = end_dt_local.strftime("%-I:%M %p") if end_dt_local else ""
             time_str = f"{start_time} - {end_time}" if end_time else start_time
+            if "Peaceful Painting" in name:
+                print("FINAL TIME DEBUG:", name, start_dt_local, "→", time_str)
+
 
 
             events.append({
