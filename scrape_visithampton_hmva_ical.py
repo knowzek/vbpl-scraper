@@ -493,9 +493,9 @@ def _event_dict_from_vevent(evt: Dict[str, str], audience_hint: str) -> Dict:
     # Categories & Ages
     cats = _split_categories(evt)
     ages = detect_ages(name, desc, cats)
-    categories = set(["Event Location - Hampton"])
+    categories = set(["Event Location (Category) > Event Location - Hampton"])
     if not ages:
-        categories.add("Audience - Family Event")
+        categories.add("Audience > Audience - Family Event")
 
     # Debug prints
     if page_html == "":
