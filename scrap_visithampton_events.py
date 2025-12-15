@@ -17,9 +17,9 @@ def check_keyword(word, text):
 def clean_data(full_data):
     # full_data = rJson('events.json')
 
-    loc_cat = "Event Location - Hampton"
-    free_cat = "Audience - Free Event"
-    age_cat = "Audience - Family Event"
+    loc_cat = "Event Location (Category) > Event Location - Hampton"
+    free_cat = "Audience > Audience - Free Event"
+    age_cat = "Audience > Audience - Family Event"
 
     full_data_new = []
 
