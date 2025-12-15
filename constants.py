@@ -4,21 +4,21 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "storytime": "List - Storytimes",
     "Story Time": "List - Storytimes",
     "Storytime": "List - Storytimes",
-    "baby storytime": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me",
-    "baby Story Time": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me",
-    "just 2s": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
-    "preschool": "Audience - Preschool Age",
-    "babygarten": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
-    "babies in bloom": "List - Storytimes, Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
+    "baby storytime": "List - Storytimes, Audience > Audience - Toddler/Infant, Audience > Audience - Parent & Me",
+    "baby Story Time": "List - Storytimes, Audience > Audience - Toddler/Infant, Audience > Audience - Parent & Me",
+    "just 2s": "List - Storytimes, Audience > Audience - Toddler/Infant, Audience > Audience - Parent & Me, List - Toddler Time Events",
+    "preschool": "Audience > Audience - Preschool Age",
+    "babygarten": "List - Storytimes, Audience > Audience - Toddler/Infant, Audience > Audience - Parent & Me, List - Toddler Time Events",
+    "babies in bloom": "List - Storytimes, Audience > Audience - Toddler/Infant, Audience > Audience - Parent & Me, List - Toddler Time Events",
     "toddler tales": "List - Storytimes",
-    "teen": "Audience - Teens",
-    "teens": "Audience - Teens",
-    "teen time": "Audience - Teens",
-    "Pre-K": "Audience - Preschool Age",
+    "teen": "Audience > Audience - Teens",
+    "teens": "Audience > Audience - Teens",
+    "teen time": "Audience > Audience - Teens",
+    "Pre-K": "Audience > Audience - Preschool Age",
     "back to school": "List - Summer - Back To School",
-    "Football Game": "Audience - Outdoor Event",
-    "Farmer's Market": "Audience - Outdoor Event",
-    "Farmers Market": "Audience - Outdoor Event",
+    "Football Game": "Audience > Audience - Outdoor Event",
+    "Farmer's Market": "Audience > Audience - Outdoor Event",
+    "Farmers Market": "Audience > Audience - Outdoor Event",
     "Hispanic Heritage Month": "List - Fall - Hispanic Heritage Month (Sept/Oct)",
     "gaming": "List - Gaming Events",
     "video game": "List - Gaming Events",
@@ -34,10 +34,10 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "manga": "List - Cosplay Anime Comics",
     "cosplay": "List - Cosplay Anime Comics",
     "comics": "List - Cosplay Anime Comics",
-    "walking tour": "List - Local Tours, Audience - Outdoor Event",
+    "walking tour": "List - Local Tours, Audience > Audience - Outdoor Event",
     "swim": "List - Fitness & Wellness Events",
     "swimming": "List - Fitness & Wellness Events",
-    "kayak": "Audience - Outdoor Event, List - Fitness & Wellness Events",
+    "kayak": "Audience > Audience - Outdoor Event, List - Fitness & Wellness Events",
     "math": "List - STEM/STEAM",
     "science": "List - STEM/STEAM",
     "nature": "List - STEM/STEAM",
@@ -50,7 +50,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "fishing": "List - Fishing",
     "liveart": "List - Art and Crafting Events",
     "Crochet": "List - Art and Crafting Events",
-    #"Terrarium": "Audience - Family Event, List - Arts & Crafts",
+    #"Terrarium": "Audience > Audience - Family Event, List - Arts & Crafts",
     "watercolor": "List - Art and Crafting Events",
     "paint": "List - Art and Crafting Events",
     "craft": "List - Art and Crafting Events",
@@ -61,58 +61,58 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "learn how to draw": "List - Art and Crafting Events",
     "learning how to draw": "List - Art and Crafting Events",
     "learning to draw": "List - Art and Crafting Events",
-    "baby": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events",
-    "toddler": "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
-    "toddlers": "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
-    "onesie":  "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
-    "onesies": "Audience - Toddler/Infant, Audience - Parent & Me, List - Toddler Time Events",
-    "preschool": "Audience - Preschool Age",
-    "tiny tot": "Audience - Toddler/Infant, Audience - Parent & Me",
+    "baby": "Audience > Audience - Parent & Me, Audience > Audience - Toddler/Infant, List - Toddler Time Events",
+    "toddler": "Audience > Audience - Toddler/Infant, Audience > Audience - Parent & Me, List - Toddler Time Events",
+    "toddlers": "Audience > Audience - Toddler/Infant, Audience > Audience - Parent & Me, List - Toddler Time Events",
+    "onesie":  "Audience > Audience - Toddler/Infant, Audience > Audience - Parent & Me, List - Toddler Time Events",
+    "onesies": "Audience > Audience - Toddler/Infant, Audience > Audience - Parent & Me, List - Toddler Time Events",
+    "preschool": "Audience > Audience - Preschool Age",
+    "tiny tot": "Audience > Audience - Toddler/Infant, Audience > Audience - Parent & Me",
     "steam": "List - STEM/STEAM",
     "computers": "List - STEM/STEAM",
     "yoga": "List - Fitness & Wellness Events",
     "wellness": "List - Fitness & Wellness Events",
     "food distribution": "List - Food Distribution",
     "homeschool": "List - Homeschool",
-    "KINDERSTEM": "List - STEM/STEAM, Audience - Preschool Age",
-    "SPR": "Audience - Special Events, List - STEM/STEAM",
+    "KINDERSTEM": "List - STEM/STEAM, Audience > Audience - Preschool Age",
+    "SPR": "Audience > Audience - Special Events, List - STEM/STEAM",
     "Build Bash": "List - STEM/STEAM",
-    "austism": "Audience - Special Needs",
-    "neurodiverse": "Audience - Special Needs, List - Special Needs Events",
-    "neurodiversity": "Audience - Special Needs, List - Special Needs Events",
-    "asd": "Audience - Special Needs, List - Special Needs Events",
-    "sensory": "Audience - Special Needs, List - Special Needs Events",
-    "sensory-friendly": "Audience - Special Needs, List - Special Needs Events",
+    "austism": "Audience > Audience - Special Needs",
+    "neurodiverse": "Audience > Audience - Special Needs, List - Special Needs Events",
+    "neurodiversity": "Audience > Audience - Special Needs, List - Special Needs Events",
+    "asd": "Audience > Audience - Special Needs, List - Special Needs Events",
+    "sensory": "Audience > Audience - Special Needs, List - Special Needs Events",
+    "sensory-friendly": "Audience > Audience - Special Needs, List - Special Needs Events",
     "LGBTQ+": "List - PRIDE Events",
     "Rainbow Family": "List - PRIDE Events",
     "Rainbow Families": "List - PRIDE Events",
-    "theater": "Audience - Special Events",
-    "Magician": "Audience - Special Events",
-    "juggler": "Audience - Special Events",
-    "Mom": "Audience - Parent & Me",
-    "Mother": "Audience - Parent & Me",
-    "Father": "Audience - Parent & Me",
-    #"caregiver": "Audience - Parent & Me, Audience - Toddler/Infant",
-    #"caregivers": "Audience - Parent & Me, Audience - Toddler/Infant",
-    "dad": "Audience - Parent & Me",
-    "weather": "Audience - Outdoor Event",
-    "bird walk": "Audience - Outdoor Event", 
+    "theater": "Audience > Audience - Special Events",
+    "Magician": "Audience > Audience - Special Events",
+    "juggler": "Audience > Audience - Special Events",
+    "Mom": "Audience > Audience - Parent & Me",
+    "Mother": "Audience > Audience - Parent & Me",
+    "Father": "Audience > Audience - Parent & Me",
+    #"caregiver": "Audience > Audience - Parent & Me, Audience > Audience - Toddler/Infant",
+    #"caregivers": "Audience > Audience - Parent & Me, Audience > Audience - Toddler/Infant",
+    "dad": "Audience > Audience - Parent & Me",
+    "weather": "Audience > Audience - Outdoor Event",
+    "bird walk": "Audience > Audience - Outdoor Event", 
     "trains": "List - Events with Trains",
     "Volunteer": "List - Youth Volunteer Opportunities",
     "Volunteering": "List - Youth Volunteer Opportunities",
-    "free": "Audience - Free Event",
-    "all ages": "Audience - Family Event",
+    "free": "Audience > Audience - Free Event",
+    "all ages": "Audience > Audience - Family Event",
     "fireworks": "List - Fireworks",
     "parade": "List - Parades",
-    "infant": "Audience - Toddler/Infant",
-    "tween": "Audience - School Age",
+    "infant": "Audience > Audience - Toddler/Infant",
+    "tween": "Audience > Audience - School Age",
     "PNO": "List - Parents Night Out",
     "taylor swift": "List - Swiftie Events",
     "Potter": "List - Wizard Events",
     "Harry Potter": "List - Wizard Events",
     "Hogwarts": "List - Wizard Events",
-    "outdoor": "Audience - Outdoor Event",
-    "outdoors": "Audience - Outdoor Event",
+    "outdoor": "Audience > Audience - Outdoor Event",
+    "outdoors": "Audience > Audience - Outdoor Event",
     "spooky": "List - Fall - Family Halloween Events",
     "halloween": "List - Fall - Family Halloween Events",
     "witch": "List - Fall - Family Halloween Events",
@@ -135,24 +135,24 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "Dia de los Muertos": "List - Fall - Dia de los Muertos",
     "corn maze": "List - Fall - Fall Festivals",
     "Diwali": "List - Fall - Diwali Events (November)",
-    "holiday gift": "Audience - Holiday Events",
-    "trim the tree": "Audience - Holiday Events",
-    "trim the library tree": "Audience - Holiday Events",
-    "rudolph": "Audience - Holiday Events",
-    "rudolph's": "Audience - Holiday Events",
-    "rudolphs": "Audience - Holiday Events",
-    "ornament": "Audience - Holiday Events",
+    "holiday gift": "Audience > Audience - Holiday Events",
+    "trim the tree": "Audience > Audience - Holiday Events",
+    "trim the library tree": "Audience > Audience - Holiday Events",
+    "rudolph": "Audience > Audience - Holiday Events",
+    "rudolph's": "Audience > Audience - Holiday Events",
+    "rudolphs": "Audience > Audience - Holiday Events",
+    "ornament": "Audience > Audience - Holiday Events",
     "Ornament Workshop": "List - Art and Crafting Events",
-    "snowflake": "Audience - Holiday Events",
-    "Snowflakes": "Audience - Holiday Events",
-    "christmas": "Audience - Holiday Events",
-    "yuletide": "Audience - Holiday Events",
-    "festival of lights": "Audience - Holiday Events",
-    "merry market": "Audience - Holiday Events",
-    "illumination": "List - Winter - Holiday Illumination Events, Audience - Outdoor Event, List - Winter - Holiday Lights",
+    "snowflake": "Audience > Audience - Holiday Events",
+    "Snowflakes": "Audience > Audience - Holiday Events",
+    "christmas": "Audience > Audience - Holiday Events",
+    "yuletide": "Audience > Audience - Holiday Events",
+    "festival of lights": "Audience > Audience - Holiday Events",
+    "merry market": "Audience > Audience - Holiday Events",
+    "illumination": "List - Winter - Holiday Illumination Events, Audience > Audience - Outdoor Event, List - Winter - Holiday Lights",
     "christmas lights": " List - Winter - Holiday Illumination Events, List - Winter - Holiday Lights",
-    "festival of lights": "Audience - Holiday Events, Audience - Outdoor Event, List - Winter - Holiday Lights",
-    "festival of light": "Audience - Holiday Events, Audience - Outdoor Event, List - Winter - Holiday Lights",
+    "festival of lights": "Audience > Audience - Holiday Events, Audience > Audience - Outdoor Event, List - Winter - Holiday Lights",
+    "festival of light": "Audience > Audience - Holiday Events, Audience > Audience - Outdoor Event, List - Winter - Holiday Lights",
     "christmas in july": "List - Summer - Christmas In July!",
     "santa": "List - Winter - Santa All",
     "grinch": "List – Winter - Grinch Events",
@@ -215,34 +215,34 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
 }
 
 TITLE_KEYWORD_TO_AGE_CATEGORIES_PPL = {
-    "storytime": "Audience - Preschool Age, Audience - School Age, Audience - Free Event",
-    "story time": "Audience - Preschool Age, Audience - School Age, Audience - Free Event",
-    "lego": "Audience - School Age, Audience - Free Event",
-    "steam": "Audience - School Age, Audience - Free Event",
-    "stem": "Audience - School Age, Audience - Free Event",
-    "craft": "Audience - Family Event, Audience - Free Event",
-    "movie": "Audience - Family Event, Audience - Free Event",
-    "music": "Audience - Family Event, Audience - Free Event",
-    "dance": "Audience - Family Event, Audience - Free Event",
-    "sensory": "Audience - Toddler/Infant, Audience - Family Event",
-    "toddlers": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Free Event",
-    "toddler": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Free Event",
-    "preschool": "Audience - Preschool Age, Audience - Free Event",
-    "baby": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Free Event",
+    "storytime": "Audience > Audience - Preschool Age, Audience > Audience - School Age, Audience > Audience - Free Event",
+    "story time": "Audience > Audience - Preschool Age, Audience > Audience - School Age, Audience > Audience - Free Event",
+    "lego": "Audience > Audience - School Age, Audience > Audience - Free Event",
+    "steam": "Audience > Audience - School Age, Audience > Audience - Free Event",
+    "stem": "Audience > Audience - School Age, Audience > Audience - Free Event",
+    "craft": "Audience > Audience - Family Event, Audience > Audience - Free Event",
+    "movie": "Audience > Audience - Family Event, Audience > Audience - Free Event",
+    "music": "Audience > Audience - Family Event, Audience > Audience - Free Event",
+    "dance": "Audience > Audience - Family Event, Audience > Audience - Free Event",
+    "sensory": "Audience > Audience - Toddler/Infant, Audience > Audience - Family Event",
+    "toddlers": "Audience > Audience - Parent & Me, Audience > Audience - Toddler/Infant, List - Toddler Time Events, Audience > Audience - Free Event",
+    "toddler": "Audience > Audience - Parent & Me, Audience > Audience - Toddler/Infant, List - Toddler Time Events, Audience > Audience - Free Event",
+    "preschool": "Audience > Audience - Preschool Age, Audience > Audience - Free Event",
+    "baby": "Audience > Audience - Parent & Me, Audience > Audience - Toddler/Infant, List - Toddler Time Events, Audience > Audience - Free Event",
 }
 
 
 TITLE_KEYWORD_TO_CATEGORY = {k.lower(): v for k, v in TITLE_KEYWORD_TO_CATEGORY_RAW.items()}
 
 COMBINED_KEYWORD_TO_CATEGORY_RAW = {
-    ("storytime", "toddler"): "List - Toddler Time Events, Audience - Toddler/Infant, List - Storytimes",
-    ("storytime", "baby"): "Audience - Toddler/Infant, List - Storytimes",
-    ("storytime", "infant"): "Audience - Toddler/Infant, List - Storytimes",
-    ("story time", "toddler"): "List - Toddler Time Events, Audience - Toddler/Infant, List - Storytimes",
-    ("story time", "baby"): "Audience - Toddler/Infant, List - Storytimes",
-    ("story time", "infant"): "Audience - Toddler/Infant, List - Storytimes",
-    ("kids", "elementary"): "Audience - School Age",
-    ("kids", "grades"): "Audience - School Age"
+    ("storytime", "toddler"): "List - Toddler Time Events, Audience > Audience - Toddler/Infant, List - Storytimes",
+    ("storytime", "baby"): "Audience > Audience - Toddler/Infant, List - Storytimes",
+    ("storytime", "infant"): "Audience > Audience - Toddler/Infant, List - Storytimes",
+    ("story time", "toddler"): "List - Toddler Time Events, Audience > Audience - Toddler/Infant, List - Storytimes",
+    ("story time", "baby"): "Audience > Audience - Toddler/Infant, List - Storytimes",
+    ("story time", "infant"): "Audience > Audience - Toddler/Infant, List - Storytimes",
+    ("kids", "elementary"): "Audience > Audience - School Age",
+    ("kids", "grades"): "Audience > Audience - School Age"
 }
 
 COMBINED_KEYWORD_TO_CATEGORY = {
@@ -277,17 +277,17 @@ UNWANTED_TITLE_KEYWORDS = [
 ]
 
 AGE_RANGE_TO_CATEGORY = [
-    (0, 2, "Audience - Parent & Me, Audience - Toddler/Infant"),
-    (3, 4, "Audience - Preschool Age"),
-    (5, 12, "Audience - School Age"),
-    (13, 17, "Audience - Teens"),
+    (0, 2, "Audience > Audience - Parent & Me, Audience > Audience - Toddler/Infant"),
+    (3, 4, "Audience > Audience - Preschool Age"),
+    (5, 12, "Audience > Audience - School Age"),
+    (13, 17, "Audience > Audience - Teens"),
 ]
 
 
 LIBRARY_CONSTANTS = {
     "vbpr": {
         "program_type_to_categories": {
-            "Fitness & Wellness": "Event Location - Virginia Beach, List - Fitness & Wellness Events"
+            "Fitness & Wellness": "Event Location (Category) > Event Location - Virginia Beach, List - Fitness & Wellness Events"
         },
         "name_suffix_map": {},  # optional for location inference
         "venue_names": {
@@ -557,18 +557,18 @@ LIBRARY_CONSTANTS = {
         "program_type_to_categories": {},
     
         "age_to_categories": {
-            "Infant":     "Audience - Toddler/Infant, Audience - Free Event, Event Location - Norfolk",
-            "Preschool":  "Audience - Preschool Age, Audience - Free Event, Event Location - Norfolk",
-            "School Age": "Audience - School Age, Audience - Free Event, Event Location - Norfolk",
-            "Tweens":     "Audience - School Age, Audience - Free Event, Event Location - Norfolk",
-            "Teens":      "Audience - Teens, Audience - Free Event, Event Location - Norfolk",
-            "All Ages":   "Audience - Free Event, Event Location - Norfolk, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Family Event, Audience - Teens",
-            "Adults 18+": "Audience - Free Event, Event Location - Norfolk"
+            "Infant":     "Audience > Audience - Toddler/Infant, Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk",
+            "Preschool":  "Audience > Audience - Preschool Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk",
+            "School Age": "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk",
+            "Tweens":     "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk",
+            "Teens":      "Audience > Audience - Teens, Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk",
+            "All Ages":   "Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk, Audience > Audience - Toddler/Infant, Audience > Audience - Preschool Age, Audience > Audience - School Age, Audience > Audience - Family Event, Audience > Audience - Teens",
+            "Adults 18+": "Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk"
         },
     
         "always_on_categories": [
-            "Event Location - Norfolk",
-            "Audience - Family Event",
+            "Event Location (Category) > Event Location - Norfolk",
+            "Audience > Audience - Family Event",
         ],
     
         "event_name_suffix": " (Norfolk)"
@@ -600,18 +600,18 @@ LIBRARY_CONSTANTS = {
         "program_type_to_categories": {},
     
         "age_to_categories": {
-            "Infant":     "Audience - Toddler/Infant, Audience - Free Event, Event Location - Yorktown / York County",
-            "Preschool":  "Audience - Preschool Age, Audience - Free Event, vent Location - Yorktown / York County",
-            "School Age": "Audience - School Age, Audience - Free Event, vent Location - Yorktown / York County",
-            "Tweens":     "Audience - School Age, Audience - Free Event, vent Location - Yorktown / York County",
-            "Teens":      "Audience - Teens, Audience - Free Event, vent Location - Yorktown / York County",
-            "All Ages":   "Audience - Free Event, vent Location - Yorktown / York County",
-            "Adults 18+": "Audience - Free Event, vent Location - Yorktown / York County"
+            "Infant":     "Audience > Audience - Toddler/Infant, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown / York County",
+            "Preschool":  "Audience > Audience - Preschool Age, Audience > Audience - Free Event, vent Location - Yorktown / York County",
+            "School Age": "Audience > Audience - School Age, Audience > Audience - Free Event, vent Location - Yorktown / York County",
+            "Tweens":     "Audience > Audience - School Age, Audience > Audience - Free Event, vent Location - Yorktown / York County",
+            "Teens":      "Audience > Audience - Teens, Audience > Audience - Free Event, vent Location - Yorktown / York County",
+            "All Ages":   "Audience > Audience - Free Event, vent Location - Yorktown / York County",
+            "Adults 18+": "Audience > Audience - Free Event, vent Location - Yorktown / York County"
         },
     
         "always_on_categories": [
             "vent Location - Yorktown / York County",
-            "Audience - Family Event",
+            "Audience > Audience - Family Event",
         ],
     
         "event_name_suffix": " (Yorktown)"
@@ -619,36 +619,36 @@ LIBRARY_CONSTANTS = {
     
     "vbpl": {
         "program_type_to_categories": {
-            "Storytimes & Early Learning": "Event Location - Virginia Beach, Audience - Free Event, List - Storytimes",
-            "STEAM": "Event Location - Virginia Beach, List - STEM/STEAM, Audience - Free Event",
-            "Computers & Technology": "Event Location - Virginia Beach, Audience - Free Event",
-            "Workshops & Lectures": "Event Location - Virginia Beach, Audience - Free Event",
-            "Discussion Groups": "Event Location - Virginia Beach, Audience - Free Event",
-            "Arts & Crafts": "Event Location - Virginia Beach, Audience - Free Event",
-            "Hobbies": "Event Location - Virginia Beach, Audience - Free Event",
-            "Books & Authors": "Event Location - Virginia Beach, Audience - Free Event",
-            "Culture": "Event Location - Virginia Beach, Audience - Free Event",
-            "History & Genealogy": "Event Location - Virginia Beach, Audience - Free Event"
+            "Storytimes & Early Learning": "Event Location (Category) > Event Location - Virginia Beach, Audience > Audience - Free Event, List - Storytimes",
+            "STEAM": "Event Location (Category) > Event Location - Virginia Beach, List - STEM/STEAM, Audience > Audience - Free Event",
+            "Computers & Technology": "Event Location (Category) > Event Location - Virginia Beach, Audience > Audience - Free Event",
+            "Workshops & Lectures": "Event Location (Category) > Event Location - Virginia Beach, Audience > Audience - Free Event",
+            "Discussion Groups": "Event Location (Category) > Event Location - Virginia Beach, Audience > Audience - Free Event",
+            "Arts & Crafts": "Event Location (Category) > Event Location - Virginia Beach, Audience > Audience - Free Event",
+            "Hobbies": "Event Location (Category) > Event Location - Virginia Beach, Audience > Audience - Free Event",
+            "Books & Authors": "Event Location (Category) > Event Location - Virginia Beach, Audience > Audience - Free Event",
+            "Culture": "Event Location (Category) > Event Location - Virginia Beach, Audience > Audience - Free Event",
+            "History & Genealogy": "Event Location (Category) > Event Location - Virginia Beach, Audience > Audience - Free Event"
         },
         "age_to_categories": {
             # Babies / infants
-            "Babies (3-12 months)": "Audience - Parent & Me, Audience - Toddler/Infant",
-            "Onesies (12-24 months)": "Audience - Parent & Me, Audience - Toddler/Infant",
-            "Toddlers (2-3 years)": "Audience - Parent & Me, Audience - Toddler/Infant",
+            "Babies (3-12 months)": "Audience > Audience - Parent & Me, Audience > Audience - Toddler/Infant",
+            "Onesies (12-24 months)": "Audience > Audience - Parent & Me, Audience > Audience - Toddler/Infant",
+            "Toddlers (2-3 years)": "Audience > Audience - Parent & Me, Audience > Audience - Toddler/Infant",
         
             # Preschool
-            "Preschool (3-5 years)": "Audience - Preschool Age",
+            "Preschool (3-5 years)": "Audience > Audience - Preschool Age",
         
             # Elementary
-            "Grades K-2": "Audience - School Age",
-            "Grades 3-5": "Audience - School Age",
+            "Grades K-2": "Audience > Audience - School Age",
+            "Grades 3-5": "Audience > Audience - School Age",
         
             # Middle / High
-            "Grades 6-8": "Audience - Teens",
-            "Grades 9-12": "Audience - Teens",
+            "Grades 6-8": "Audience > Audience - Teens",
+            "Grades 9-12": "Audience > Audience - Teens",
         
             # All Ages (for Bookmobile or any VBPL “All Ages” events)
-            "All Ages": "Audience - Family Event, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Teens, Audience - Free Event, Event Location - Virginia Beach"
+            "All Ages": "Audience > Audience - Family Event, Audience > Audience - Toddler/Infant, Audience > Audience - Preschool Age, Audience > Audience - School Age, Audience > Audience - Teens, Audience > Audience - Free Event, Event Location (Category) > Event Location - Virginia Beach"
 
         },
         "name_suffix_map": {
@@ -678,20 +678,20 @@ LIBRARY_CONSTANTS = {
 
     "poquosonpl": {
         "always_on_categories": [
-        "Event Location - Poquoson",
-        "Audience - Free Event",
+        "Event Location (Category) > Event Location - Poquoson",
+        "Audience > Audience - Free Event",
     ],
         "program_type_to_categories": {
-            "Storytimes & Early Learning": "Audience - Free Event, List - Storytimes",
-            "STEAM": "List - STEM/STEAM, Audience - Free Event",
-            "Computers & Technology": "Audience - Free Event",
-            "Workshops & Lectures": "Audience - Free Event",
-            "Discussion Groups": "Audience - Free Event",
-            "Arts & Crafts": "Audience - Free Event",
-            "Hobbies": "Audience - Free Event",
-            "Books & Authors": "Audience - Free Event",
-            "Culture": "Audience - Free Event",
-            "History & Genealogy": "Audience - Freen Event"
+            "Storytimes & Early Learning": "Audience > Audience - Free Event, List - Storytimes",
+            "STEAM": "List - STEM/STEAM, Audience > Audience - Free Event",
+            "Computers & Technology": "Audience > Audience - Free Event",
+            "Workshops & Lectures": "Audience > Audience - Free Event",
+            "Discussion Groups": "Audience > Audience - Free Event",
+            "Arts & Crafts": "Audience > Audience - Free Event",
+            "Hobbies": "Audience > Audience - Free Event",
+            "Books & Authors": "Audience > Audience - Free Event",
+            "Culture": "Audience > Audience - Free Event",
+            "History & Genealogy": "Audience > Audience - Freen Event"
         },
         "name_suffix_map": {
             "Great Neck Area Library": "Great Neck Area Library",
@@ -723,13 +723,13 @@ LIBRARY_CONSTANTS = {
         },
         "event_name_suffix": " (York County)",
         "age_to_categories": {
-            "Families": "Audience - Family Event",
-            #"Infants - Preschool": "Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events, Audience - Preschool Age",
-            "Elementary": "Audience - School Age",
-            #"Children": "Audience - School Age",
-            "All Ages": "Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Family Event",
-            "Middle & High School": "Audience - Teens",
-            "Adults & Teens": "Audience - Teens"
+            "Families": "Audience > Audience - Family Event",
+            #"Infants - Preschool": "Audience > Audience - Parent & Me, Audience > Audience - Toddler/Infant, List - Toddler Time Events, Audience > Audience - Preschool Age",
+            "Elementary": "Audience > Audience - School Age",
+            #"Children": "Audience > Audience - School Age",
+            "All Ages": "Audience > Audience - Toddler/Infant, Audience > Audience - Preschool Age, Audience > Audience - School Age, Audience > Audience - Family Event",
+            "Middle & High School": "Audience > Audience - Teens",
+            "Adults & Teens": "Audience > Audience - Teens"
         },
     },
 
@@ -743,9 +743,9 @@ LIBRARY_CONSTANTS = {
             # "Yorktown Meeting Room": "Yorktown Library",
         },
         "always_on_categories": [
-            "Event Location - Hampton",
-            "Audience - Free Event",
-            "Audience - Military Only"
+            "Event Location (Category) > Event Location - Hampton",
+            "Audience > Audience - Free Event",
+            "Audience > Audience - Military Only"
         ],
         "event_name_suffix": " (Hampton)",
         "age_to_categories": {
@@ -755,14 +755,14 @@ LIBRARY_CONSTANTS = {
     
     "npl": {
         "age_to_categories": {
-            "Family": "Audience - Free Event, Event Location - Norfolk, Audience - Family Event",
-            "All Ages": "Audience - Free Event, Event Location - Norfolk, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Family Event", 
-            "Babies (0-2)": "Audience - Free Event, Event Location - Norfolk, Audience - Parent & Me, Audience - Toddler/Infant, List - Toddler Time Events",
-            "Toddlers (2-3)": "Audience - Free Event, Event Location - Norfolk, Audience - Toddler/Infant, List - Toddler Time Events",
-            "Preschool (3-5)": "Audience - Free Event, Event Location - Norfolk, Audience - Preschool Age",
-            "Elementary School Age (5-9)": "Audience - Free Event, Event Location - Norfolk, Audience - School Age",
-            "Tweens (9-13)": "Event Location - Norfolk, Audience - School Age, Audience - Free Event",
-            "Teens (12-17)": "Audience - Teens, Event Location - Norfolk, Audience - Free Event"
+            "Family": "Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk, Audience > Audience - Family Event",
+            "All Ages": "Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk, Audience > Audience - Toddler/Infant, Audience > Audience - Preschool Age, Audience > Audience - School Age, Audience > Audience - Family Event", 
+            "Babies (0-2)": "Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk, Audience > Audience - Parent & Me, Audience > Audience - Toddler/Infant, List - Toddler Time Events",
+            "Toddlers (2-3)": "Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk, Audience > Audience - Toddler/Infant, List - Toddler Time Events",
+            "Preschool (3-5)": "Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk, Audience > Audience - Preschool Age",
+            "Elementary School Age (5-9)": "Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk, Audience > Audience - School Age",
+            "Tweens (9-13)": "Event Location (Category) > Event Location - Norfolk, Audience > Audience - School Age, Audience > Audience - Free Event",
+            "Teens (12-17)": "Audience > Audience - Teens, Event Location (Category) > Event Location - Norfolk, Audience > Audience - Free Event"
         },
         "name_suffix_map": {
             "Mary D. Pretlow Anchor Branch Library": "Pretlow Library",
@@ -807,13 +807,13 @@ LIBRARY_CONSTANTS = {
     },
     "chpl": {
         "age_to_categories": {
-            "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Chesapeake",
-            "Elementary School": "Audience - School Age, Audience - Free Event, Event Location - Chesapeake",
-            "Middle School": "Audience - Free Event, Audience - School Age, Event Location - Chesapeake",
-            "High School": "Audience - Teens, Audience - Free Event, Event Location - Chesapeake",
-            "Families": "Audience - Family Event, Audience - Free Event, Event Location - Chesapeake",
-            "All Ages": "Audience - Free Event, Event Location - Chesapeake, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Family Event, Audience - Teens",
-            "Adult": "Audience - Free Event, Event Location - Chesapeake"
+            "Preschool": "Audience > Audience - Preschool Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Chesapeake",
+            "Elementary School": "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Chesapeake",
+            "Middle School": "Audience > Audience - Free Event, Audience > Audience - School Age, Event Location (Category) > Event Location - Chesapeake",
+            "High School": "Audience > Audience - Teens, Audience > Audience - Free Event, Event Location (Category) > Event Location - Chesapeake",
+            "Families": "Audience > Audience - Family Event, Audience > Audience - Free Event, Event Location (Category) > Event Location - Chesapeake",
+            "All Ages": "Audience > Audience - Free Event, Event Location (Category) > Event Location - Chesapeake, Audience > Audience - Toddler/Infant, Audience > Audience - Preschool Age, Audience > Audience - School Age, Audience > Audience - Family Event, Audience > Audience - Teens",
+            "Adult": "Audience > Audience - Free Event, Event Location (Category) > Event Location - Chesapeake"
         },
         "name_suffix_map": {
             "Dr. Clarence V. Cuffee Outreach and Innovation Library": "Cuffee Library",
@@ -836,38 +836,38 @@ LIBRARY_CONSTANTS = {
             "Dr. Clarence V. Cuffee Library": "Dr. Clarence V. Cuffee Outreach & Innovation Library"
         },
         "always_on_categories": [
-            "Event Location - Chesapeake",
-            "Audience - Free Event"
+            "Event Location (Category) > Event Location - Chesapeake",
+            "Audience > Audience - Free Event"
         ],
         "event_name_suffix": " (Chesapeake)"
     },
     
     "hpl": {
     "program_type_to_categories": {
-        "storytime": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Storytimes, List - Toddler Time Events, Audience - Toddler/Infant",
-        "lego": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - STEM/STEAM",
-        "steam": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - STEM/STEAM",
-        "slime": "Event Location - Hampton, Audience - Free Event, Audience - School Age, List - STEM/STEAM",
-        "craft": "Event Location - Hampton, Audience - Free Event, Audience - Family Event",
-        "painting": "Event Location - Hampton, Audience - Free Event, Audience - Family Event",
-        "art": "Event Location - Hampton, Audience - Free Event, Audience - Family Event",
-        "baking": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Cooking",
-        "cookie": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Cooking",
-        "cupcake": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Cooking",
-        "sensory": "Event Location - Hampton, Audience - Free Event, Audience - Toddler/Infant, List - Toddler Time Events",
-        "chalk": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Outdoor Activities",
-        "bubble": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Outdoor Activities",
-        "photography": "Event Location - Hampton, Audience - Free Event, List - STEM/STEAM",
-        "writing": "Event Location - Hampton, Audience - Free Event, List - Creative Writing",
-        "book club": "Event Location - Hampton, Audience - Free Event, List - Reading",
-        "movie": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Movies",
-        "trivia": "Event Location - Hampton, Audience - Free Event, Audience - Family Event",
-        "scavenger": "Event Location - Hampton, Audience - Free Event, Audience - Family Event",
-        "hunt": "Event Location - Hampton, Audience - Free Event, Audience - Family Event",
-        "music": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Music & Performance",
-        "dance": "Event Location - Hampton, Audience - Free Event, Audience - Family Event, List - Music & Performance",
-        "teen": "Event Location - Hampton, Audience - Free Event, Audience - Teens",
-        "tween": "Event Location - Hampton, Audience - Free Event, Audience - School Age"
+        "storytime": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Family Event, List - Storytimes, List - Toddler Time Events, Audience > Audience - Toddler/Infant",
+        "lego": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - School Age, List - STEM/STEAM",
+        "steam": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - School Age, List - STEM/STEAM",
+        "slime": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - School Age, List - STEM/STEAM",
+        "craft": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Family Event",
+        "painting": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Family Event",
+        "art": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Family Event",
+        "baking": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Family Event, List - Cooking",
+        "cookie": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Family Event, List - Cooking",
+        "cupcake": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Family Event, List - Cooking",
+        "sensory": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Toddler/Infant, List - Toddler Time Events",
+        "chalk": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Family Event, List - Outdoor Activities",
+        "bubble": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Family Event, List - Outdoor Activities",
+        "photography": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, List - STEM/STEAM",
+        "writing": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, List - Creative Writing",
+        "book club": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, List - Reading",
+        "movie": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Family Event, List - Movies",
+        "trivia": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Family Event",
+        "scavenger": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Family Event",
+        "hunt": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Family Event",
+        "music": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Family Event, List - Music & Performance",
+        "dance": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Family Event, List - Music & Performance",
+        "teen": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - Teens",
+        "tween": "Event Location (Category) > Event Location - Hampton, Audience > Audience - Free Event, Audience > Audience - School Age"
     },
 
     "location_map": {
@@ -925,12 +925,12 @@ LIBRARY_CONSTANTS = {
             "Chuckatuck Library": "Chuckatuck Library"
         },
         "program_type_to_categories": {
-            #"Early Childhood": "Audience - Family Event, Event Location - Suffolk, Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Audience - Toddler/Infant",
-            "Elementary": "Audience - School Age, Audience - Free Event, Event Location - Suffolk",
-            "Family": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk",
-            "High School": "Audience - Teens, Audience - Free Event, Event Location - Suffolk",
-            "Middle School": "Audience - Teens, Audience - Free Event, Event Location - Suffolk",
-            "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Suffolk, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Teens"
+            #"Early Childhood": "Audience > Audience - Family Event, Event Location (Category) > Event Location - Suffolk, Audience > Audience - Preschool Age, Audience > Audience - Free Event, Audience > Audience - Parent & Me, Audience > Audience - Toddler/Infant",
+            "Elementary": "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Suffolk",
+            "Family": "Audience > Audience - Family Event, Audience > Audience - Free Event, Event Location (Category) > Event Location - Suffolk",
+            "High School": "Audience > Audience - Teens, Audience > Audience - Free Event, Event Location (Category) > Event Location - Suffolk",
+            "Middle School": "Audience > Audience - Teens, Audience > Audience - Free Event, Event Location (Category) > Event Location - Suffolk",
+            "All Ages": "Audience > Audience - Family Event, Audience > Audience - Free Event, Event Location (Category) > Event Location - Suffolk, Audience > Audience - Toddler/Infant, Audience > Audience - Preschool Age, Audience > Audience - School Age, Audience > Audience - Teens"
         },
         "event_name_suffix": " (Suffolk)",
         "age_to_categories": {}
@@ -958,12 +958,12 @@ LIBRARY_CONSTANTS = {
             "Manor Branch": "Manor Branch Library"
         },
         "age_to_categories": {
-            "Infant": "Audience - Toddler/Infant, Audience - Free Event, Event Location - Portsmouth",
-            "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Portsmouth",
-            "School Age": "Audience - School Age, Audience - Free Event, Event Location - Portsmouth",
-            "Tweens": "Audience - School Age, Audience - Free Event, Event Location - Portsmouth",
-            "Teens": "Audience - Teens, Audience - Free Event, Event Location - Portsmouth",
-            "All Ages": "Audience - Free Event, Event Location - Portsmouth, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Family Event"
+            "Infant": "Audience > Audience - Toddler/Infant, Audience > Audience - Free Event, Event Location (Category) > Event Location - Portsmouth",
+            "Preschool": "Audience > Audience - Preschool Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Portsmouth",
+            "School Age": "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Portsmouth",
+            "Tweens": "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Portsmouth",
+            "Teens": "Audience > Audience - Teens, Audience > Audience - Free Event, Event Location (Category) > Event Location - Portsmouth",
+            "All Ages": "Audience > Audience - Free Event, Event Location (Category) > Event Location - Portsmouth, Audience > Audience - Toddler/Infant, Audience > Audience - Preschool Age, Audience > Audience - School Age, Audience > Audience - Family Event"
         },
         "program_type_to_categories": {
             # leave blank for now unless you want to map specific phrases like "STEAM", "craft", etc.
@@ -987,35 +987,35 @@ LIBRARY_CONSTANTS = {
             "Meeting Room": "Pearl Bailey Library"  
         },
         "program_type_to_categories": {
-            "Storytime": "Audience - Family Event, List - Storytimes, Event Location - Newport News, Audience - Free Event",
-            "ArtsandCrafts": "Audience - Family Event, Event Location - Newport News, Audience - Free Event",
-            "SummerReading": "Audience - Family Event, Event Location - Newport News, Audience - Free Event",
-            "Community": "Audience - Family Event, Event Location - Newport News, Audience - Free Event",
-            "Teens": "Audience - Teens, Event Location - Newport News, Audience - Free Event",
-            "Tweens": "Event Location - Newport News, Audience - Free Event",
-            "Children": "Audience - Family Event, Event Location - Newport News, Audience - Free Event",
-            "Adults": "Event Location - Newport News, Audience - Free Event",
-            "author": "List - Books & Authors, Event Location - Newport News, Audience - Free Event",
-            "STEAM": "List - STEM/STEAM, Event Location - Newport News, Audience - Free Event",
-            "Science": "List - STEM/STEAM, Event Location - Newport News, Audience - Free Event"
+            "Storytime": "Audience > Audience - Family Event, List - Storytimes, Event Location (Category) > Event Location - Newport News, Audience > Audience - Free Event",
+            "ArtsandCrafts": "Audience > Audience - Family Event, Event Location (Category) > Event Location - Newport News, Audience > Audience - Free Event",
+            "SummerReading": "Audience > Audience - Family Event, Event Location (Category) > Event Location - Newport News, Audience > Audience - Free Event",
+            "Community": "Audience > Audience - Family Event, Event Location (Category) > Event Location - Newport News, Audience > Audience - Free Event",
+            "Teens": "Audience > Audience - Teens, Event Location (Category) > Event Location - Newport News, Audience > Audience - Free Event",
+            "Tweens": "Event Location (Category) > Event Location - Newport News, Audience > Audience - Free Event",
+            "Children": "Audience > Audience - Family Event, Event Location (Category) > Event Location - Newport News, Audience > Audience - Free Event",
+            "Adults": "Event Location (Category) > Event Location - Newport News, Audience > Audience - Free Event",
+            "author": "List - Books & Authors, Event Location (Category) > Event Location - Newport News, Audience > Audience - Free Event",
+            "STEAM": "List - STEM/STEAM, Event Location (Category) > Event Location - Newport News, Audience > Audience - Free Event",
+            "Science": "List - STEM/STEAM, Event Location (Category) > Event Location - Newport News, Audience > Audience - Free Event"
         },
         "age_to_categories": {
-            "Babies": "Audience - Toddler/Infant, Audience - Free Event, Event Location - Newport News",
-            "Toddlers": "Audience - Toddler/Infant, List - Toddler Time Events, Audience - Free Event, Event Location - Newport News",
-            "Preschool": "Audience - Preschool Age, Audience - Free Event, Event Location - Newport News",
-            "Children": "Audience - Family Event, Audience - Free Event, Event Location - Newport News, Audience - School Age",
-            "Kids": "Audience - Family Event, Audience - Free Event, Event Location - Newport News",
-            "Tweens": "Audience - Free Event, Event Location - Newport News",
-            "Teens": "Audience - Teens, Audience - Free Event, Event Location - Newport News",
-            "Young Adults": "Audience - Teens, Audience - Free Event, Event Location - Newport News",
-            "Adults": "Audience - Free Event, Event Location - Newport News",
-            "18+": "Audience - Free Event, Event Location - Newport News",
-            "21+": "Audience - Free Event, Event Location - Newport News",
-            "Seniors": "Audience - Seniors, Audience - Free Event, Event Location - Newport News",
-            "School Age": "Audience - Family Event, Audience - Free Event, Event Location - Newport News, Audience - School Age",
-            "All Ages": "Audience - Family Event, Audience - Free Event, Event Location - Newport News, Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age",
-            "Infant": "Audience - Toddler/Infant, Audience - Free Event, Event Location - Newport News, Audience - Parent & Me, List - Toddler Time Events",
-            "Family": "Audience - Family Event, Audience - Free Event, Event Location - Newport News"
+            "Babies": "Audience > Audience - Toddler/Infant, Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News",
+            "Toddlers": "Audience > Audience - Toddler/Infant, List - Toddler Time Events, Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News",
+            "Preschool": "Audience > Audience - Preschool Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News",
+            "Children": "Audience > Audience - Family Event, Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News, Audience > Audience - School Age",
+            "Kids": "Audience > Audience - Family Event, Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News",
+            "Tweens": "Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News",
+            "Teens": "Audience > Audience - Teens, Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News",
+            "Young Adults": "Audience > Audience - Teens, Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News",
+            "Adults": "Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News",
+            "18+": "Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News",
+            "21+": "Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News",
+            "Seniors": "Audience > Audience - Seniors, Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News",
+            "School Age": "Audience > Audience - Family Event, Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News, Audience > Audience - School Age",
+            "All Ages": "Audience > Audience - Family Event, Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News, Audience > Audience - Toddler/Infant, Audience > Audience - Preschool Age, Audience > Audience - School Age",
+            "Infant": "Audience > Audience - Toddler/Infant, Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News, Audience > Audience - Parent & Me, List - Toddler Time Events",
+            "Family": "Audience > Audience - Family Event, Audience > Audience - Free Event, Event Location (Category) > Event Location - Newport News"
         }
     }
 }
