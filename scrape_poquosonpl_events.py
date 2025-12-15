@@ -28,34 +28,34 @@ def _age_groups_to_tags(ages_text: str, organizer="Poquoson"):
     tags = []
     # coarse buckets
     if any(w in t for w in ["baby", "babies", "infant", "0-2"]):
-        tags += ["Audience - Toddler/Infant"]
+        tags += ["Audience > Audience - Toddler/Infant"]
     if any(w in t for w in ["toddler", "preschool", "pre-k", "ages 3", "ages 4", "3-5"]):
-        tags += ["Audience - Preschool Age", "Audience - Parent & Me"]
+        tags += ["Audience > Audience - Preschool Age", "Audience > Audience - Parent & Me"]
     if any(w in t for w in ["kids", "children", "school age", "elementary", "grades"]):
-        tags += ["Audience - School Age"]
+        tags += ["Audience > Audience - School Age"]
     if any(w in t for w in ["tween", "tweens", "middle school"]):
-        tags += ["Audience - School Age"]
+        tags += ["Audience > Audience - School Age"]
     if any(w in t for w in ["teen", "teens", "high school", "young adult"]):
-        tags += ["Audience - Teens"]
+        tags += ["Audience > Audience - Teens"]
     if "all ages" in t or "family" in t:
-        tags += ["Audience - Free Event"]  # keep “free” as a default audience tag
+        tags += ["Audience > Audience - Free Event"]  # keep “free” as a default audience tag
     # Always include location tag
-    tags += [f"Event Location - {organizer}"]
+    tags += [f"Event Location (Category) > Event Location - {organizer}"]
     return _dedupe_keep_order(tags)
 
 # Program Type → default tags (VBPL-style), fallback to constants override if present
 def _program_type_to_tags(program_type: str, organizer="Poquoson"):
     base = {
-        "Storytimes & Early Learning": f"Event Location - {organizer}, Audience - Free Event, Audience - Family Event, List - Storytimes",
-        "STEAM": f"Event Location - {organizer}, List - STEM/STEAM, Audience - Free Event, Audience - Family Event",
-        "Computers & Technology": f"Event Location - {organizer}, Audience - Free Event, Audience - Teens, Audience - Family Event",
-        "Workshops & Lectures": f"Event Location - {organizer}, Audience - Free Event, Audience - Family Event",
-        "Discussion Groups": f"Event Location - {organizer}, Audience - Free Event, Audience - Family Event",
-        "Arts & Crafts": f"Event Location - {organizer}, Audience - Free Event, Audience - Family Event",
-        "Hobbies": f"Event Location - {organizer}, Audience - Free Event, Audience - Family Event",
-        "Books & Authors": f"Event Location - {organizer}, Audience - Free Event, Audience - Family Event",
-        "Culture": f"Event Location - {organizer}, Audience - Free Event, Audience - Family Event",
-        "History & Genealogy": f"Event Location - {organizer}, Audience - Teens, Audience - Free Event",
+        "Storytimes & Early Learning": f"Event Location (Category) > Event Location - {organizer}, Audience > Audience - Free Event, Audience > Audience - Family Event, List - All Seasons > List - Storytimes",
+        "STEAM": f"Event Location (Category) > Event Location - {organizer}, List - All Seasons > List - STEM/STEAM, Audience > Audience - Free Event, Audience > Audience - Family Event",
+        "Computers & Technology": f"Event Location (Category) > Event Location - {organizer}, Audience > Audience - Free Event, Audience > Audience - Teens, Audience > Audience - Family Event",
+        "Workshops & Lectures": f"Event Location (Category) > Event Location - {organizer}, Audience > Audience - Free Event, Audience > Audience - Family Event",
+        "Discussion Groups": f"Event Location (Category) > Event Location - {organizer}, Audience > Audience - Free Event, Audience > Audience - Family Event",
+        "Arts & Crafts": f"Event Location (Category) > Event Location - {organizer}, Audience > Audience - Free Event, Audience > Audience - Family Event",
+        "Hobbies": f"Event Location (Category) > Event Location - {organizer}, Audience > Audience - Free Event, Audience > Audience - Family Event",
+        "Books & Authors": f"Event Location (Category) > Event Location - {organizer}, Audience > Audience - Free Event, Audience > Audience - Family Event",
+        "Culture": f"Event Location (Category) > Event Location - {organizer}, Audience > Audience - Free Event, Audience > Audience - Family Event",
+        "History & Genealogy": f"Event Location (Category) > Event Location - {organizer}, Audience > Audience - Teens, Audience > Audience - Free Event",
     }
     # constants override if provided
     from_constants = (LIBRARY_CONSTANTS.get("poquosonpl", {}) or {}).get("program_type_to_categories")
@@ -97,7 +97,7 @@ def _build_categories(title, description, program_type, ages_text):
     tags += always_on
 
     # ✅ ensure both audience tags are always present
-    must_have = ["Audience - Free Event", "Audience - Family Event"]
+    must_have = ["Audience > Audience - Free Event", "Audience > Audience - Family Event"]
     for t in must_have:
         if t not in tags:
             tags.append(t)
