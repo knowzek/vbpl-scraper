@@ -138,8 +138,8 @@ def scrape_npl_events(mode="all"):
                             keyword_tags.extend([t.strip() for t in tag_string.split(",")])
                     
                     # 2. Add base location + free tag
-                    base_location_tag = "Event Location - Norfolk"
-                    free_tag = "Audience - Free Event"  # You can always add this for NPL unless charging logic is found
+                    base_location_tag = "Event Location (Category) > Event Location - Norfolk"
+                    free_tag = "Audience > Audience - Free Event"  # You can always add this for NPL unless charging logic is found
                     
                     # 3. Age tags via map_age_to_categories
                     min_age = 0
