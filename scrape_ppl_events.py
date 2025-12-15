@@ -389,8 +389,8 @@ def scrape_ppl_events(mode="all"):
     age_to_categories = ppl_constants.get("age_to_categories", {}) or {}
 
     DEFAULT_CATEGORIES = (
-        "Audience - Family Event, Audience - Free Event, "
-        "Audience - Preschool Age, Audience - School Age, Event Location - Portsmouth"
+        "Audience > Audience - Family Event, Audience > Audience - Free Event, "
+        "Audience > Audience - Preschool Age, Audience > Audience - School Age, Event Location (Category) > Event Location - Portsmouth"
     )
 
     events = []
@@ -448,7 +448,7 @@ def scrape_ppl_events(mode="all"):
 
             # Always add these for PPL
             all_tags = [c.strip() for c in base_cats + age_tags if c.strip()]
-            all_tags.extend(["Audience - Free Event", "Event Location - Portsmouth"])
+            all_tags.extend(["Audience > Audience - Free Event", "Event Location (Category) > Event Location - Portsmouth"])
             categories = ", ".join(dict.fromkeys(all_tags)) or DEFAULT_CATEGORIES
 
             events.append({
