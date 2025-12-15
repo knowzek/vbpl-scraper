@@ -145,7 +145,7 @@ def scrape_hpl_events(mode="all"):
                     keyword_tags.extend([c.strip() for c in cat.split(",")])
             
             # Always append base tags
-            base_tags = ["Audience - Free Event", "Event Location - Hampton"]
+            base_tags = ["Audience > Audience - Free Event", "Event Location (Category) > Event Location - Hampton"]
             categories = ", ".join(dict.fromkeys(program_categories + keyword_tags + base_tags))
 
 
