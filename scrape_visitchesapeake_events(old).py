@@ -87,7 +87,7 @@ def scrape_visitchesapeake_events(mode="monthly"):
                     "Event Description": "See event link for details",
                     "Series": "",
                     "Program Type": "Family Fun",
-                    "Categories": "Event Location - Chesapeake, Audience - Free Event, Audience - Family Event"
+                    "Categories": "Event Location (Category) > Event Location - Chesapeake, Audience > Audience - Free Event, Audience > Audience - Family Event"
                 })
                 print(f"✅ Added event: {name}")
             except Exception as e:
