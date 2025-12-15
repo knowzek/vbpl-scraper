@@ -20,7 +20,7 @@ MASTER_LOG_WORKSHEET_NAME = os.environ.get("MASTER_LOG_WORKSHEET_NAME", "Master 
 
 
 # --- protect a single label that contains commas so we don't split it ---
-SPECIAL_MULTIWORD = "List - Cosplay, Anime, Comics"
+SPECIAL_MULTIWORD = "List - All Seasons > List - Cosplay Anime Comics"
 PLACEHOLDER = "LIST_COSPLAY_ANIME_COMICS"  # something that will never appear naturally
 
 SYNTHESIZE_SINGLE_FOR = {"visitchesapeake", "visitnewportnews", "visitnorfolk", "visityorktown"}
@@ -126,7 +126,7 @@ def _strip_preschool_for_just2s(title: str, tags: list[str]) -> list[str]:
     t = (title or "").lower()
     # matches: "just 2s", "just 2's", "just 2’s", "just twos", "just two's"
     if re.search(r"\bjust\s*(?:2\s*[’']?\s*s|two[’']?s)\b", t):
-        return [c for c in tags if c not in {"Audience - Preschool Age", "Audience - Preschool"}]
+        return [c for c in tags if c not in {"Audience > Audience - Preschool Age", "Audience > Audience - Preschool"}]
     return tags
 
 def _strip_schoolage_for_3splease(title: str, tags: list[str]) -> list[str]:
@@ -136,7 +136,7 @@ def _strip_schoolage_for_3splease(title: str, tags: list[str]) -> list[str]:
     t = (title or "").lower()
     # matches: "3s please", "3's please", "three's please"
     if re.search(r"\b3\s*[’']?\s*s\s*please\b|\bthree[’']?s\s*please\b", t):
-        return [c for c in tags if c not in {"Audience - School Age"}]
+        return [c for c in tags if c not in {"Audience > Audience - School Age"}]
     return tags
 
 def _strip_infant_parentme_for_preschool_storytime(title: str, tags: list[str]) -> list[str]:
@@ -151,8 +151,8 @@ def _strip_infant_parentme_for_preschool_storytime(title: str, tags: list[str]) 
         if "toddler & preschool storytime" in t or "toddler and preschool storytime" in t:
             return tags
         return [c for c in tags if c not in {
-            "Audience - Toddler/Infant",
-            "Audience - Parent & Me"
+            "Audience > Audience - Toddler/Infant",
+            "Audience > Audience - Parent & Me"
         }]
     return tags
 
@@ -163,7 +163,7 @@ def _strip_family_for_babies_in_bloom(title: str, tags: list[str]) -> list[str]:
     """
     t = (title or "").lower()
     if "babies in bloom" in t:
-        return [c for c in tags if c not in {"Audience - Family Event"}]
+        return [c for c in tags if c not in {"Audience > Audience - Family Event"}]
     return tags
 
 
@@ -520,20 +520,20 @@ def _spans_to_audience_tags(spans):
     tags = []
     # toddler/infant if any months present OR mx <= 2.5
     if mx <= 2.5:
-        tags.append("Audience - Toddler/Infant")
-        tags.append("Audience - Parent & Me")  # most sub-2.5y are caregiver events
+        tags.append("Audience > Audience - Toddler/Infant")
+        tags.append("Audience > Audience - Parent & Me")  # most sub-2.5y are caregiver events
 
     # preschool overlap
     if mx >= 3.0 and mn <= 4.99:
-        tags.append("Audience - Preschool Age")
+        tags.append("Audience > Audience - Preschool Age")
 
     # school-age overlap
     if mx >= 5.0 and mn <= 11.99:
-        tags.append("Audience - School Age")
+        tags.append("Audience > Audience - School Age")
 
     # teens overlap
     if mx >= 13.0 and mn <= 17.99 and not (mx <= 2.5):
-        tags.append("Audience - Teens")
+        tags.append("Audience > Audience - Teens")
 
     return list(dict.fromkeys(tags))
 
@@ -638,7 +638,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                 if library == "ppl":
                     programtype_cats = [c.strip() for c in (event.get("Categories", "") or "").split(",") if c.strip()]
                     if not programtype_cats:
-                        programtype_cats = [c.strip() for c in "Audience - Family Event, Audience - Free Event, Audience - Preschool Age, Audience - School Age, Event Location - Portsmouth".split(",")]
+                        programtype_cats = [c.strip() for c in "Audience > Audience - Family Event, Audience > Audience - Free Event, Audience > Audience - Preschool Age, Audience > Audience - School Age, Event Location (Category) > Event Location - Portsmouth".split(",")]
                 elif library == "hpl":
                     program_types = [pt.strip().lower() for pt in program_type.split(",") if pt.strip()]
                     matched_tags = []
@@ -727,12 +727,12 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
 
                 # ✅ add the School Age tag based on grades K–5 detection
                 if (is_school_age_phrase or mentions_elementary or mentions_grades_elm) and not (mentions_high_school or mentions_middle_school):
-                    _ensure(tag_list, "Audience - School Age")
+                    _ensure(tag_list, "Audience > Audience - School Age")
     
                 # --- YPL: always add base tags ---
                 if library == "ypl":
-                    _ensure(tag_list, "Audience - Free Event")
-                    _ensure(tag_list, "Event Location - Yorktown / York County")
+                    _ensure(tag_list, "Audience > Audience - Free Event")
+                    _ensure(tag_list, "Event Location (Category) > Event Location - Yorktown / York County")
 
                 # 5) Fallback if nothing at all
                 if not tag_list:
@@ -743,8 +743,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                             fallback_city = city
                             break
                     tag_list.append(
-                        f"Event Location - {fallback_city}, Audience - Free Event"
-                        if fallback_city else "Audience - Free Event"
+                        f"Event Location (Category) > Event Location - {fallback_city}, Audience > Audience - Free Event"
+                        if fallback_city else "Audience > Audience - Free Event"
                     )
         
                 # VBPL debug (optional)
@@ -786,8 +786,8 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     venue = (event.get("Venue", "") or "").lower()
                     location = (event.get("Location", "") or "").lower()
                     if "library" in venue or "library" in location:
-                        if "Audience - Free Event" not in categories:
-                            categories += ", Audience - Free Event"
+                        if "Audience > Audience - Free Event" not in categories:
+                            categories += ", Audience > Audience - Free Event"
                             print(f"🏷️ Added Free Event tag (library venue) → {event.get('Event Name')}")
 
                 # === Normalize title and (maybe) suffix ===
@@ -819,7 +819,7 @@ def upload_events_to_sheet(events, sheet=None, mode="full", library="vbpl", age_
                     event_name += suffix
         
                 if not categories:
-                    categories = event.get("Categories", "") or f"Event Location - {config['organizer_name']}, Audience - Free Event, Audience - Family Event"
+                    categories = event.get("Categories", "") or f"Event Location (Category) > Event Location - {config['organizer_name']}, Audience > Audience - Free Event, Audience > Audience - Family Event"
         
                 # Decide sheet location (Column F)
                 organizer = (event.get("Organizer", "") or "").strip().lower()
