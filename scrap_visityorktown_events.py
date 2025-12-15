@@ -32,8 +32,8 @@ EID_LINK_RE = re.compile(r"https://www\.visityorktown\.org/calendar\.aspx\?EID=\
 TAG_RE = re.compile(r"<[^>]+>")
 
 ALWAYS_ON_CATEGORIES = [
-    "Event Location - Yorktown",
-    "Audience - Family Event", 
+    "Event Location (Category) > Event Location - Yorktown",
+    "Audience > Audience - Family Event", 
 ]
 
 # Put near the top with the other regexes/utilities
@@ -127,13 +127,13 @@ def _infer_ages(text: str) -> str:
 def _age_to_categories(ages_str: str):
     """Map inferred age buckets to category tags."""
     age_map = {
-        "Infant":       "Audience - Toddler/Infant, Audience - Free Event, Event Location - Yorktown",
-        "Preschool":    "Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Event Location - Yorktown",
-        "School Age":   "Audience - School Age, Audience - Free Event, Event Location - Yorktown",
-        "Tweens":       "Audience - School Age, Audience - Free Event, Event Location - Yorktown",
-        "Teens":        "Audience - Teens, Audience - Free Event, Event Location - Yorktown",
-        "All Ages":     "Audience - Free Event, Event Location - Yorktown",
-        "Adults 18+":   "Audience - Free Event, Event Location - Yorktown",
+        "Infant":       "Audience > Audience - Toddler/Infant, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown",
+        "Preschool":    "Audience > Audience - Preschool Age, Audience > Audience - Free Event, Audience > Audience - Parent & Me, Event Location (Category) > Event Location - Yorktown",
+        "School Age":   "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown",
+        "Tweens":       "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown",
+        "Teens":        "Audience > Audience - Teens, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown",
+        "All Ages":     "Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown",
+        "Adults 18+":   "Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown",
     }
     out = []
     for a in [x.strip() for x in (ages_str or "").split(",") if x.strip()]:
