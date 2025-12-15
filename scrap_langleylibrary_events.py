@@ -9,10 +9,10 @@ BASE_URL = "https://www.langleylibrary.org"
 BASE_URL2 = "https://www.langleylibrary.org/teen-events"
 BASE_URL3 = "https://www.langleylibrary.org/kids-events"
 ALWAYS_ON_CATEGORIES = [
-    "Event Location - Hampton",
-    "Audience - Family Event",
-    "Audience - Free Event",
-    "Audience - Military Only"
+    "Event Location (Category) > Event Location - Hampton",
+    "Audience > Audience - Family Event",
+    "Audience > Audience - Free Event",
+    "Audience > Audience - Military Only"
 ]
 
 def filter_and_sort_events(events, date_start, date_end):
@@ -83,13 +83,13 @@ def _infer_ages(text: str) -> str:
 def _age_to_categories(ages_str: str):
     """Map inferred age buckets to category tags"""
     age_map = {
-        "Infant":       "Audience - Toddler/Infant, Audience - Free Event, Event Location - Hampton",
-        "Preschool":    "Audience - Preschool Age, Audience - Free Event, Audience - Parent & Me, Event Location - Hampton",
-        "School Age":   "Audience - School Age, Audience - Free Event, Event Location - Hampton",
-        "Tweens":       "Audience - School Age, Audience - Free Event, Event Location - Hampton",
-        "Teens":        "Audience - Teens, Audience - Free Event, Event Location - Hampton",
-        "All Ages":     "Audience - Toddler/Infant, Audience - Preschool Age, Audience - School Age, Audience - Family Event, Audience - Free Event, Event Location - Hampton",
-        "Adults 18+":   "Audience - Free Event, Event Location - Hampton",
+        "Infant":       "Audience > Audience - Toddler/Infant, Audience > Audience - Free Event, Event Location (Category) > Event Location - Hampton",
+        "Preschool":    "Audience > Audience - Preschool Age, Audience > Audience - Free Event, Audience > Audience - Parent & Me, Event Location (Category) > Event Location - Hampton",
+        "School Age":   "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Hampton",
+        "Tweens":       "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Hampton",
+        "Teens":        "Audience > Audience - Teens, Audience > Audience - Free Event, Event Location (Category) > Event Location - Hampton",
+        "All Ages":     "Audience > Audience - Toddler/Infant, Audience > Audience - Preschool Age, Audience > Audience - School Age, Audience > Audience - Family Event, Audience > Audience - Free Event, Event Location (Category) > Event Location - Hampton",
+        "Adults 18+":   "Audience > Audience - Free Event, Event Location (Category) > Event Location - Hampton",
     }
     out = []
     for a in [x.strip() for x in (ages_str or "").split(",") if x.strip()]:
@@ -181,7 +181,7 @@ def get_events_data(soup: BeautifulSoup, url: str):
         age_tags = _age_to_categories(ages)
         base_tags = ALWAYS_ON_CATEGORIES[:]  # copy
         if url.endswith("teen-events") and "All Ages" not in (ages or ""):
-            base_tags.append("Audience - Teens")
+            base_tags.append("Audience > Audience - Teens")
 
         all_tags = _dedupe_preserve_order(base_tags + keyword_tags + age_tags)
 
