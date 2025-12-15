@@ -33,6 +33,12 @@ HEADERS = {
 # Helpers
 # -------------------------
 
+def _strip_after_eid(url: str) -> str:
+    # keep only "...Calendar.aspx?EID=####"
+    m = re.search(r"^(https?://[^?]+/calendar\.aspx\?eid=\d+)", url, re.IGNORECASE)
+    return m.group(1) if m else url
+
+
 def is_likely_adult_event(text: str) -> bool:
     t = (text or "").lower()
     keywords = [
@@ -159,7 +165,7 @@ def _fetch_month_event_links(year: int, month: int) -> list[str]:
                 for a in soup.find_all("a", href=True):
                     href = a["href"]
                     if "calendar.aspx?eid=" in href.lower():
-                        links.add(urljoin(BASE, href))
+                        links.add(_strip_after_eid(urljoin(BASE, href)))
             except Exception:
                 continue
     return sorted(links)
