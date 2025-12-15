@@ -244,10 +244,10 @@ def scrape_vbpr_events(mode="all"):
 
                 program_type_categories = ""
                 if category == "Fitness & Wellness":
-                    program_type_categories = "Event Location - Virginia Beach, List - Fitness Events"
+                    program_type_categories = "Event Location (Category) > Event Location - Virginia Beach, List - All Seasons > List - Fitness Events"
 
-                free_event_tag = "Audience - Free Event" if is_free else ""
-                base_location_tag = "Event Location - Virginia Beach"
+                free_event_tag = "Audience > Audience - Free Event" if is_free else ""
+                base_location_tag = "Event Location (Category) > Event Location - Virginia Beach"
                 print(f"📍 base_location_tag: {base_location_tag}")
                 print(f"🎟️ free_event_tag: {free_event_tag}")
                 print(f"🏷️ keyword_category_str: {keyword_category_str}")
