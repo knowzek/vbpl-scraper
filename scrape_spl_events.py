@@ -203,8 +203,8 @@ def scrape_spl_events(mode="all"):
                     event_name = f"{full_title} ({location})"
                     
                     # === Build categories: base city + free + program type + keywords ===
-                    base_location_tag = "Event Location - Suffolk"
-                    free_tag = "Audience - Free Event"   # keep unless you have a fee detector
+                    base_location_tag = "Event Location (Category) > Event Location - Suffolk"
+                    free_tag = "Audience > Audience - Free Event"   # keep unless you have a fee detector
                     
                     title_lower = (title or "").lower()
                     
