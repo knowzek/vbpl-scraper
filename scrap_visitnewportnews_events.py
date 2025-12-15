@@ -142,7 +142,7 @@ def check_keyword(word, text):
 
 def get_categories(event, cats_toadd):
     # Always-on tags
-    base_tags = ["Event Location - Newport News", "Audience - Family Event"]
+    base_tags = ["Event Location (Category) > Event Location - Newport News", "Audience > Audience - Family Event"]
 
     # 1) Keyword-driven tags 
     keyword_tags = set(cats_toadd)
@@ -179,7 +179,7 @@ def filter_data(data):
             if cat['catName'] == "Family Friendly":
                 scoreSTR += "Main, "
             if cat['catName'] == "Fishing":
-                cats_toadd.append("List - Fishing")
+                cats_toadd.append("List - All Seasons > List - Fishing")
 
         listing = d.get('listing', {})
         subCategories = listing.get('categories', [])
@@ -187,7 +187,7 @@ def filter_data(data):
             if sub['subcatname'] == "Family Friendly":
                 scoreSTR += "sub, "
             if sub['subcatname'] == "Outdoor Recreation":
-                cats_toadd.append("Audience - Outdoor Event")
+                cats_toadd.append("Audience > Audience - Outdoor Event")
             
 
             
@@ -196,7 +196,7 @@ def filter_data(data):
             continue
 
         if "free" in d.get('admission', '').lower():
-            cats_toadd.append("Audience - Free Event")
+            cats_toadd.append("Audience > Audience - Free Event")
 
         d['Event Name'] = d.get('title', '')
         d['Event Description'] = d.get('description', '')
