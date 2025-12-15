@@ -79,7 +79,7 @@ def check_keyword(word, text):
 
 def get_categories(event, cats_toadd):
     # Always-on tags
-    base_tags = ["Event Location - Suffolk", "Audience - Family Event"]
+    base_tags = ["Event Location (Category) > Event Location – Suffolk", "Audience > Audience - Family Event"]
 
     # 1) Keyword-driven tags 
     keyword_tags = set(cats_toadd)
@@ -247,7 +247,7 @@ def get_events(html_content):
 
             price = event_json.get('offers', {}).get('price', '')
             if price == '0':
-                cats_toadd = ['Audience - Free Event']
+                cats_toadd = ['Audience > Audience - Free Event']
             else:
                 cats_toadd = []
 
