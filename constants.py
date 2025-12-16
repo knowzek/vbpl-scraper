@@ -155,7 +155,7 @@ TITLE_KEYWORD_TO_CATEGORY_RAW = {
     "festival of light": "Audience > Audience - Holiday Events, Audience > Audience - Outdoor Event, List - Winter > List - Winter - Holiday Lights",
     "christmas in july": "List - Summer > List - Summer - Christmas In July!",
     "santa": "List - Winter > List - Winter - Santa All",
-    "grinch": "List – Winter - Grinch Events",
+    "grinch": "List - Winter - Grinch Events",
     "bethlehem": "List - Winter > List - Winter - Holiday Bethlehem Events",
     "Nativity": "List - Winter > List - Winter - Nativity Scenes",
     "hanukkah": "List - Winter > List - Winter - Hanukkah Events",
