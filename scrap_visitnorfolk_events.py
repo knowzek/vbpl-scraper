@@ -31,7 +31,7 @@ EID_LINK_RE = re.compile(r"https://www\.norfolk\.gov/calendar\.aspx\?EID=\d+")
 TAG_RE = re.compile(r"<[^>]+>")
 
 ALWAYS_ON_CATEGORIES = [
-    "Event Location (Category) > Event Location – Norfolk",
+    "Event Location (Category) > Event Location - Norfolk",
     "Audience > Audience - Family Event", 
 ]
 
@@ -132,13 +132,13 @@ def _infer_ages(text: str) -> str:
 def _age_to_categories(ages_str: str):
     """Map inferred age buckets to category tags (Norfolk-specific)."""
     age_map = {
-        "Infant":       "Audience > Audience - Toddler/Infant, Audience > Audience - Free Event, Event Location (Category) > Event Location – Norfolk",
-        "Preschool":    "Audience > Audience - Preschool Age, Audience > Audience - Free Event, Audience > Audience - Parent & Me, Event Location (Category) > Event Location – Norfolk",
-        "School Age":   "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location – Norfolk",
-        "Tweens":       "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location – Norfolk",
-        "Teens":        "Audience > Audience - Teens, Audience > Audience - Free Event, Event Location (Category) > Event Location – Norfolk",
-        "All Ages":     "Audience > Audience - Free Event, Event Location (Category) > Event Location – Norfolk",
-        "Adults 18+":   "Audience > Audience - Free Event, Event Location (Category) > Event Location – Norfolk",
+        "Infant":       "Audience > Audience - Toddler/Infant, Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk",
+        "Preschool":    "Audience > Audience - Preschool Age, Audience > Audience - Free Event, Audience > Audience - Parent & Me, Event Location (Category) > Event Location - Norfolk",
+        "School Age":   "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk",
+        "Tweens":       "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk",
+        "Teens":        "Audience > Audience - Teens, Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk",
+        "All Ages":     "Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk",
+        "Adults 18+":   "Audience > Audience - Free Event, Event Location (Category) > Event Location - Norfolk",
     }
     out = []
     for a in [x.strip() for x in (ages_str or "").split(",") if x.strip()]:
