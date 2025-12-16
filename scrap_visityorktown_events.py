@@ -32,7 +32,7 @@ EID_LINK_RE = re.compile(r"https://www\.visityorktown\.org/calendar\.aspx\?EID=\
 TAG_RE = re.compile(r"<[^>]+>")
 
 ALWAYS_ON_CATEGORIES = [
-    "Event Location (Category) > Event Location - Yorktown",
+    "Event Location (Category) > Event Location - Yorktown / York County",
     "Audience > Audience - Family Event", 
 ]
 
@@ -127,13 +127,13 @@ def _infer_ages(text: str) -> str:
 def _age_to_categories(ages_str: str):
     """Map inferred age buckets to category tags."""
     age_map = {
-        "Infant":       "Audience > Audience - Toddler/Infant, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown",
-        "Preschool":    "Audience > Audience - Preschool Age, Audience > Audience - Free Event, Audience > Audience - Parent & Me, Event Location (Category) > Event Location - Yorktown",
-        "School Age":   "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown",
-        "Tweens":       "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown",
-        "Teens":        "Audience > Audience - Teens, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown",
-        "All Ages":     "Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown",
-        "Adults 18+":   "Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown",
+        "Infant":       "Audience > Audience - Toddler/Infant, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown / York County",
+        "Preschool":    "Audience > Audience - Preschool Age, Audience > Audience - Free Event, Audience > Audience - Parent & Me, Event Location (Category) > Event Location - Yorktown / York County",
+        "School Age":   "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown / York County",
+        "Tweens":       "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown / York County",
+        "Teens":        "Audience > Audience - Teens, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown / York County",
+        "All Ages":     "Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown / York County",
+        "Adults 18+":   "Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown / York County",
     }
     out = []
     for a in [x.strip() for x in (ages_str or "").split(",") if x.strip()]:
