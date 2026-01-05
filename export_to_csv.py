@@ -19,8 +19,30 @@ from email import encoders
 from email.mime.multipart import MIMEMultipart
 import time
 from gspread.exceptions import APIError
+import html
+from urllib.parse import urlsplit, urlunsplit
+
 STRICT_VENUE_LIBS = {"vbpl", "npl", "chpl", "nnpl", "hpl", "spl", "ppl"}
 NEEDS_ATTENTION_EMAIL = os.environ.get("NEEDS_ATTENTION_EMAIL")  # set in Render
+
+def _normalize_event_link(u: str) -> str:
+    if not u:
+        return ""
+    u = str(u).strip()
+
+    # Decode &#038; / &amp; → &
+    u = html.unescape(u)
+
+    # Drop fragment (#...) because sheets/scrapers may store it differently
+    parts = urlsplit(u)
+    u = urlunsplit((parts.scheme, parts.netloc, parts.path, parts.query, ""))
+
+    # Optional: normalize trailing slash
+    if u.endswith("/") and "://" in u:
+        u = u.rstrip("/")
+
+    return u
+
 
 def _to_ymd(date_str: str) -> str:
     """
@@ -716,7 +738,9 @@ def export_events_to_csv(library="master", return_df=False, needs_bucket=None, s
             # Build (link, month, day, year, time?) → row(s) index from SHEET
             key_to_rows = {}
             for i, row in enumerate(values[1:], start=2):  # data starts at row 2
-                link  = (row[c_link]  if c_link  is not None and c_link  < len(row) else "").strip()
+                raw_link = (row[c_link] if c_link is not None and c_link < len(row) else "").strip()
+                link = _normalize_event_link(raw_link)
+
                 month = (row[c_month] if c_month is not None and c_month < len(row) else "").strip()
                 day   = (row[c_day]   if c_day   is not None and c_day   < len(row) else "").strip()
                 year  = (row[c_year]  if c_year  is not None and c_year  < len(row) else "").strip()
@@ -727,7 +751,7 @@ def export_events_to_csv(library="master", return_df=False, needs_bucket=None, s
                 key_to_rows.setdefault(key, []).append(i)
     
             # Build keys from the rows we actually exported this run (df is already filtered to “new”)
-            df_links  = df["Event Link"].astype(str).str.strip()
+            df_links = df["Event Link"].astype(str).map(_normalize_event_link)
             df_months = df["Month"].astype(str).str.strip()
             df_days   = df["Day"].astype(str).str.strip()
             df_years  = df["Year"].astype(str).str.strip()
