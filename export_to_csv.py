@@ -768,6 +768,7 @@ def export_events_to_csv(library="master", return_df=False, needs_bucket=None, s
                         updates.append({"range": a1, "values": [["on site"]]})
                 else:
                     missing.append(key_with_time)
+                    print("⚠️ flip-miss link:", link)
     
             if updates:
                 _retry(sheet.batch_update, [{"range": u["range"], "values": u["values"]} for u in updates])
