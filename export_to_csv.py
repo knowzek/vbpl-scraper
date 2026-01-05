@@ -42,20 +42,22 @@ def _to_ymd(date_str: str) -> str:
 
 def _to_his(time_str: str) -> str:
     """
-    Convert '3 PM' / '3:00 PM' -> '15:00:00' for WP importer columns 'Start time (H:i:s)'.
-    Returns '' if blank/unparseable.
+    Convert various time formats to HH:MM:SS (zero-padded, 24h).
     """
     t = (time_str or "").strip()
     if not t:
         return ""
-    t = t.replace(".", "").upper().strip()
 
-    for fmt in ("%I:%M %p", "%I %p"):
+    t = t.replace(".", "").upper()
+
+    # Try common formats
+    for fmt in ("%I:%M %p", "%I %p", "%H:%M:%S", "%H:%M"):
         try:
             dt = datetime.strptime(t, fmt)
             return dt.strftime("%H:%M:%S")
         except ValueError:
             continue
+
     return ""
 
 
