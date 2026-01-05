@@ -602,16 +602,16 @@ LIBRARY_CONSTANTS = {
     
         "age_to_categories": {
             "Infant":     "Audience > Audience - Toddler/Infant, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown / York County",
-            "Preschool":  "Audience > Audience - Preschool Age, Audience > Audience - Free Event, Event Location - Yorktown / York County",
-            "School Age": "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location - Yorktown / York County",
-            "Tweens":     "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location - Yorktown / York County",
-            "Teens":      "Audience > Audience - Teens, Audience > Audience - Free Event, Event Location - Yorktown / York County",
-            "All Ages":   "Audience > Audience - Free Event, Event Location - Yorktown / York County",
-            "Adults 18+": "Audience > Audience - Free Event, Event Location - Yorktown / York County"
+            "Preschool":  "Audience > Audience - Preschool Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown / York County",
+            "School Age": "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown / York County",
+            "Tweens":     "Audience > Audience - School Age, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown / York County",
+            "Teens":      "Audience > Audience - Teens, Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown / York County",
+            "All Ages":   "Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown / York County",
+            "Adults 18+": "Audience > Audience - Free Event, Event Location (Category) > Event Location - Yorktown / York County"
         },
     
         "always_on_categories": [
-            "Event Location - Yorktown / York County",
+            "Event Location (Category) > Event Location - Yorktown / York County",
             "Audience > Audience - Family Event",
         ],
     
