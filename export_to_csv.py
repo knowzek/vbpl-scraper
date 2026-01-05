@@ -690,6 +690,21 @@ def export_events_to_csv(library="master", return_df=False, needs_bucket=None, s
     export_df["End time (H:i:s)"] = old_export_df["EVENT END TIME"].apply(_to_his)      # AK <- old H
     export_df["Organizer 1"] = organizer_series.values       # AL <- old D
 
+    # ------------------------------------------------------------------
+    # Force times for ALL DAY events → 12:00:00 (WP Calendar requirement)
+    # ------------------------------------------------------------------
+    mask_all_day = (
+        export_df["EventAllDay"]
+        .astype(str)
+        .str.strip()
+        .str.upper()
+        .isin(["TRUE", "1", "YES"])
+    )
+    
+    export_df.loc[mask_all_day, "Start time (H:i:s)"] = "12:00:00"
+    export_df.loc[mask_all_day, "End time (H:i:s)"] = "12:00:00"
+
+
     str_cols = export_df.select_dtypes(include="object").columns
     for col in str_cols:
         export_df[col] = export_df[col].map(_ascii_normalize).map(_ascii_quotes)
