@@ -22,6 +22,43 @@ from gspread.exceptions import APIError
 STRICT_VENUE_LIBS = {"vbpl", "npl", "chpl", "nnpl", "hpl", "spl", "ppl"}
 NEEDS_ATTENTION_EMAIL = os.environ.get("NEEDS_ATTENTION_EMAIL")  # set in Render
 
+def _to_ymd(date_str: str) -> str:
+    """
+    Convert dates to YYYY-MM-DD.
+    Accepts 'MM/DD/YYYY', 'YYYY-MM-DD', datetime, etc.
+    Returns '' if blank/unparseable.
+    """
+    if not date_str:
+        return ""
+
+    try:
+        dt = pd.to_datetime(date_str, errors="coerce")
+        if pd.isna(dt):
+            return ""
+        return dt.strftime("%Y-%m-%d")
+    except Exception:
+        return ""
+
+
+def _to_his(time_str: str) -> str:
+    """
+    Convert '3 PM' / '3:00 PM' -> '15:00:00' for WP importer columns 'Start time (H:i:s)'.
+    Returns '' if blank/unparseable.
+    """
+    t = (time_str or "").strip()
+    if not t:
+        return ""
+    t = t.replace(".", "").upper().strip()
+
+    for fmt in ("%I:%M %p", "%I %p"):
+        try:
+            dt = datetime.strptime(t, fmt)
+            return dt.strftime("%H:%M:%S")
+        except ValueError:
+            continue
+    return ""
+
+
 def _infer_library_from_url(u: str):
     u = (u or "").lower()
     # Library-specific URL fingerprints
@@ -566,7 +603,7 @@ def export_events_to_csv(library="master", return_df=False, needs_bucket=None, s
         "EVENT NAME": df["Event Name"],
         "EVENT EXCERPT": "",
         "EVENT VENUE NAME": df["Venue"],
-        "EVENT ORGANIZER NAME": organizer_name,
+        "EVENT ORGANIZER NAME": organizer_series.values,
         "EVENT START DATE": df["EVENT START DATE"],
         "EVENT START TIME": df["EVENT START TIME"],
         "EVENT END DATE": df["EVENT END DATE"],
@@ -590,8 +627,44 @@ def export_events_to_csv(library="master", return_df=False, needs_bucket=None, s
         "EVENT DESCRIPTION": df["Event Description"]
     })
 
-    # Replace placeholder with per-row organizer values
-    export_df["EVENT ORGANIZER NAME"] = organizer_series.values
+    # Keep a copy of the OLD export (A–Y) as-built above
+    old_export_df = export_df.copy()
+    
+    # NEW WP Calendar Uploader template columns (must match attached CSV exactly)
+    template_columns = [
+        "record_id", "Title", "URL Slug", "Content", "View", "Author", "Excerpt", "Status",
+        "Event Categories", "EventCost", "EventURL", "Venue", "Date", "Modified Date",
+        "WP Editor", "Order", "Featured Image", "Tags", "Post type", "EventAllDay",
+        "EventCostDescription", "EventCurrencyCode", "Currency position", "EventCurrencySymbol",
+        "EventDateTimeSeparator", "Origin", "Show map", "Show map link",
+        "Tribe Aggregator Parent Record", "Tribe Aggregator Record", "Tribe Aggregator Source",
+        "Tribe Aggregator Updated", "EventOccurrencesCount: Is Inserted: 1",
+        "Start date", "Start time (H:i:s)", "End date", "End time (H:i:s)", "Organizer 1"
+    ]
+    
+    # Create NEW export with all blanks by default
+    export_df = pd.DataFrame({c: "" for c in template_columns}, index=old_export_df.index)
+    
+    # Apply your mapping (NEW A–AL)
+    export_df["Title"] = old_export_df["EVENT NAME"]                       # B <- old A
+    export_df["Content"] = old_export_df["EVENT DESCRIPTION"]              # D <- old Y
+    export_df["Author"] = "Kristin_Automations"                            # F constant
+    export_df["Status"] = "Draft"                                          # H constant
+    export_df["Event Categories"] = old_export_df["EVENT CATEGORY"]        # I <- old M
+    export_df["EventURL"] = old_export_df["EVENT WEBSITE"]                 # K <- old T
+    export_df["Venue"] = old_export_df["EVENT VENUE NAME"]                 # L <- old C
+    export_df["EventAllDay"] = old_export_df["ALL DAY EVENT"]              # T <- old I
+    export_df["EventCurrencyCode"] = "USD"                                 # V constant
+    export_df["Currency position"] = "Before cost"                         # W constant
+    export_df["EventCurrencySymbol"] = "$"                                 # X constant
+    export_df["Origin"] = "Percentage discount"                            # Z constant
+    export_df["Show map"] = "1"                                            # AA constant
+    export_df["Show map link"] = "1"                                       # AB constant
+    export_df["Start date"] = old_export_df["EVENT START DATE"].apply(_to_ymd)
+    export_df["Start time (H:i:s)"] = old_export_df["EVENT START TIME"].apply(_to_his)  # AI <- old F
+    export_df["End date"] = old_export_df["EVENT END DATE"].apply(_to_ymd)
+    export_df["End time (H:i:s)"] = old_export_df["EVENT END TIME"].apply(_to_his)      # AK <- old H
+    export_df["Organizer 1"] = organizer_series.values       # AL <- old D
 
     str_cols = export_df.select_dtypes(include="object").columns
     for col in str_cols:
