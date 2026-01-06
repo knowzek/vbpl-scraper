@@ -587,7 +587,7 @@ LIBRARY_CONSTANTS = {
         "venue_names": {
             "American Revolution Museum at Yorktown": "American Revolution Museum", 
             "Yorktown Battlefield Visitors Center": "Yorktown Battlefield Visitor Center",
-            "Riverwalk Landing": "Riverwalk Landing",
+            "Riverwalk Landing": "Yorktown Riverwalk Landing",
             "Historic Main Street": "Historic Main Street Yorktown",
             "York Hall": "York Hall",
             "Watermen's Museum": "Watermen's Museum",
