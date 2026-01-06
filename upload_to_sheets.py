@@ -25,7 +25,7 @@ PLACEHOLDER = "LIST_COSPLAY_ANIME_COMICS"  # something that will never appear na
 
 SYNTHESIZE_SINGLE_FOR = {"visitchesapeake", "visitnewportnews", "visitnorfolk", "visityorktown"}
 PLACEHOLDER_1159_FOR = {"visitnorfolk", "visityorktown"}
-ENFORCE_VENUE_MAP_FOR = {"visitchesapeake", "visityorktown", "visitnorfolk", "visitsuffolk", "vbpr", "visithampton", "visitnewportnews", "portsvaevents"}
+ENFORCE_VENUE_MAP_FOR = {"visitchesapeake", "visityorktown", "visitnorfolk", "visitsuffolk", "vbpr", "visithampton", "visitnewportnews", "portsvaevents", "spl"}
 
 DASH_SPLIT = re.compile(r"\s+[-–—]\s+")  # space + dash + space (handles -, – , —)
 
